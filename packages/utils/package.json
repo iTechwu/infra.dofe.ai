@@ -10,8 +10,8 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@repo/contracts": ">=0.0.0",
-    "@repo/utils": ">=0.0.0"
+    "@repo/contracts": "workspace:*",
+    "@repo/utils": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

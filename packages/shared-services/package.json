@@ -17,7 +17,7 @@
     "@nestjs/event-emitter": "^3.0.0",
     "@nestjs/platform-fastify": "^11.0.0",
     "@prisma/client": "^7.0.0",
-    "@repo/contracts": ">=0.0.0",
+    "@repo/contracts": "workspace:*",
     "axios": "^1.7.0",
     "ioredis": "^5.0.0",
     "reflect-metadata": "^0.2.0",
