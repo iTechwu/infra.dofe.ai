@@ -18,7 +18,7 @@ import { FileBucketVendor } from '@prisma/client';
 
 import { RedisService } from '@dofe/infra-redis';
 import { FileStorageService } from '@dofe/infra-shared-services';
-import { CryptClient } from '@dofe/infra-clients';
+import { CryptClient } from '../crypt';
 import * as cryptoUtil from '@dofe/infra-utils';
 import {
   DofeFileCdn,

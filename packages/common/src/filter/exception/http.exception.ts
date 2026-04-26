@@ -8,11 +8,11 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { I18nContext } from 'nestjs-i18n';
-import { ApiException } from '@dofe/infra-common';
+import { ApiException } from './api.exception';
 
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { errorFromType } from '@dofe/infra-common';
+import { errorFromType } from '../../ts-rest/response.helper';
 
 @Catch(HttpException, ApiException)
 export class HttpExceptionFilter implements ExceptionFilter {

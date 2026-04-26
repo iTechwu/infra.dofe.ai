@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_AUTH } from '@dofe/infra-redis';
+import { REDIS_AUTH } from './dto/redis.dto';
 import { RedisService } from './redis.service';
 import { ConfigModule } from '@nestjs/config';
 import { CommonErrorCode } from '@repo/contracts/errors';

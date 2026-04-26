@@ -1,6 +1,6 @@
 import { Injectable, Inject, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { REDIS_AUTH } from '@dofe/infra-redis';
+import { REDIS_AUTH } from './dto/redis.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { RedisCacheKeyConfig } from '@dofe/infra-common';

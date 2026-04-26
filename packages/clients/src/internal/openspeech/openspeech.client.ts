@@ -33,7 +33,7 @@ import { Logger } from 'winston';
 import { FileBucketVendor, FileSource } from '@prisma/client';
 
 import { FileStorageService } from '@dofe/infra-shared-services';
-import fileUtil from '@dofe/infra-utils';
+import fileUtil from '@dofe/infra-common';
 import { OpenspeechProviderFactory } from './openspeech.factory';
 import {
   SubmitTaskResult,

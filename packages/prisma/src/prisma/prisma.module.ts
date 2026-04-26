@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from '@dofe/infra-prisma';
-import { PrismaWriteModule } from '@dofe/infra-prisma';
-import { PrismaReadModule } from '@dofe/infra-prisma';
+import { PrismaService } from './prisma.service';
+import { PrismaWriteModule } from '../prisma-write/prisma-write.module';
+import { PrismaReadModule } from '../prisma-read/prisma-read.module';
 import { RedisModule } from '@dofe/infra-redis';
 import { ConfigModule } from '@nestjs/config';
 @Module({

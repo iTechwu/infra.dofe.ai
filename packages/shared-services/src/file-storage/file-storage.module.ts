@@ -12,7 +12,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { IpGeoModule } from '@dofe/infra-shared-services';
+import { IpGeoModule } from '../ip-geo';
 import { RedisModule } from '@dofe/infra-redis';
 import { FileStorageService } from './file-storage.service';
 import { FileStorageClientFactory } from './file-storage.factory';

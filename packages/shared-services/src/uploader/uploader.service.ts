@@ -4,7 +4,7 @@ import { Logger } from 'winston';
 import { CommonErrorCode } from '@repo/contracts/errors';
 import { ApiException, apiError } from '@dofe/infra-common';
 import { RedisService } from '@dofe/infra-redis';
-import { FileStorageService } from '@dofe/infra-shared-services';
+import { FileStorageService } from '../file-storage';
 import { ConfigService } from '@nestjs/config';
 import { rsaDecrypt } from '@dofe/infra-utils';
 
@@ -13,7 +13,7 @@ import { DofeApp, Locale, LocaleString } from '@dofe/infra-common';
 import { AppConfig } from '@dofe/infra-common';
 import stringUtil from '@dofe/infra-utils';
 import enviromentUtil from '@dofe/infra-utils';
-import fileUtil from '@dofe/infra-utils';
+import fileUtil from '@dofe/infra-common';
 import { FileBucketVendor } from '@prisma/client';
 
 /**

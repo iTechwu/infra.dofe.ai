@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaReadService } from '@dofe/infra-prisma';
-import { PrismaWriteService } from '@dofe/infra-prisma';
+import { PrismaReadService } from '../prisma-read/prisma-read.service';
+import { PrismaWriteService } from '../prisma-write/prisma-write.service';
 
 @Injectable()
 export class PrismaService {
