@@ -1,0 +1,35 @@
+{
+  "name": "dofe-infra",
+  "version": "0.0.0",
+  "private": true,
+  "description": "DofeAI shared infrastructure libraries",
+  "scripts": {
+    "build": "pnpm -r --stream run build",
+    "clean": "pnpm -r --stream run clean",
+    "lint": "eslint 'packages/*/src/**/*.ts' --fix",
+    "typecheck": "pnpm -r --stream run typecheck"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@repo/*": "*"
+      },
+      "missingPeersAllowed": {
+        "@repo/contracts": true,
+        "@repo/constants": true,
+        "@repo/utils": true,
+        "@repo/validators": true
+      }
+    }
+  },
+  "devDependencies": {
+    "@nestjs/common": "^11.1.10",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.10",
+    "@nestjs/platform-fastify": "^11.1.10",
+    "@types/node": "^22.19.17",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "7.8.2",
+    "typescript": "^5.4.5"
+  }
+}

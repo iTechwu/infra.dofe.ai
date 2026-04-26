@@ -1,0 +1,36 @@
+{
+  "name": "@dofe/infra-shared-services",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "peerDependencies": {
+    "@nestjs/axios": "^4.0.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/event-emitter": "^3.0.0",
+    "@nestjs/platform-fastify": "^11.0.0",
+    "@prisma/client": "^7.0.0",
+    "@repo/contracts": ">=0.0.0",
+    "axios": "^1.7.0",
+    "ioredis": "^5.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  },
+  "dependencies": {
+    "@dofe/infra-clients": "workspace:*",
+    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-prisma": "workspace:*",
+    "@dofe/infra-redis": "workspace:*",
+    "@dofe/infra-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
