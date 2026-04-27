@@ -1,0 +1,30 @@
+import { z } from 'zod';
+export declare const FileApiKeySchema: any;
+export declare const FileLocalSchema: any;
+export declare const DoFeUploaderConfigSchema: any;
+export declare const PutObjectOptionsSchema: any;
+export declare const GetObjectOptionsSchema: any;
+export declare const PresignedPutUrlObjectSchema: any;
+export declare const ListedObjectEntrySchema: any;
+export declare const GetObjectsResultSchema: any;
+export declare const FetchObjectResultSchema: any;
+export declare const OperationResponseDataSchema: any;
+export declare const OperationResponseSchema: any;
+export declare const BatchOpsResultSchema: any;
+export type FileApiKey = z.infer<typeof FileApiKeySchema>;
+export type FileLocal = z.infer<typeof FileLocalSchema>;
+export type DoFeUploaderConfig = z.infer<typeof DoFeUploaderConfigSchema>;
+export type PutObjectOptions = z.infer<typeof PutObjectOptionsSchema>;
+export type GetObjectOptions = z.infer<typeof GetObjectOptionsSchema>;
+export type PresignedPutUrlObject = z.infer<typeof PresignedPutUrlObjectSchema>;
+export type ListedObjectEntry = z.infer<typeof ListedObjectEntrySchema>;
+export type GetObjectsResult = z.infer<typeof GetObjectsResultSchema>;
+export type FetchObjectResult = z.infer<typeof FetchObjectResultSchema>;
+export type OperationResponseData = z.infer<typeof OperationResponseDataSchema>;
+export type OperationResponse = z.infer<typeof OperationResponseSchema>;
+export type BatchOpsResult = z.infer<typeof BatchOpsResultSchema>;
+export declare namespace DoFeUploader {
+    type FileApiKey = z.infer<typeof FileApiKeySchema>;
+    type FileLocal = z.infer<typeof FileLocalSchema>;
+    type Config = z.infer<typeof DoFeUploaderConfigSchema>;
+}

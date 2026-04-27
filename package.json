@@ -4,7 +4,8 @@
   "private": true,
   "description": "DofeAI shared infrastructure libraries",
   "scripts": {
-    "build": "pnpm -r --stream run build",
+    "build": "bash scripts/build-all.sh",
+    "build:legacy": "pnpm -r --stream run build",
     "clean": "pnpm -r --stream run clean",
     "lint": "eslint 'packages/*/src/**/*.ts' --fix",
     "typecheck": "pnpm -r --stream run typecheck"
@@ -30,6 +31,7 @@
     "@types/node": "^22.19.17",
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "zod": "^4.3.6"
   }
 }

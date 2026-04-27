@@ -44,7 +44,7 @@ export class IpGeoService {
    * 从请求中提取 IP 地址
    */
   extractIp(req: FastifyRequest): string {
-    return ipUtil.extractIp(req);
+    return ipUtil.extractIp(req as any);
   }
 
   /**

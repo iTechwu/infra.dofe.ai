@@ -1,0 +1,1 @@
+{"version":3,"file":"wechat.module.js","sourceRoot":"","sources":["wechat.module.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAAwC;AACxC,mDAA+C;AAMxC,IAAM,YAAY,GAAlB,MAAM,YAAY;CAAG,CAAA;AAAf,oCAAY;uBAAZ,YAAY;IAJxB,IAAA,eAAM,EAAC;QACN,SAAS,EAAE,CAAC,4BAAY,CAAC;QACzB,OAAO,EAAE,CAAC,4BAAY,CAAC;KACxB,CAAC;GACW,YAAY,CAAG"}
