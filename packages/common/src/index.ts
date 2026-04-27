@@ -7,3 +7,4 @@ export {
   getTeamContext,
   type TeamContext,
 } from './decorators/team-info.decorator';
+export type { JwtConfig } from './config/validation';
