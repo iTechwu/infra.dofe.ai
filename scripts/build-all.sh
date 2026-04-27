@@ -21,4 +21,10 @@ for pkg in _dist_tmp/*/; do
 done
 
 rm -rf _dist_tmp
+
+# Copy i18n locale JSON files to dist/ (not compiled by tsc)
+echo "Copying i18n locale resources..."
+cp -r packages/i18n/src/en packages/i18n/dist/en 2>/dev/null || true
+cp -r packages/i18n/src/zh-CN packages/i18n/dist/zh-CN 2>/dev/null || true
+
 echo "Done. All packages built successfully."

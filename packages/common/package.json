@@ -24,7 +24,17 @@
     "fastify": "^5.2.0",
     "ioredis": "^5.0.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "nest-winston": "^1.9.7",
+    "winston": "^3.13.0",
+    "class-validator": "^0.14.1",
+    "zod": "^4.3.6",
+    "uuid": "^11.1.0",
+    "cls-hooked": "^4.2.2",
+    "crypto-js": "^4.2.0",
+    "js-yaml": "^4.1.0",
+    "nestjs-i18n": "^10.4.5",
+    "accept-language-parser": "^1.5.0"
   },
   "dependencies": {
     "@dofe/infra-utils": "workspace:*",

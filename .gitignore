@@ -3,3 +3,9 @@ dist/
 *.log
 logs/
 .turbo/
+_dist_tmp/
+
+# Prevent build artifacts from leaking into src/
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
