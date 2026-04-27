@@ -1,5 +1,5 @@
 // new-jwt.module.ts
-import { JwtConfig } from '@dofe/infra-common';
+import type { JwtConfig } from '@dofe/infra-common';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule as NestJwtModule, JwtService } from '@nestjs/jwt';

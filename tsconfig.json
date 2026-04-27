@@ -16,6 +16,29 @@
     "strictNullChecks": false,
     "strictPropertyInitialization": false,
     "noImplicitAny": false,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@dofe/infra-common": ["packages/common/src"],
+      "@dofe/infra-common/*": ["packages/common/src/*"],
+      "@dofe/infra-clients": ["packages/clients/src"],
+      "@dofe/infra-clients/*": ["packages/clients/src/*"],
+      "@dofe/infra-prisma": ["packages/prisma/src"],
+      "@dofe/infra-prisma/*": ["packages/prisma/src/*"],
+      "@dofe/infra-redis": ["packages/redis/src"],
+      "@dofe/infra-redis/*": ["packages/redis/src/*"],
+      "@dofe/infra-rabbitmq": ["packages/rabbitmq/src"],
+      "@dofe/infra-rabbitmq/*": ["packages/rabbitmq/src/*"],
+      "@dofe/infra-jwt": ["packages/jwt/src"],
+      "@dofe/infra-jwt/*": ["packages/jwt/src/*"],
+      "@dofe/infra-utils": ["packages/utils/src"],
+      "@dofe/infra-utils/*": ["packages/utils/src/*"],
+      "@dofe/infra-i18n": ["packages/i18n/src"],
+      "@dofe/infra-i18n/*": ["packages/i18n/src/*"],
+      "@dofe/infra-shared-db": ["packages/shared-db/src"],
+      "@dofe/infra-shared-db/*": ["packages/shared-db/src/*"],
+      "@dofe/infra-shared-services": ["packages/shared-services/src"],
+      "@dofe/infra-shared-services/*": ["packages/shared-services/src/*"]
+    }
   }
 }
