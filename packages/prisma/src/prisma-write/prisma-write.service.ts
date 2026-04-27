@@ -10,7 +10,7 @@ import { Logger } from 'winston';
 import type { PrismaClient } from '@prisma/client';
 // Import PrismaClient from generated location at runtime
 // Use process.cwd() to resolve from the project root (apps/api/)
-const { PrismaClient: PrismaClientRuntime } = require(
+const { PrismaClient: PrismaClientRuntime } = __non_webpack_require__(
   `${process.cwd()}/generated/prisma-client`,
 );
 import { PrismaPg } from '@prisma/adapter-pg';

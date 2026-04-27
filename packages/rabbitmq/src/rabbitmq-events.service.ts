@@ -11,7 +11,7 @@ import type { Connection, Channel } from 'amqplib';
 import {
   RABBITMQ_EVENTS_CONNECTION,
   type RabbitmqEventsConnection,
-} from './rabbitmq-events.module';
+} from './rabbitmq-events.constants';
 
 @Injectable()
 export class RabbitmqEventsService implements OnModuleDestroy {

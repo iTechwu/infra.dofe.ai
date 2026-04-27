@@ -10,14 +10,12 @@ import * as Rabbitmq from 'amqplib';
 import { ConfigModule } from '@nestjs/config';
 import environment from '@/utils/environment.util';
 import { RabbitmqEventsService } from './rabbitmq-events.service';
+import {
+  RABBITMQ_EVENTS_CONNECTION,
+  type RabbitmqEventsConnection,
+} from './rabbitmq-events.constants';
 
-// 独立的连接令牌
-export const RABBITMQ_EVENTS_CONNECTION = 'RABBITMQ_EVENTS_CONNECTION';
-
-export interface RabbitmqEventsConnection {
-  connection: Rabbitmq.Connection;
-  close: () => Promise<void>;
-}
+export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
 
 @Module({
   imports: [ConfigModule],

@@ -26,7 +26,7 @@ import environment from '@/utils/environment.util';
 // The tsconfig alias @prisma/client -> generated/prisma-client works for types
 // but at runtime we need to explicitly require from the generated location
 // Use process.cwd() to resolve from the project root (apps/api/)
-const { PrismaClient: PrismaClientRuntime } = require(
+const { PrismaClient: PrismaClientRuntime } = __non_webpack_require__(
   `${process.cwd()}/generated/prisma-client`,
 );
 

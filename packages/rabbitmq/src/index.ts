@@ -1,3 +1,4 @@
+export * from './rabbitmq-events.constants';
 export * from './rabbitmq.module';
 export * from './rabbitmq.service';
 export * from './rabbitmq-events.module';
