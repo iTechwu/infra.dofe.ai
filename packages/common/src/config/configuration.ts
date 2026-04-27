@@ -14,7 +14,7 @@ import {
   type YamlConfig,
   type KeysConfig,
 } from './validation';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 // ============================================================================
 // Configuration State

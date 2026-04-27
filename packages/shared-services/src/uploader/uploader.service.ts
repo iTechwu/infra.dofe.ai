@@ -12,7 +12,7 @@ import timer from '@/utils/timer.util';
 import { DoFeApp, Locale, LocaleString } from '@/config/dto/config.dto';
 import { AppConfig } from '@/config/validation';
 import stringUtil from '@/utils/string.util';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 import fileUtil from '@/utils/file.util';
 import { FileBucketVendor } from '@prisma/client';
 

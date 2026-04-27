@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { RedisCacheKeyConfig } from '@/config/validation';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private redisConfigs: Record<string, RedisCacheKeyConfig> = {};

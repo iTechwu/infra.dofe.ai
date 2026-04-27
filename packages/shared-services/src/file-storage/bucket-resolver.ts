@@ -19,7 +19,7 @@ import { DoFeUploader } from '@app/clients/internal/file-storage';
 import { IpGeoService } from '@app/shared-services/ip-geo';
 import { AppConfig } from '@/config/validation';
 import arrayUtil from '@/utils/array.util';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 import { BucketLookupOptions } from './types';
 
 /**

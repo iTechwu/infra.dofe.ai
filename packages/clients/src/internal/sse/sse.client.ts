@@ -143,7 +143,6 @@ export class SseClient {
 
   // 定向发送消息给特定客户端
   sendToClient(clientId: string, data: any, unregister: boolean = false): void {
-    console.log('techwu sendToClient', data);
     this.clients.forEach((client) => {
       if (client.id === clientId) {
         client.stream.next(data);

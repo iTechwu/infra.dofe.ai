@@ -32,7 +32,7 @@ import {
 import { getKeysConfig } from '@/config/configuration';
 import { OpenSpeechConfig, JwtConfig } from '@/config/validation';
 import { RedisService } from '@app/redis';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 import {
   CreateStreamingSessionDto,
   StreamingSessionResult,

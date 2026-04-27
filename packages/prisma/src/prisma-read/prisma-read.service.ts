@@ -20,7 +20,7 @@ import {
   hasExplicitIsDeleted,
   QUERY_ACTIONS,
 } from '../middleware/soft-delete.middleware';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 // Re-import PrismaClient from generated location at runtime
 // The tsconfig alias @prisma/client -> generated/prisma-client works for types

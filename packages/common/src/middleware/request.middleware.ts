@@ -9,7 +9,7 @@ import { Logger } from 'winston';
 import { getReqMainInfo } from '@/utils/logger.util';
 import * as parser from 'accept-language-parser';
 import ipUtil from '@/utils/ip.util';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 // Trace ID 请求头名称
 export const TRACE_ID_HEADER = 'x-trace-id';

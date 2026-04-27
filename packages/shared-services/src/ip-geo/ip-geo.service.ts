@@ -19,7 +19,7 @@ import { FastifyRequest } from 'fastify';
 import ipUtil from '@/utils/ip.util';
 import validateUtil from '@/utils/validate.util';
 import { DoFeApp } from '@/config/dto/config.dto';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
 import { IpInfoClient, IpInfoResponse } from '@app/clients/internal/ip-info';
 

@@ -18,7 +18,7 @@ import {
   TaskStatusResult,
   VolcengineAucConfig,
 } from '../types';
-import environmentUtil from '@/utils/enviroment.util';
+import environmentUtil from '@/utils/environment.util';
 
 /**
  * 支持的音频格式列表

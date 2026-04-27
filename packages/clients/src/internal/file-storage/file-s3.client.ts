@@ -46,8 +46,8 @@ import { CommonErrorCode } from '@repo/contracts/errors';
 import { ApiException, apiError } from '@/filter/exception/api.exception';
 import { isURL } from 'class-validator';
 import { RedisService } from '@app/redis';
-import enviromentUtil from '@/utils/enviroment.util';
-import enviroment from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
+import enviroment from '@/utils/environment.util';
 
 /**
  * S3 File Storage Client

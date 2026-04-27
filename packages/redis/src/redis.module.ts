@@ -6,7 +6,7 @@ import { CacheService } from './cache.service';
 import { ConfigModule } from '@nestjs/config';
 import { CommonErrorCode } from '@repo/contracts/errors';
 import { ApiException, apiError } from '@/filter/exception/api.exception';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 @Module({
   imports: [ConfigModule],

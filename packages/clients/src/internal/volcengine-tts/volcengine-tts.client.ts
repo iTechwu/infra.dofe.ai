@@ -12,7 +12,7 @@ import { getKeysConfig, initKeysConfig } from '@/config/configuration';
 import { StorageCredentialsConfig, TtsConfig } from '@/config/dto/config.dto';
 import { FileStorageService } from '@app/shared-services/file-storage';
 import { TtsRequestDto, TtsResultDto, TtsResponseDto } from './dto/tts.dto';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 /**
  * Volcengine TTS服务

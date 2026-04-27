@@ -20,9 +20,9 @@ import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileS3Client } from './file-s3.client';
 import { RedisService } from '@app/redis';
 import { TosClient } from '@volcengine/tos-sdk';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 import { TRANSCODE_CONSTANTS } from '@/config/constant/config.constants';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 /**
  * Volcengine TOS (Tinder Object Storage) Client
@@ -403,7 +403,6 @@ export class FileTosClient extends FileS3Client {
             fileKey,
             content: audioInfoJson,
           });
-          console.log('techwu parseError', fileKey, audioInfoJson, parseError);
           throw new Error('Failed to parse audio info as JSON');
         }
 
@@ -626,7 +625,6 @@ export class FileTosClient extends FileS3Client {
     if (this.config.isPublic) {
       return `${this.config.domain}/${fileKey}`;
     }
-    console.log('techwu bucket', bucket, fileKey);
 
     const finalBucket = bucket || this.getBucketString();
     const cacheKey = `${finalBucket}:${fileKey}`;

@@ -27,7 +27,7 @@ import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileStorageInterface } from './file-storage.interface';
 import folderUtil from '@/utils/folder.util';
 import { RedisService } from '@app/redis';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 import { ReadStream } from 'fs';
 
 /**
@@ -694,8 +694,7 @@ export class FileQiniuClient implements FileStorageInterface {
             // 这里只返回任务id，转由客户端发请求查询
             res(data.persistentId);
           } else {
-            console.log(resp.statusCode);
-            console.log(data);
+            this.logger.error('Qiniu pfop failed', { statusCode: resp.statusCode, data });
           }
         },
       );
@@ -711,7 +710,7 @@ export class FileQiniuClient implements FileStorageInterface {
     return new Promise((res) => {
       this.operManager.prefop(persistentId, (err, data, resp) => {
         if (err) {
-          console.log(err);
+          this.logger.error('Qiniu queryFopStatus error', err);
           throw apiError(CommonErrorCode.QiniuQueryFopStatusError);
         }
         if (resp.statusCode == 200) {
@@ -720,8 +719,7 @@ export class FileQiniuClient implements FileStorageInterface {
           // res({ code, key })
           res(item);
         } else {
-          console.log(resp.statusCode);
-          console.log(data);
+          this.logger.error('Qiniu queryFopStatus failed', { statusCode: resp.statusCode, data });
         }
       });
     });

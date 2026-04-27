@@ -14,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import { Signer } from '@volcengine/openapi';
 import { getKeysConfig } from '@/config/configuration';
 import { RiskConfig } from '@/config/validation';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 export interface VolcengineRiskConfig {
   accessKey: string;

@@ -8,7 +8,7 @@
 import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { ConfigModule } from '@nestjs/config';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 import { RabbitmqEventsService } from './rabbitmq-events.service';
 
 // 独立的连接令牌

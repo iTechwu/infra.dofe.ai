@@ -49,7 +49,7 @@ import {
   DEFAULT_SEND_FREQUENCY,
   DEFAULT_CODE_EXPIRE,
 } from './types';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 
 // ============================================================================
 // SMS Service

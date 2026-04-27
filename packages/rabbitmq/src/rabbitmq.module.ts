@@ -5,7 +5,7 @@ import { RabbitmqService } from './rabbitmq.service';
 import { PrismaModule } from '@app/prisma';
 import { RedisModule } from '@app/redis';
 import { ConfigModule } from '@nestjs/config';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 @Module({
   imports: [PrismaModule, RedisModule, ConfigModule],

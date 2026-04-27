@@ -35,7 +35,7 @@ import {
   buildStorageClientKey,
   StorageCredentialsMap,
 } from './types';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@/utils/environment.util';
 
 /**
  * 存储客户端类类型

@@ -13,7 +13,7 @@ import { RedisService } from '@app/redis';
 import { PrismaService } from '@app/prisma';
 import stringUtil from '@/utils/string.util';
 import objectUtil from '@/utils/object.util';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 interface MessageHandler {
   (message: any): Promise<void>;

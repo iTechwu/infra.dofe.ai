@@ -5,7 +5,7 @@
  * Ensures all required application settings are correctly configured.
  */
 import { z } from 'zod';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)

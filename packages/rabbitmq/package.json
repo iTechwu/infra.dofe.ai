@@ -1,8 +1,8 @@
 {
   "name": "@dofe/infra-rabbitmq",
   "version": "0.1.0",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "private": true,
   "scripts": {
     "build": "echo skip",
@@ -22,7 +22,9 @@
     "class-validator": "^0.14.1"
   },
   "dependencies": {
-    "@dofe/infra-common": "workspace:*"
+    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-prisma": "workspace:*",
+    "@dofe/infra-redis": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

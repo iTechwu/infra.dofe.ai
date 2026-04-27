@@ -21,7 +21,7 @@ import {
   hasExplicitIsDeleted,
   QUERY_ACTIONS,
 } from '../middleware/soft-delete.middleware';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@/utils/environment.util';
 import {
   DbMetricsService,
   QueryContext,
