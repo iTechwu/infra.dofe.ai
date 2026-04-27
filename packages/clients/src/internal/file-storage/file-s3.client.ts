@@ -46,8 +46,8 @@ import { CommonErrorCode } from '@repo/contracts/errors';
 import { ApiException, apiError } from '@/filter/exception/api.exception';
 import { isURL } from 'class-validator';
 import { RedisService } from '@app/redis';
-import enviromentUtil from '@/utils/environment.util';
-import enviroment from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 /**
  * S3 File Storage Client
@@ -97,7 +97,7 @@ export class FileS3Client implements FileStorageInterface {
     this.setClient();
 
     if (this.enableRetryMechanism || this.enableEnhancedLogging) {
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('S3 Service optimizations enabled', {
           retryMechanism: this.enableRetryMechanism,
           enhancedLogging: this.enableEnhancedLogging,
@@ -281,7 +281,7 @@ export class FileS3Client implements FileStorageInterface {
       });
 
       // 创建内部客户端（生产环境使用内部端点）
-      if (enviromentUtil.isProduction() && this.config.internalEndpoint) {
+      if (environmentUtil.isProduction() && this.config.internalEndpoint) {
         this.internalClient = new S3Client({
           ...clientConfig,
           endpoint: this.config.internalEndpoint,
@@ -296,7 +296,7 @@ export class FileS3Client implements FileStorageInterface {
       } else {
         this.internalClient = this.externalClient;
 
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.info('S3 client initialized (single endpoint)', {
             endpoint: this.config.endpoint,
             bucket: this.config.bucket,

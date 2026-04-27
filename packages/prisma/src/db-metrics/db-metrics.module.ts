@@ -5,7 +5,7 @@ import {
   makeGaugeProvider,
 } from '@willsoto/nestjs-prometheus';
 import { ConfigModule } from '@nestjs/config';
-import { PrometheusConfigModule } from '../../prometheus';
+import { PrometheusConfigModule } from '../prometheus';
 import { DbMetricsService } from './db-metrics.service';
 
 /**

@@ -49,7 +49,7 @@ import {
   DEFAULT_SEND_FREQUENCY,
   DEFAULT_CODE_EXPIRE,
 } from './types';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 
 // ============================================================================
 // SMS Service
@@ -100,7 +100,7 @@ export class SmsService implements OnModuleInit {
         },
       );
 
-      if (enviromentUtil.isProduction()) {
+      if (environmentUtil.isProduction()) {
         this.logger.info(
           `SMS service initialized with vendor: ${this.factory.currentVendorName}`,
         );

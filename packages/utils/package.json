@@ -9,6 +9,48 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./environment.util": {
+      "types": "./dist/environment.util.d.ts",
+      "default": "./dist/environment.util.js"
+    },
+    "./logger.util": {
+      "types": "./dist/logger.util.d.ts",
+      "default": "./dist/logger.util.js"
+    },
+    "./load-env.util": {
+      "types": "./dist/load-env.util.d.ts",
+      "default": "./dist/load-env.util.js"
+    },
+    "./ip.util": {
+      "types": "./dist/ip.util.d.ts",
+      "default": "./dist/ip.util.js"
+    },
+    "./validate.util": {
+      "types": "./dist/validate.util.d.ts",
+      "default": "./dist/validate.util.js"
+    },
+    "./string.util": {
+      "types": "./dist/string.util.d.ts",
+      "default": "./dist/string.util.js"
+    },
+    "./json.util": {
+      "types": "./dist/json.util.d.ts",
+      "default": "./dist/json.util.js"
+    },
+    "./prisma-error.util": {
+      "types": "./dist/prisma-error.util.d.ts",
+      "default": "./dist/prisma-error.util.js"
+    },
+    "./file.util": {
+      "types": "./dist/file.util.d.ts",
+      "default": "./dist/file.util.js"
+    }
+  },
   "dependencies": {},
   "peerDependencies": {
     "@nestjs/swagger": "^11.0.0",

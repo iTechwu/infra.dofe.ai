@@ -13,7 +13,7 @@ import {
 } from '@google-cloud/storage';
 import { RedisService } from '@app/redis';
 import { S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 
 /**
  * Google Cloud Storage Client
@@ -58,7 +58,7 @@ export class FileGcsClient extends FileS3Client {
       ...clientConfig,
       endpoint: this.config.endpoint,
     });
-    if (enviromentUtil.isProduction()) {
+    if (environmentUtil.isProduction()) {
       // 创建内部客户端对象
       this.internalClient = new S3Client({
         ...clientConfig,

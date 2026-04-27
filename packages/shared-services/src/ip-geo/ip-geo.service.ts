@@ -19,7 +19,7 @@ import { FastifyRequest } from 'fastify';
 import ipUtil from '@/utils/ip.util';
 import validateUtil from '@/utils/validate.util';
 import { DoFeApp } from '@/config/dto/config.dto';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
 import { IpInfoClient, IpInfoResponse } from '@app/clients/internal/ip-info';
 
@@ -51,7 +51,7 @@ export class IpGeoService {
    * 获取 IP 信息
    */
   async getIpInfo(ip: string): Promise<Partial<DoFeApp.IPInfo>> {
-    if (enviromentUtil.getBaseZone() === 'cn') {
+    if (environmentUtil.getBaseZone() === 'cn') {
       return {
         ip,
         country: 'CN',
@@ -121,7 +121,7 @@ export class IpGeoService {
    */
   async getContinent(ip: string): Promise<Continent> {
     const countryCode = await this.getIpCountry(ip);
-    const defaultZone = enviromentUtil.getBaseZone() as Continent;
+    const defaultZone = environmentUtil.getBaseZone() as Continent;
     return getContinentByCountry(countryCode, defaultZone);
   }
 

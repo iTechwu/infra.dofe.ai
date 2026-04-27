@@ -12,7 +12,7 @@ import timer from '@/utils/timer.util';
 import { DoFeApp, Locale, LocaleString } from '@/config/dto/config.dto';
 import { AppConfig } from '@/config/validation';
 import stringUtil from '@/utils/string.util';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 import fileUtil from '@/utils/file.util';
 import { FileBucketVendor } from '@prisma/client';
 
@@ -107,7 +107,7 @@ export class UploaderService {
     //时间戳距离当前时间超过15秒，则无效
     const now = new Date().getTime();
     if (
-      enviromentUtil.isProduction() &&
+      environmentUtil.isProduction() &&
       now - signatureData.timestamp > 15 * 1000
     ) {
       this.logger.error('[Signature Validation] Timestamp expired:', {

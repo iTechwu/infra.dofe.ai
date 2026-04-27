@@ -63,7 +63,7 @@ export class FileUs3Client extends FileS3Client {
       endpoint: this.config.endpoint,
       // endpoint: this.config.domain,
     });
-    // if (enviromentUtil.isProduction()) {
+    // if (environmentUtil.isProduction()) {
     //     // 创建内部客户端对象
     //     this.internalClient = new S3Client({
     //         ...clientConfig,

@@ -14,13 +14,13 @@ import { Logger } from 'winston';
 import {
   DbMetricsService,
   QueryContext,
-} from '../db-metrics/src/db-metrics.service';
+} from '../db-metrics/db-metrics.service';
 import {
   isSoftDeleteModel,
   hasExplicitIsDeleted,
   QUERY_ACTIONS,
 } from '../middleware/soft-delete.middleware';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // Re-import PrismaClient from generated location at runtime
 // The tsconfig alias @prisma/client -> generated/prisma-client works for types
@@ -385,7 +385,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
     this.initialized = true;
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('PrismaReadService initialized');
     }
   }
@@ -406,7 +406,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('PrismaReadService disconnected from database');
     }
   }

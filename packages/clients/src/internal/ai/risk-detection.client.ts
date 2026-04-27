@@ -14,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import { Signer } from '@volcengine/openapi';
 import { getKeysConfig } from '@/config/configuration';
 import { RiskConfig } from '@/config/validation';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 export interface VolcengineRiskConfig {
   accessKey: string;
@@ -104,7 +104,7 @@ export class RiskDetectionClient {
     );
 
     if (this.isConfigured) {
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('RiskDetectionClient initialized successfully', {
           accessKey: this.riskConfig.accessKey,
           secretKey: this.riskConfig.secretKey,

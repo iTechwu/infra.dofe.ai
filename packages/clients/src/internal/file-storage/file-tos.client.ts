@@ -20,9 +20,9 @@ import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileS3Client } from './file-s3.client';
 import { RedisService } from '@app/redis';
 import { TosClient } from '@volcengine/tos-sdk';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 import { TRANSCODE_CONSTANTS } from '@/config/constant/config.constants';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 /**
  * Volcengine TOS (Tinder Object Storage) Client
@@ -68,7 +68,7 @@ export class FileTosClient extends FileS3Client {
         endpoint: extractEndpoint(this.config.tosEndpoint || ''),
       });
       // 创建内部 TOS 客户端（如果配置了内部端点）
-      if (enviromentUtil.isProduction()) {
+      if (environmentUtil.isProduction()) {
         this.tosInternalClient = new TosClient({
           accessKeyId: this.storageConfig.accessKey,
           accessKeySecret: this.storageConfig.secretKey,
@@ -85,7 +85,7 @@ export class FileTosClient extends FileS3Client {
       } else {
         this.tosInternalClient = this.tosClient;
 
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.info('TOS client initialized (single endpoint)', {
             endpoint: this.config.tosEndpoint,
             bucket: this.config.bucket,

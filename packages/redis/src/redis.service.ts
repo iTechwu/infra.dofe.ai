@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { RedisCacheKeyConfig } from '@/config/validation';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private redisConfigs: Record<string, RedisCacheKeyConfig> = {};
@@ -62,7 +62,7 @@ export class RedisService implements OnModuleDestroy {
       } catch (error) {
         // 忽略已关闭的连接错误
         if (!(error instanceof Error) || !error.message.includes('closed')) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.error('Error closing Redis connection', {
               error,
             });
@@ -74,7 +74,7 @@ export class RedisService implements OnModuleDestroy {
         }
       }
     }
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('Redis service destroyed');
     } else {
       this.logger.debug('Redis service destroyed');
@@ -103,7 +103,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, saveDataToList failed');
           } else {
             this.logger.debug(
@@ -113,7 +113,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis saveDataToList error:', { error });
         } else {
           this.logger.debug('Redis saveDataToList error:', { error });
@@ -133,7 +133,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, getListData failed');
           } else {
             this.logger.debug('Redis connection closed, getListData failed', {
@@ -142,7 +142,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis getListData error:', { error });
         } else {
           this.logger.debug('Redis getListData error:', { error });
@@ -171,7 +171,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, pushDataToList failed');
           } else {
             this.logger.debug(
@@ -181,7 +181,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis pushDataToList error:', { error });
         } else {
           this.logger.debug('Redis pushDataToList error:', { error });
@@ -210,7 +210,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, pushDatasToList failed');
           } else {
             this.logger.debug(
@@ -220,7 +220,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis pushDatasToList error:', {
             error,
           });
@@ -364,7 +364,7 @@ export class RedisService implements OnModuleDestroy {
       // Redis 连接关闭或其他错误
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, set operation failed');
           } else {
             this.logger.debug('Redis connection closed, set operation failed', {
@@ -373,7 +373,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis set error:', { error });
         } else {
           this.logger.debug('Redis set error:', { error });
@@ -410,7 +410,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, setNX operation failed');
           } else {
             this.logger.debug(
@@ -422,7 +422,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis setNX error:', { error });
         } else {
           this.logger.debug('Redis setNX error:', { error });
@@ -449,7 +449,7 @@ export class RedisService implements OnModuleDestroy {
       // Redis 连接关闭或其他错误
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, returning null');
           } else {
             this.logger.debug('Redis connection closed, returning null', {
@@ -458,7 +458,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis get error:', { error });
         } else {
           this.logger.debug('Redis get error:', { error });
@@ -477,7 +477,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, del operation failed');
           } else {
             this.logger.debug('Redis connection closed, del operation failed', {
@@ -486,7 +486,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis del error:', { error });
         } else {
           this.logger.debug('Redis del error:', { error });
@@ -505,7 +505,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, incr operation failed');
           } else {
             this.logger.debug(
@@ -515,7 +515,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis incr error:', { error });
         } else {
           this.logger.debug('Redis incr error:', { error });
@@ -534,7 +534,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn(
               'Redis connection closed, incrby operation failed',
             );
@@ -546,7 +546,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis incrby error:', { error });
         } else {
           this.logger.debug('Redis incrby error:', { error });
@@ -565,7 +565,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, decr operation failed');
           } else {
             this.logger.debug(
@@ -575,7 +575,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis decr error:', { error });
         } else {
           this.logger.debug('Redis decr error:', { error });
@@ -594,7 +594,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn(
               'Redis connection closed, decrby operation failed',
             );
@@ -606,7 +606,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis decrby error:', { error });
         } else {
           this.logger.debug('Redis decrby error:', { error });
@@ -625,7 +625,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn(
               'Redis connection closed, expire operation failed',
             );
@@ -637,7 +637,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis expire error:', { error });
         } else {
           this.logger.debug('Redis expire error:', { error });
@@ -656,7 +656,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn('Redis connection closed, ttl operation failed');
           } else {
             this.logger.debug('Redis connection closed, ttl operation failed', {
@@ -665,7 +665,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis ttl error:', { error });
         } else {
           this.logger.debug('Redis ttl error:', { error });
@@ -684,7 +684,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn(
               'Redis connection closed, exists operation failed',
             );
@@ -696,7 +696,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis exists error:', { error });
         } else {
           this.logger.debug('Redis exists error:', { error });
@@ -749,7 +749,7 @@ export class RedisService implements OnModuleDestroy {
     } catch (error) {
       if (error instanceof Error && error.message.includes('closed')) {
         if (this.shouldLogClosedError()) {
-          if (enviroment.isProduction()) {
+          if (environment.isProduction()) {
             this.logger.warn(
               'Redis connection closed, deleteByPattern operation failed',
             );
@@ -761,7 +761,7 @@ export class RedisService implements OnModuleDestroy {
           }
         }
       } else {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.error('Redis deleteByPattern error:', {
             error,
             pattern,
@@ -824,7 +824,7 @@ export class RedisService implements OnModuleDestroy {
         return result;
       });
     } catch (error) {
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.error('Redis pipeline error:', { error });
       } else {
         this.logger.debug('Redis pipeline error:', { error });
@@ -876,7 +876,7 @@ export class RedisService implements OnModuleDestroy {
 
       await pipeline.exec();
     } catch (error) {
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.error('Redis pipelineSave error:', { error });
       } else {
         this.logger.debug('Redis pipelineSave error:', { error });
@@ -939,7 +939,7 @@ export class RedisService implements OnModuleDestroy {
 
       return result;
     } catch (error) {
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.error('Redis pipelineGet error:', { error });
       } else {
         this.logger.debug('Redis pipelineGet error:', { error });

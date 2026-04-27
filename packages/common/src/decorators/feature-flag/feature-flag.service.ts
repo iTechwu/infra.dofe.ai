@@ -32,7 +32,7 @@ import {
   FeatureFlagOptions,
   FeatureFlagStrategy,
 } from './feature-flag.decorator';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // ============================================================================
 // Types
@@ -109,7 +109,7 @@ export class FeatureFlagService implements OnModuleInit {
       }
     }
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('Feature flag service module initialized', {
         provider: this.provider,
         redisKeyPrefix: this.redisKeyPrefix,

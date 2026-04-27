@@ -13,7 +13,7 @@ import { RedisService } from '@app/redis';
 import { PrismaService } from '@app/prisma';
 import stringUtil from '@/utils/string.util';
 import objectUtil from '@/utils/object.util';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 interface MessageHandler {
   (message: any): Promise<void>;
@@ -119,7 +119,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       this.isConnected = true;
       this.reconnectAttempts = 0;
 
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('RabbitMQ service initialized successfully');
       } else {
         this.logger.debug('RabbitMQ service initialized successfully');
@@ -198,7 +198,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       });
 
       this.channel.on('close', () => {
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.warn('RabbitMQ channel closed');
         }
         this.channel = undefined;
@@ -207,7 +207,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       // 设置预取数量
       await this.channel.prefetch(1);
 
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('RabbitMQ channel created successfully');
       }
     } catch (error) {

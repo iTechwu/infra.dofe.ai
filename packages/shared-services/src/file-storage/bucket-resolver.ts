@@ -19,7 +19,7 @@ import { DoFeUploader } from '@app/clients/internal/file-storage';
 import { IpGeoService } from '@app/shared-services/ip-geo';
 import { AppConfig } from '@/config/validation';
 import arrayUtil from '@/utils/array.util';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 import { BucketLookupOptions } from './types';
 
 /**
@@ -176,7 +176,7 @@ export class BucketResolver {
     locale?: string,
   ): Promise<string> {
     // 确定区域
-    let zone = enviromentUtil.getBaseZone();
+    let zone = environmentUtil.getBaseZone();
     if (ip) {
       const continent = await this.ipGeoService.getContinent(ip);
       zone = continent ?? zone;
@@ -296,7 +296,7 @@ export class BucketResolver {
    */
   generateFileKey(root: string, ext: string, bucket?: string): string {
     const prefix = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    const env = enviromentUtil.getEnv();
+    const env = environmentUtil.getEnv();
 
     if (bucket) {
       return `${bucket}/${env}/${root}/${prefix}.${ext}`;

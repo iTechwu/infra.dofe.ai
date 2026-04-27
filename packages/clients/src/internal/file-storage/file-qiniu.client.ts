@@ -27,7 +27,7 @@ import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileStorageInterface } from './file-storage.interface';
 import folderUtil from '@/utils/folder.util';
 import { RedisService } from '@app/redis';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 import { ReadStream } from 'fs';
 
 /**
@@ -102,7 +102,7 @@ export class FileQiniuClient implements FileStorageInterface {
   ): Promise<string> {
     const defaultOptions: qiniu.rs.PutPolicyOptions = {
       callbackUrl:
-        enviromentUtil.generateEnvironmentUrls().api +
+        environmentUtil.generateEnvironmentUrls().api +
         '/' +
         this.config.webhook +
         callbackAuthKey,

@@ -35,7 +35,7 @@ import {
   buildStorageClientKey,
   StorageCredentialsMap,
 } from './types';
-import enviromentUtil from '@/utils/environment.util';
+import environmentUtil from '@/utils/environment.util';
 
 /**
  * 存储客户端类类型
@@ -178,7 +178,7 @@ export class FileStorageClientFactory {
       }
     }
 
-    if (enviromentUtil.isProduction()) {
+    if (environmentUtil.isProduction()) {
       this.logger.info('FileStorageClientFactory module initialized', {
         clientCount: this.clients.size,
         vendors: [...new Set(this.bucketConfigs.map((c) => c.vendor))],

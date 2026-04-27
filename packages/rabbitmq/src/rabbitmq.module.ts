@@ -5,7 +5,7 @@ import { RabbitmqService } from './rabbitmq.service';
 import { PrismaModule } from '@app/prisma';
 import { RedisModule } from '@app/redis';
 import { ConfigModule } from '@nestjs/config';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 @Module({
   imports: [PrismaModule, RedisModule, ConfigModule],
@@ -32,7 +32,7 @@ import enviroment from '@/utils/environment.util';
                 reconnectBackoffTime: 1000,
               },
             );
-            if (enviroment.isProduction()) {
+            if (environment.isProduction()) {
               console.log('RabbitMQ connection established successfully');
             }
 
@@ -42,7 +42,7 @@ import enviroment from '@/utils/environment.util';
             });
 
             connection.on('close', () => {
-              if (enviroment.isProduction()) {
+              if (environment.isProduction()) {
                 console.warn('❌ RabbitMQ connection closed');
               }
             });
@@ -52,7 +52,7 @@ import enviroment from '@/utils/environment.util';
               close: async () => {
                 try {
                   await connection.close();
-                  if (enviroment.isProduction()) {
+                  if (environment.isProduction()) {
                     console.log('✅ RabbitMQ connection closed gracefully');
                   }
                 } catch (error) {

@@ -21,11 +21,11 @@ import {
   hasExplicitIsDeleted,
   QUERY_ACTIONS,
 } from '../middleware/soft-delete.middleware';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 import {
   DbMetricsService,
   QueryContext,
-} from '../db-metrics/src/db-metrics.service';
+} from '../db-metrics/db-metrics.service';
 
 /**
  * Prisma Write Service
@@ -379,7 +379,7 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
 
     this.initialized = true;
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('PrismaWriteService initialized');
     }
   }
@@ -399,7 +399,7 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
         this.logger.warn('Error closing database pool', { error });
       }
     }
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('PrismaWriteService disconnected from database');
     }
   }

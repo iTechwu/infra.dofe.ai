@@ -48,7 +48,7 @@ import {
   RateLimitOptions,
   RateLimitResult,
 } from './dto/rate-limit.dto';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // ============================================================================
 // Constants
@@ -103,7 +103,7 @@ export class RateLimitService implements OnModuleInit {
       this.keyPrefix = config.redis?.keyPrefix || 'dofe:ratelimit:';
     }
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('RateLimitService module initialized', {
         enabled: this.config.enabled,
         keyPrefix: this.keyPrefix,

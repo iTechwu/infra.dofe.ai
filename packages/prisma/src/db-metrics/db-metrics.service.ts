@@ -5,7 +5,7 @@ import { Logger } from 'winston';
 import { Counter, Histogram, Gauge } from 'prom-client';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { clsNamespace } from '@/middleware/request.middleware';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 /**
  * Slow query threshold levels
@@ -169,7 +169,7 @@ export class DbMetricsService implements OnModuleInit {
     if (config) {
       this.config = { ...DEFAULT_CONFIG, ...config };
     }
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('DbMetricsService module initialized', {
         config: this.config,
       });

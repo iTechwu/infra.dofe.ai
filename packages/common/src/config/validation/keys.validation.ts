@@ -8,7 +8,7 @@
  * Never log or expose the actual values.
  */
 import { z } from 'zod';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)
@@ -347,7 +347,7 @@ export function validateKeysConfig(config: unknown): KeysConfig {
     throw new Error(`Keys configuration validation failed:\n${errorMessages}`);
   }
 
-  if (enviroment.isProduction()) {
+  if (environment.isProduction()) {
     console.log('✅ Keys configuration validated successfully');
   }
   return result.data;

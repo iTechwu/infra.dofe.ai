@@ -8,7 +8,7 @@
 import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { ConfigModule } from '@nestjs/config';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 import { RabbitmqEventsService } from './rabbitmq-events.service';
 
 // 独立的连接令牌
@@ -46,7 +46,7 @@ export interface RabbitmqEventsConnection {
               reconnectBackoffTime: 1000,
             });
 
-            if (enviroment.isProduction()) {
+            if (environment.isProduction()) {
               console.log(
                 '✅ [Events] RabbitMQ Events connection established successfully',
               );

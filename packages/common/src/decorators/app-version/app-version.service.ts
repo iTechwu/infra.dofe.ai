@@ -20,7 +20,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import * as fs from 'fs';
 import * as path from 'path';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // ============================================================================
 // Types
@@ -97,7 +97,7 @@ export class AppVersionService implements OnModuleInit {
         ),
       };
 
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('App version info module loaded', {
           versionInfo: this.versionInfo,
         });

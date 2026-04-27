@@ -6,7 +6,7 @@ import { CacheService } from './cache.service';
 import { ConfigModule } from '@nestjs/config';
 import { CommonErrorCode } from '@repo/contracts/errors';
 import { ApiException, apiError } from '@/filter/exception/api.exception';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 @Module({
   imports: [ConfigModule],
@@ -34,13 +34,13 @@ import enviroment from '@/utils/environment.util';
           });
 
           client.on('connect', () => {
-            if (enviroment.isProduction()) {
+            if (environment.isProduction()) {
               console.log('Redis client connected');
             }
           });
 
           client.on('error', (error) => {
-            if (enviroment.isProduction()) {
+            if (environment.isProduction()) {
               console.error('Error connecting to Redis', error);
             } else {
               console.debug('Error connecting to Redis', error);

@@ -5,7 +5,7 @@
  * Ensures all required application settings are correctly configured.
  */
 import { z } from 'zod';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)
@@ -528,7 +528,7 @@ export function validateYamlConfig(config: unknown): YamlConfig {
     throw new Error(`YAML configuration validation failed:\n${errorMessages}`);
   }
 
-  if (enviroment.isProduction()) {
+  if (environment.isProduction()) {
     console.log('✅ YAML configuration validated successfully');
   }
   return result.data;

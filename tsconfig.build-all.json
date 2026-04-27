@@ -18,6 +18,8 @@
     "rootDir": "./packages",
     "baseUrl": ".",
     "paths": {
+      "@repo/contracts": ["../models.dofe.ai/packages/contracts/dist/index"],
+      "@repo/contracts/*": ["../models.dofe.ai/packages/contracts/dist/*"],
       "@/common/*": ["packages/common/src/*"],
       "@/config/*": ["packages/common/src/config/*"],
       "@/config/configuration": ["packages/common/src/config/configuration"],

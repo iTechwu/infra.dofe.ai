@@ -12,7 +12,7 @@ import { getKeysConfig, initKeysConfig } from '@/config/configuration';
 import { StorageCredentialsConfig, TtsConfig } from '@/config/dto/config.dto';
 import { FileStorageService } from '@app/shared-services/file-storage';
 import { TtsRequestDto, TtsResultDto, TtsResponseDto } from './dto/tts.dto';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 /**
  * Volcengine TTS服务
@@ -155,7 +155,7 @@ export class VolcengineTtsClient {
         accessKeySecret,
       });
 
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('VolcengineTtsClient module initialized TOS client', {
           region,
           endpoint,
@@ -198,7 +198,7 @@ export class VolcengineTtsClient {
       this.logger.warn(`缺少TTS配置项: ${missingVars.join(', ')}`);
       this.logger.warn('TTS服务可能无法正常工作，请检查配置文件');
     } else {
-      if (enviroment.isProduction()) {
+      if (environment.isProduction()) {
         this.logger.info('TTS configuration validated successfully');
       }
     }

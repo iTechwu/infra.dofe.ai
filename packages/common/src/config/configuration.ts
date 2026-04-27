@@ -14,7 +14,7 @@ import {
   type YamlConfig,
   type KeysConfig,
 } from './validation';
-import enviroment from '@/utils/environment.util';
+import environment from '@/utils/environment.util';
 
 // ============================================================================
 // Configuration State
@@ -127,7 +127,7 @@ export async function initConfig() {
     // 构建配置文件路径
     const configPath = path.join(projectRoot, YAML_CONFIG_FILENAME);
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       console.log(`✅ Loading config from: ${configPath}`);
     }
 
@@ -137,7 +137,7 @@ export async function initConfig() {
 
     // 读取 YAML 配置文件内容
     const rawConfig = yaml.load(readFileSync(configPath, 'utf8'));
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       console.log('✅ Config loaded successfully, validating...');
     }
 
@@ -162,7 +162,7 @@ export async function initConfig() {
       config = rawConfig as YamlConfig;
     }
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       console.log('✅ Config validation completed successfully');
     }
   } catch (error) {
