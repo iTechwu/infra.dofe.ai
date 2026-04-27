@@ -15,7 +15,7 @@ import {
   TaskStatusResult,
   AliyunOpenspeechConfig,
 } from '../types';
-import environmentUtil from '@dofe/infra-utils';
+import environmentUtil from '@/utils/enviroment.util';
 
 /**
  * 阿里云语音识别服务提供商

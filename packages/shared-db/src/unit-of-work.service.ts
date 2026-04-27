@@ -30,7 +30,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { PrismaService } from '@dofe/infra-prisma';
+import { PrismaService } from '@app/prisma';
 import { runInTransactionContext } from './transaction-context';
 
 /**
@@ -84,6 +84,9 @@ export class UnitOfWorkService {
    * Execute with retry on deadlock/conflict
    * 在死锁/冲突时重试执行
    *
+   * Uses exponential backoff with jitter to prevent thundering herd
+   * 使用带抖动的指数退避来防止惊群效应
+   *
    * @param callback - Callback function
    * @param options - Transaction options with retry config
    * @returns Result of the callback
@@ -106,7 +109,11 @@ export class UnitOfWorkService {
       } catch (error) {
         lastError = error as Error;
         if (this.isRetryableError(error) && attempt < maxRetries) {
-          await this.sleep(retryDelay * Math.pow(2, attempt));
+          // Exponential backoff with jitter to prevent thundering herd
+          // 指数退避 + 抖动，防止惊群效应
+          const baseDelay = retryDelay * Math.pow(2, attempt);
+          const jitter = Math.random() * retryDelay;
+          await this.sleep(baseDelay + jitter);
           continue;
         }
         throw error;

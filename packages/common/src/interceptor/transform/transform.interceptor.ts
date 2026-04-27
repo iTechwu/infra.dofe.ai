@@ -25,7 +25,7 @@ import { FastifyRequest } from 'fastify';
  *
  * @example
  * ```typescript
- * import { success, deleted, errorFromType } from '@dofe/infra-common';
+ * import { success, deleted, errorFromType } from '@/common/ts-rest';
  *
  * @TsRestHandler(c.getItem)
  * async getItem() {

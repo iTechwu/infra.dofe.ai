@@ -14,14 +14,14 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { FastifyRequest } from 'fastify';
-import ipUtil from '@dofe/infra-utils';
-import validateUtil from '@dofe/infra-utils';
-import { DofeApp } from '@dofe/infra-common';
-import enviromentUtil from '@dofe/infra-utils';
+import ipUtil from '@/utils/ip.util';
+import validateUtil from '@/utils/validate.util';
+import { DoFeApp } from '@/config/dto/config.dto';
+import enviromentUtil from '@/utils/enviroment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
-import { IpInfoClient, IpInfoResponse } from '@dofe/infra-clients';
+import { IpInfoClient, IpInfoResponse } from '@app/clients/internal/ip-info';
 
 /**
  * IP 地理位置服务（Infra 层）
@@ -50,7 +50,7 @@ export class IpGeoService {
   /**
    * 获取 IP 信息
    */
-  async getIpInfo(ip: string): Promise<Partial<DofeApp.IPInfo>> {
+  async getIpInfo(ip: string): Promise<Partial<DoFeApp.IPInfo>> {
     if (enviromentUtil.getBaseZone() === 'cn') {
       return {
         ip,
@@ -78,7 +78,7 @@ export class IpGeoService {
 
     try {
       const response: IpInfoResponse = await this.ipInfoClient.getIpInfo(ip);
-      let ipInfoData: DofeApp.IPInfo = response;
+      let ipInfoData: DoFeApp.IPInfo = response;
       this.logger.info('IP info:', { ipInfoData });
       await this.redis.saveData(this.ipinfoRedisKey, ip, ipInfoData);
 

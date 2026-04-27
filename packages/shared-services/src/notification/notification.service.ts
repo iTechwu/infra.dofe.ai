@@ -188,7 +188,10 @@ export class NotificationService implements OnModuleInit {
           request.templateData || {},
         );
         htmlContent = template.htmlContent
-          ? this.renderTemplate(template.htmlContent, request.templateData || {})
+          ? this.renderTemplate(
+              template.htmlContent,
+              request.templateData || {},
+            )
           : undefined;
         subject = template.subject
           ? this.renderTemplate(template.subject, request.templateData || {})

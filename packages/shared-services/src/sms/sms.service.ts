@@ -30,14 +30,14 @@ import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 import type { MobileAuth } from '@prisma/client';
 
-import { RedisService } from '@dofe/infra-redis';
-import { RabbitmqService } from '@dofe/infra-rabbitmq';
-import { VerifyClient } from '@dofe/infra-clients';
+import { RedisService } from '@app/redis';
+import { RabbitmqService } from '@app/rabbitmq';
+import { VerifyClient } from '@app/clients/internal/verify';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { apiError } from '@dofe/infra-common';
-import { DofeApp } from '@dofe/infra-common';
-import { getKeysConfig } from '@dofe/infra-common';
-import type { AppSmsConfig } from '@dofe/infra-clients';
+import { apiError } from '@/filter/exception/api.exception';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { getKeysConfig } from '@/config/configuration';
+import type { AppSmsConfig } from '@app/clients/internal/sms';
 
 import { SmsClientFactory } from './sms.factory';
 import {
@@ -49,7 +49,7 @@ import {
   DEFAULT_SEND_FREQUENCY,
   DEFAULT_CODE_EXPIRE,
 } from './types';
-import enviromentUtil from '@dofe/infra-utils';
+import enviromentUtil from '@/utils/enviroment.util';
 
 // ============================================================================
 // SMS Service
@@ -259,7 +259,7 @@ export class SmsService implements OnModuleInit {
    */
   async processingSendSmsVerifyCode(
     mobileAccount: Partial<MobileAuth>,
-    deviceInfo: DofeApp.HeaderData,
+    deviceInfo: DoFeApp.HeaderData,
     templateId: string = 'verify',
   ): Promise<void> {
     this.ensureInitialized();

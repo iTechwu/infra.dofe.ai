@@ -8,7 +8,7 @@
 import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { ConfigModule } from '@nestjs/config';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 import { RabbitmqEventsService } from './rabbitmq-events.service';
 
 // 独立的连接令牌
@@ -31,9 +31,7 @@ export interface RabbitmqEventsConnection {
         let lastError: Error | null = null;
 
         // 使用独立的 RabbitMQ 连接 URL (独立 vhost)
-        const rabbitmqEventsUrl =
-          process.env.RABBITMQ_EVENTS_URL ||
-          'amqp://dofe:N051Gym68Ul3@127.0.0.1:5672/nestjs_to_agentx_events';
+        const rabbitmqEventsUrl = process.env.RABBITMQ_EVENTS_URL;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {

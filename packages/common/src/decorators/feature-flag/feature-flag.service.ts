@@ -24,7 +24,7 @@ import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import * as crypto from 'crypto';
 
 import {
@@ -32,7 +32,7 @@ import {
   FeatureFlagOptions,
   FeatureFlagStrategy,
 } from './feature-flag.decorator';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // Types

@@ -32,8 +32,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FileBucketVendor, FileSource } from '@prisma/client';
 
-import { FileStorageService } from '@dofe/infra-shared-services';
-import fileUtil from '@dofe/infra-common';
+import { FileStorageService } from '@app/shared-services/file-storage';
+import fileUtil from '@/utils/file.util';
 import { OpenspeechProviderFactory } from './openspeech.factory';
 import {
   SubmitTaskResult,

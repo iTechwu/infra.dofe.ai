@@ -13,12 +13,12 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import { PrismaService } from '@dofe/infra-prisma';
+import { PrismaService } from '@app/prisma';
 import {
   getTransactionClient as getAsyncTransactionClient,
   isInTransaction as isInAsyncTransaction,
 } from './transaction-context';
-import { getTransactionClient as getSymbolTransactionClient } from '@dofe/infra-common';
+import { getTransactionClient as getSymbolTransactionClient } from '@/decorators/transaction/transactional.decorator';
 
 /**
  * Base class for transactional services
@@ -51,8 +51,39 @@ export abstract class TransactionalServiceBase {
       return symbolTxClient;
     }
 
-    // 3. 使用常规写客户端
+    // 3. 检查 prisma 是否已初始化
+    if (!this.prisma) {
+      throw new Error(
+        'PrismaService not initialized. Ensure the module is properly imported.',
+      );
+    }
+
+    // 4. 使用常规写客户端
     return this.prisma.write;
+  }
+
+  /**
+   * Get a valid client with model access
+   * 获取一个可访问模型的有效客户端
+   *
+   * This is a fallback method that ensures we always return a usable client.
+   * Use only when getReadClient/getWriteClient returns a client with missing models.
+   */
+  protected getValidClient(): PrismaClient {
+    // 尝试写客户端
+    const write = this.prisma.write;
+    if (write && (write as any).gatewayModelCatalog?.findMany) {
+      return write;
+    }
+
+    // 尝试读客户端
+    const read = this.prisma.read;
+    if (read && (read as any).gatewayModelCatalog?.findMany) {
+      return read;
+    }
+
+    // 如果都失败，返回写客户端（让错误自然抛出以便调试）
+    return write || read;
   }
 
   /**
@@ -78,8 +109,54 @@ export abstract class TransactionalServiceBase {
       return symbolTxClient;
     }
 
-    // 3. 使用常规读客户端
-    return this.prisma.read;
+    // 3. 检查 prisma 是否已初始化
+    if (!this.prisma) {
+      throw new Error(
+        'PrismaService not initialized. Ensure the module is properly imported.',
+      );
+    }
+
+    // 4. 获取读客户端和写客户端
+    const read = this.prisma.read;
+    const write = this.prisma.write;
+
+    // 5. 检查读客户端是否有效（有模型委托）
+    if (read && this.hasModelDelegates(read)) {
+      return read;
+    }
+
+    // 6. 读客户端无效，检查写客户端
+    if (write && this.hasModelDelegates(write)) {
+      return write;
+    }
+
+    // 7. 两个客户端都没有有效的模型委托
+    // 这表明 Prisma 客户端初始化失败
+    const readStatus = read ? 'exists but missing models' : 'undefined';
+    const writeStatus = write ? 'exists but missing models' : 'undefined';
+
+    throw new Error(
+      `Prisma client initialization failed. Read client: ${readStatus}, Write client: ${writeStatus}. ` +
+        `This usually happens when Prisma $extends loses model delegates. ` +
+        `Check PrismaReadService and PrismaWriteService initialization logs for details.`,
+    );
+  }
+
+  /**
+   * Check if a Prisma client has model delegates
+   * 检查 Prisma 客户端是否有模型委托
+   */
+  private hasModelDelegates(client: unknown): boolean {
+    if (!client) return false;
+
+    const prisma = client as Record<string, unknown>;
+
+    // 只需要检查一个模型即可判断客户端是否有效
+    const gatewayModelCatalog = prisma.gatewayModelCatalog;
+    if (!gatewayModelCatalog) return false;
+
+    const delegate = gatewayModelCatalog as Record<string, unknown>;
+    return typeof delegate.findMany === 'function';
   }
 
   /**

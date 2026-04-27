@@ -9,20 +9,20 @@ import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 
 import {
-  DofeUploader,
+  DoFeUploader,
   GetObjectOptions,
   PresignedPutUrlObject,
   PutObjectOptions,
 } from './dto/file.dto';
 
-import { DofeApp } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileS3Client } from './file-s3.client';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { TosClient } from '@volcengine/tos-sdk';
-import enviromentUtil from '@dofe/infra-utils';
-import { TRANSCODE_CONSTANTS } from '@dofe/infra-common';
-import enviroment from '@dofe/infra-utils';
+import enviromentUtil from '@/utils/enviroment.util';
+import { TRANSCODE_CONSTANTS } from '@/config/constant/config.constants';
+import enviroment from '@/utils/enviroment.util';
 
 /**
  * Volcengine TOS (Tinder Object Storage) Client
@@ -37,7 +37,7 @@ export class FileTosClient extends FileS3Client {
   private tosInternalClient: TosClient;
 
   constructor(
-    config: DofeUploader.Config,
+    config: DoFeUploader.Config,
     storageConfig: StorageCredentialsConfig,
     appConfig: AppConfig,
     redis: RedisService,
@@ -403,7 +403,7 @@ export class FileTosClient extends FileS3Client {
             fileKey,
             content: audioInfoJson,
           });
-          this.logger.warn('Failed to parse audio info', { fileKey, parseError });
+          console.log('techwu parseError', fileKey, audioInfoJson, parseError);
           throw new Error('Failed to parse audio info as JSON');
         }
 
@@ -626,6 +626,8 @@ export class FileTosClient extends FileS3Client {
     if (this.config.isPublic) {
       return `${this.config.domain}/${fileKey}`;
     }
+    console.log('techwu bucket', bucket, fileKey);
+
     const finalBucket = bucket || this.getBucketString();
     const cacheKey = `${finalBucket}:${fileKey}`;
 

@@ -4,7 +4,7 @@
  * @module streaming-asr/types
  */
 
-import { StreamingAsrStatus as ProviderStatus } from '@dofe/infra-clients';
+import { StreamingAsrStatus as ProviderStatus } from '@app/clients/internal/openspeech';
 
 /**
  * 流式识别会话状态

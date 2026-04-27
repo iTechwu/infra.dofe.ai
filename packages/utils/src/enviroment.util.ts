@@ -105,7 +105,7 @@ export default {
         apiSubDomain = 'api.test';
         break;
       case this.isCnProduction():
-        domain = 'dofe.cn';
+        domain = 'youhuitun.com';
         subDomain = 'www';
         apiSubDomain = 'mp';
         break;

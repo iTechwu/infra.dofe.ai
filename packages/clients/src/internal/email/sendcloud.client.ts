@@ -11,8 +11,8 @@ import { firstValueFrom } from 'rxjs';
 import * as nodemailer from 'nodemailer';
 import smtpPool from 'nodemailer-sendcloud-transport';
 import * as _ from 'lodash';
-import { DofeEmailSender } from './dto/email.dto';
-import { SendCloudConfig } from '@dofe/infra-common';
+import { DoFeEmailSender } from './dto/email.dto';
+import { SendCloudConfig } from '@/config/validation';
 
 // SendCloud API endpoints
 const SENDCLOUD_API = {

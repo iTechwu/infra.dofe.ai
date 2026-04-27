@@ -15,8 +15,8 @@ import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FileBucketVendor } from '@prisma/client';
-import { OpenSpeechConfig } from '@dofe/infra-common';
-import { getKeysConfig } from '@dofe/infra-common';
+import { OpenSpeechConfig } from '@/config/validation';
+import { getKeysConfig } from '@/config/configuration';
 import {
   IOpenspeechProvider,
   IStreamingAsrProvider,

@@ -12,22 +12,22 @@ import {
   GetObjectsResult,
   FetchObjectResult,
   BatchOpsResult,
-  DofeUploader,
+  DoFeUploader,
 } from './dto/file.dto';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as qiniu from 'qiniu';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import qiniuHostConfig from './config/file.config';
-import urlencodeUtil from '@dofe/infra-utils';
+import urlencodeUtil from '@/utils/urlencode.util';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@dofe/infra-common';
-import { DofeApp } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import { ApiException, apiError } from '@/filter/exception/api.exception';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileStorageInterface } from './file-storage.interface';
-import folderUtil from '@dofe/infra-utils';
-import { RedisService } from '@dofe/infra-redis';
-import enviromentUtil from '@dofe/infra-utils';
+import folderUtil from '@/utils/folder.util';
+import { RedisService } from '@app/redis';
+import enviromentUtil from '@/utils/enviroment.util';
 import { ReadStream } from 'fs';
 
 /**
@@ -45,7 +45,7 @@ export class FileQiniuClient implements FileStorageInterface {
   private cdnManager: qiniu.cdn.CdnManager;
   private logger: Logger;
 
-  config: DofeUploader.Config;
+  config: DoFeUploader.Config;
   storageConfig: StorageCredentialsConfig;
   appConfig: AppConfig;
   redis: RedisService;
@@ -56,7 +56,7 @@ export class FileQiniuClient implements FileStorageInterface {
    *
    */
   constructor(
-    config: DofeUploader.Config,
+    config: DoFeUploader.Config,
     storageConfig: StorageCredentialsConfig,
     appConfig: AppConfig,
     redis: RedisService,
@@ -207,7 +207,7 @@ export class FileQiniuClient implements FileStorageInterface {
    * 获取指定 bucket 的配置（辅助方法）
    * 注意：七牛云服务通常一个实例对应一个 bucket，此方法用于兼容接口
    */
-  private async getBucketConfig(bucket: string): Promise<DofeUploader.Config> {
+  private async getBucketConfig(bucket: string): Promise<DoFeUploader.Config> {
     // 七牛云通常一个实例对应一个 bucket，如果 bucket 不同，返回当前配置
     // 实际使用时应该根据 bucket 创建对应的服务实例
     this.logger.warn(
@@ -508,7 +508,7 @@ export class FileQiniuClient implements FileStorageInterface {
     return this.cdnManager;
   }
 
-  getConfig(): DofeUploader.Config {
+  getConfig(): DoFeUploader.Config {
     return this.config;
   }
 
@@ -572,9 +572,9 @@ export class FileQiniuClient implements FileStorageInterface {
   }
   async listBuckets() {}
 
-  async fileDownloader(source: DofeApp.FileBase) {}
+  async fileDownloader(source: DoFeApp.FileBase) {}
 
-  async fileUploader(buffer: Buffer, destination: DofeApp.FileBase) {}
+  async fileUploader(buffer: Buffer, destination: DoFeApp.FileBase) {}
 
   async completeMultipartUpload(
     uploadId: string,
@@ -694,10 +694,8 @@ export class FileQiniuClient implements FileStorageInterface {
             // 这里只返回任务id，转由客户端发请求查询
             res(data.persistentId);
           } else {
-            this.logger.warn('Qiniu fop operation failed', {
-              statusCode: resp.statusCode,
-              data,
-            });
+            console.log(resp.statusCode);
+            console.log(data);
           }
         },
       );
@@ -713,17 +711,17 @@ export class FileQiniuClient implements FileStorageInterface {
     return new Promise((res) => {
       this.operManager.prefop(persistentId, (err, data, resp) => {
         if (err) {
-          this.logger.error('Qiniu query fop status error', err);
+          console.log(err);
           throw apiError(CommonErrorCode.QiniuQueryFopStatusError);
         }
         if (resp.statusCode == 200) {
           const item = data.items[0];
+          // const { code, key } = item
+          // res({ code, key })
           res(item);
         } else {
-          this.logger.warn('Qiniu query fop status failed', {
-            statusCode: resp.statusCode,
-            data,
-          });
+          console.log(resp.statusCode);
+          console.log(data);
         }
       });
     });

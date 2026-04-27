@@ -14,7 +14,7 @@
  * @example
  * ```typescript
  * // 导入模块
- * import { FileCdnModule, FileCdnClient } from '@dofe/infra-clients';
+ * import { FileCdnModule, FileCdnClient } from '@app/clients/internal/file-cdn';
  *
  * // 在 NestJS 模块中使用
  * @Module({

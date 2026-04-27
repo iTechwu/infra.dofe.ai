@@ -1,6 +1,6 @@
 import { Inject, Injectable, OnModuleDestroy, Request } from '@nestjs/common';
-import stringUtil from '@dofe/infra-utils';
-import { RedisService } from '@dofe/infra-redis';
+import stringUtil from '@/utils/string.util';
+import { RedisService } from '@app/redis';
 
 @Injectable()
 export class VerifyClient {

@@ -89,7 +89,7 @@ export type SignedUrlParams = z.infer<typeof SignedUrlParamsSchema>;
 export type AwsSignatureV4Params = z.infer<typeof AwsSignatureV4ParamsSchema>;
 
 // Namespace for backward compatibility
-export namespace DofeFileCdn {
+export namespace DoFeFileCdn {
   export type QueryData = z.infer<typeof QueryDataSchema>;
   export type Config = z.infer<typeof CdnConfigSchema>;
   export type Configs = z.infer<typeof CdnConfigsSchema>;

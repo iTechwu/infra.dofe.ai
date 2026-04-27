@@ -12,7 +12,7 @@
  *     RateLimitService,
  *     RateLimitException,
  *     RateLimitModule,
- * } from '@dofe/infra-common';
+ * } from '@/decorators/rate-limit';
  * ```
  */
 

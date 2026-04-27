@@ -11,7 +11,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { EventInterceptor } from './event.interceptor';
 import { CacheEventHandler } from './handlers/cache-event.handler';
 import { CacheDecoratorModule } from '../cache/cache.module';
-import { RedisModule } from '@dofe/infra-redis';
+import { RedisModule } from '@app/redis';
 
 @Global()
 @Module({

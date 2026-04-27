@@ -12,15 +12,15 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import type { UserInfo } from '@prisma/client';
 
-import { RedisService } from '@dofe/infra-redis';
-import { RabbitmqService } from '@dofe/infra-rabbitmq';
-import { VerifyClient } from '@dofe/infra-clients';
+import { RedisService } from '@app/redis';
+import { RabbitmqService } from '@app/rabbitmq';
+import { VerifyClient } from '@app/clients/internal/verify';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { apiError } from '@dofe/infra-common';
-import { DofeApp, SendCloudConfig } from '@dofe/infra-common';
-import { getKeysConfig } from '@dofe/infra-common';
+import { apiError } from '@/filter/exception/api.exception';
+import { DoFeApp, SendCloudConfig } from '@/config/dto/config.dto';
+import { getKeysConfig } from '@/config/configuration';
 
-import { SendCloudClient, DofeEmailSender } from '@dofe/infra-clients';
+import { SendCloudClient, DoFeEmailSender } from '@app/clients/internal/email';
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -29,7 +29,7 @@ export class EmailService implements OnModuleInit {
   private emailCodePerDayLoggerKey = 'emailCodePerDay';
   private deviceCodePerDayLoggerKey = 'deviceCodePerDay';
   private secretConfig: SendCloudConfig;
-  private templates: Record<string, DofeEmailSender.EmailTemplate> = {};
+  private templates: Record<string, DoFeEmailSender.EmailTemplate> = {};
   private emailClient: SendCloudClient;
 
   constructor(
@@ -58,8 +58,7 @@ export class EmailService implements OnModuleInit {
       this.logger,
     );
     (sendcloudConfig.templates || []).forEach((template: any) => {
-      this.templates[template.name] =
-        template as DofeEmailSender.EmailTemplate;
+      this.templates[template.name] = template as DoFeEmailSender.EmailTemplate;
     });
   }
 
@@ -114,11 +113,11 @@ export class EmailService implements OnModuleInit {
 
   async processingEmail(
     user: { email: string; nickname?: string; name?: string },
-    deviceInfo: DofeApp.HeaderData,
+    deviceInfo: DoFeApp.HeaderData,
     templateName: string,
     subValues?: any | null,
   ) {
-    const message: DofeEmailSender.SignalMessage = await this.getEmailContent(
+    const message: DoFeEmailSender.SignalMessage = await this.getEmailContent(
       user,
       deviceInfo,
       templateName,
@@ -130,10 +129,10 @@ export class EmailService implements OnModuleInit {
 
   async processingSendVerifyEmail(
     userInfo: UserInfo,
-    deviceInfo: DofeApp.HeaderData,
+    deviceInfo: DoFeApp.HeaderData,
   ) {
     const templateName: string = 'verify';
-    const template: DofeEmailSender.EmailTemplate | undefined =
+    const template: DoFeEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -144,7 +143,7 @@ export class EmailService implements OnModuleInit {
       to,
       template.codeExpire,
     );
-    const subValues: DofeEmailSender.RegisterEmailSub = {
+    const subValues: DoFeEmailSender.RegisterEmailSub = {
       name: userInfo.nickname!,
       code: code,
     };
@@ -153,10 +152,10 @@ export class EmailService implements OnModuleInit {
 
   async processingSendResetPasswordeEmail(
     emailAccount: { email: string; name: string },
-    deviceInfo: DofeApp.HeaderData,
+    deviceInfo: DoFeApp.HeaderData,
   ) {
     const templateName: string = 'resetpassword';
-    const template: DofeEmailSender.EmailTemplate | undefined =
+    const template: DoFeEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -170,7 +169,7 @@ export class EmailService implements OnModuleInit {
       to,
       template.codeExpire,
     );
-    const subValues: DofeEmailSender.RegisterEmailSub = {
+    const subValues: DoFeEmailSender.RegisterEmailSub = {
       name: emailAccount.name,
       code: code,
     };
@@ -184,10 +183,10 @@ export class EmailService implements OnModuleInit {
 
   async processingSendRegisterEmail(
     emailAccount: { email: string; name: string },
-    deviceInfo: DofeApp.HeaderData,
+    deviceInfo: DoFeApp.HeaderData,
   ) {
     const templateName: string = 'register';
-    const template: DofeEmailSender.EmailTemplate | undefined =
+    const template: DoFeEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -202,7 +201,7 @@ export class EmailService implements OnModuleInit {
       to,
       template.codeExpire,
     );
-    const subValues: DofeEmailSender.RegisterEmailSub = {
+    const subValues: DoFeEmailSender.RegisterEmailSub = {
       name: emailAccount.name,
       code: code,
     };
@@ -217,11 +216,11 @@ export class EmailService implements OnModuleInit {
 
   async getEmailContent(
     user: { email: string; nickname?: string; name?: string },
-    deviceInfo: DofeApp.HeaderData,
+    deviceInfo: DoFeApp.HeaderData,
     templateName: string,
     subValues?: any | null,
-  ): Promise<DofeEmailSender.SignalMessage> {
-    const template: DofeEmailSender.EmailTemplate | undefined =
+  ): Promise<DoFeEmailSender.SignalMessage> {
+    const template: DoFeEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -233,13 +232,13 @@ export class EmailService implements OnModuleInit {
       template.frequency,
     );
     const sub = template.sub;
-    const subVery = {};
+    const subVery: Record<string, string[]> = {};
     if (sub && subValues) {
       for (const key in sub) {
-        const subKey = sub[key as keyof typeof sub];
-        const subValueKey = subValues[subKey as keyof typeof subValues];
-        if (subKey && subValueKey) {
-          subVery['%' + subKey + '%'] = [subValueKey];
+        const subKey = sub[key];
+        const subValue = (subValues as Record<string, string>)[subKey];
+        if (subValue) {
+          subVery['%' + subKey + '%'] = [subValue];
         }
       }
     }

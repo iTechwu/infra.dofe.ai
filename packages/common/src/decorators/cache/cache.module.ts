@@ -7,7 +7,7 @@
 
 import { Module, Global } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { RedisModule } from '@dofe/infra-redis';
+import { RedisModule } from '@app/redis';
 import { CacheInterceptor } from './cache.interceptor';
 
 @Global()

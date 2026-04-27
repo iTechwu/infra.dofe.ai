@@ -7,12 +7,21 @@ import {
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
+// Import PrismaClient from generated location at runtime
+// Use process.cwd() to resolve from the project root (apps/api/)
+const { PrismaClient: PrismaClientRuntime } = require(
+  `${process.cwd()}/generated/prisma-client`,
+);
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import bigintUtil from '@dofe/infra-utils';
-import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
-import enviroment from '@dofe/infra-utils';
+import bigintUtil from '@/utils/bigint.util';
+import {
+  isSoftDeleteModel,
+  hasExplicitIsDeleted,
+  QUERY_ACTIONS,
+} from '../middleware/soft-delete.middleware';
+import enviroment from '@/utils/enviroment.util';
 import {
   DbMetricsService,
   QueryContext,
@@ -36,8 +45,11 @@ import {
  */
 @Injectable()
 export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
+  private basePrisma: PrismaClient;
+  private extendedPrisma: PrismaClient | null = null;
   private prisma: PrismaClient;
   private pool: Pool;
+  private initialized = false;
 
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -63,17 +75,24 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
     const adapter = new PrismaPg(this.pool);
 
     // 使用适配器创建 PrismaClient
-    const basePrisma = new PrismaClient({ adapter });
+    // Use runtime PrismaClient from generated location
+    this.basePrisma = new PrismaClientRuntime({ adapter });
 
-    // Prisma 7.x: 使用 $extends 替代 $use
-    // 先应用软删除扩展，再应用监控扩展
-    this.prisma = this.setupExtensions(basePrisma);
+    // Prisma 7.3 + @prisma/adapter-pg: $extends 在连接前可能丢失模型委托
+    // 先使用 base 客户端，在 onModuleInit 中再尝试扩展
+    this.prisma = this.basePrisma;
+
+    this.logger.info(
+      '[PrismaWriteService] Prisma client created (base client, will extend after connect)',
+    );
   }
 
   /**
    * Setup Prisma extensions for query monitoring and soft delete
    * Prisma 7.x: 使用 $extends 替代 $use
    * 设置 Prisma 扩展用于查询监控和软删除
+   *
+   * 注意：将软删除和监控合并到一个 $extends 调用中，避免双层扩展导致的模型委托丢失问题
    */
   private setupExtensions(basePrisma: PrismaClient): PrismaClient {
     // 保存引用以便在回调中使用
@@ -81,13 +100,29 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
     const logger = this.logger;
     const fallbackLog = this.fallbackLog.bind(this);
 
-    // 先应用软删除扩展
-    const withSoftDelete = setupSoftDeleteMiddleware(basePrisma);
-
-    // 应用监控扩展
-    return withSoftDelete.$extends({
+    // 合并软删除和监控扩展为一个 $extends 调用
+    return basePrisma.$extends({
       query: {
         $allOperations({ operation, model, args, query }) {
+          // 1. 处理软删除逻辑
+          let processedArgs = args;
+          if (isSoftDeleteModel(model) && QUERY_ACTIONS.includes(operation)) {
+            const newArgs = { ...args };
+            if (!newArgs.where) {
+              newArgs.where = {};
+            }
+
+            // 只有在未显式指定 isDeleted 时才自动添加
+            if (!hasExplicitIsDeleted(newArgs.where)) {
+              newArgs.where = {
+                ...newArgs.where,
+                isDeleted: false,
+              };
+            }
+            processedArgs = newArgs;
+          }
+
+          // 2. 执行查询并监控性能
           // Start tracking
           const ctx: QueryContext = dbMetrics?.recordQueryStart() ?? {
             startTime: Date.now(),
@@ -95,7 +130,7 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
           };
 
           // 执行查询并处理结果
-          const result = query(args);
+          const result = query(processedArgs);
 
           // 处理 Promise 结果
           if (result instanceof Promise) {
@@ -111,12 +146,12 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
                       dbType: 'write',
                     },
                     'success',
-                    args,
+                    processedArgs,
                   );
                 } else {
                   fallbackLog(
                     ctx.startTime,
-                    { model, action: operation, args },
+                    { model, action: operation, args: processedArgs },
                     'success',
                   );
                 }
@@ -133,13 +168,13 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
                       dbType: 'write',
                     },
                     'error',
-                    args,
+                    processedArgs,
                     error as Error,
                   );
                 } else {
                   fallbackLog(
                     ctx.startTime,
-                    { model, action: operation, args },
+                    { model, action: operation, args: processedArgs },
                     'error',
                     error as Error,
                   );
@@ -160,12 +195,12 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
                   dbType: 'write',
                 },
                 'success',
-                args,
+                processedArgs,
               );
             } else {
               fallbackLog(
                 ctx.startTime,
-                { model, action: operation, args },
+                { model, action: operation, args: processedArgs },
                 'success',
               );
             }
@@ -180,13 +215,13 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
                   dbType: 'write',
                 },
                 'error',
-                args,
+                processedArgs,
                 error as Error,
               );
             } else {
               fallbackLog(
                 ctx.startTime,
-                { model, action: operation, args },
+                { model, action: operation, args: processedArgs },
                 'error',
                 error as Error,
               );
@@ -240,19 +275,113 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
+   * Validate that Prisma client has all required model delegates
+   * 验证 Prisma 客户端是否具有所有必需的模型委托
+   */
+  private validatePrismaClient(client: unknown, clientType: string): boolean {
+    if (!client) {
+      this.logger.warn(
+        `[PrismaWriteService] ${clientType} client is null/undefined`,
+      );
+      return false;
+    }
+
+    const prisma = client as Record<string, unknown>;
+
+    // 检查关键模型是否存在
+    const criticalModels = [
+      'gatewayModelCatalog',
+      'providerKey',
+      'gatewayUser',
+      'userInfo',
+    ];
+
+    const missingModels: string[] = [];
+    for (const model of criticalModels) {
+      const modelDelegate = prisma[model];
+      if (!modelDelegate) {
+        missingModels.push(model);
+        continue;
+      }
+
+      // 检查关键方法是否存在
+      const delegate = modelDelegate as Record<string, unknown>;
+      if (typeof delegate.findMany !== 'function') {
+        missingModels.push(`${model}.findMany`);
+      }
+    }
+
+    if (missingModels.length > 0) {
+      this.logger.warn(
+        `[PrismaWriteService] ${clientType} client missing models/methods: ${missingModels.join(', ')}`,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Get the Prisma client instance
    * 获取 Prisma 客户端实例
    */
   get client(): PrismaClient {
-    return this.prisma;
+    // 如果已初始化且有扩展客户端，优先使用扩展客户端
+    // 否则返回 base 客户端
+    return this.extendedPrisma || this.prisma;
+  }
+
+  /**
+   * Check if the Prisma client is ready
+   * 检查 Prisma 客户端是否就绪
+   */
+  get isReady(): boolean {
+    return this.initialized;
   }
 
   async onModuleInit() {
-    await this.prisma.$connect();
-    if (enviroment.isProduction()) {
-      this.logger.info('PrismaWriteService connected to database');
+    // 先连接数据库
+    await this.basePrisma.$connect();
+    this.logger.info('[PrismaWriteService] Database connected');
+
+    // 连接后再尝试扩展
+    // Prisma 7.3: 在 $connect 后模型委托才可用
+    try {
+      const extended = this.setupExtensions(this.basePrisma);
+
+      // 验证扩展客户端
+      if (this.validatePrismaClient(extended, 'extended')) {
+        this.extendedPrisma = extended;
+        this.prisma = extended;
+        this.logger.info(
+          '[PrismaWriteService] Using extended Prisma client with all models',
+        );
+      } else {
+        // 扩展失败，检查 base 客户端是否有效
+        if (this.validatePrismaClient(this.basePrisma, 'base')) {
+          this.prisma = this.basePrisma;
+          this.logger.warn(
+            '[PrismaWriteService] Extended client missing models, using base client',
+          );
+        } else {
+          this.logger.error(
+            '[PrismaWriteService] Both clients missing models after connect!',
+          );
+          this.prisma = this.basePrisma;
+        }
+      }
+    } catch (error) {
+      this.logger.error('[PrismaWriteService] Failed to setup extensions', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      this.prisma = this.basePrisma;
     }
-    // this.logger.info('PrismaWriteService connected to database');
+
+    this.initialized = true;
+
+    if (enviroment.isProduction()) {
+      this.logger.info('PrismaWriteService initialized');
+    }
   }
 
   async onModuleDestroy() {
@@ -273,6 +402,5 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
     if (enviroment.isProduction()) {
       this.logger.info('PrismaWriteService disconnected from database');
     }
-    // this.logger.info('PrismaWriteService disconnected from database');
   }
 }

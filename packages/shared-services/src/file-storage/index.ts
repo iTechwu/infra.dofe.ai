@@ -19,7 +19,7 @@
  * import {
  *   FileStorageServiceModule,
  *   FileStorageService,
- * } from '@dofe/infra-shared-services';
+ * } from '@app/shared-services/file-storage';
  *
  * // 在 NestJS 模块中使用
  * @Module({
@@ -52,6 +52,6 @@ export * from './types';
 
 // Re-export DTOs from client layer for convenience
 export {
-  DofeUploader,
+  DoFeUploader,
   FileStorageInterface,
-} from '@dofe/infra-clients';
+} from '@app/clients/internal/file-storage';

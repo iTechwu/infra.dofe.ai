@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { RABBITMQ_CONNECTION, RabbitmqConnection } from './dto/rabbitmq.dto';
 import { RabbitmqService } from './rabbitmq.service';
-import { PrismaModule } from '@dofe/infra-prisma';
-import { RedisModule } from '@dofe/infra-redis';
+import { PrismaModule } from '@app/prisma';
+import { RedisModule } from '@app/redis';
 import { ConfigModule } from '@nestjs/config';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 
 @Module({
   imports: [PrismaModule, RedisModule, ConfigModule],

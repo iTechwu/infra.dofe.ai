@@ -1,5 +1,5 @@
-import { RedisService } from '@dofe/infra-redis';
-import objectUtil from '@dofe/infra-utils';
+import { RedisService } from '@app/redis';
+import objectUtil from '@/utils/object.util';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -82,13 +82,16 @@ export class SseClient {
         this.sseChannelKey,
         `old-${clientId}`,
       );
+      // console.log('techwu subscribe', oldMessage, newMessage)
       if (objectUtil.isEqual(newMessage, oldMessage)) {
+        // console.log('techwu ping')
         return {
           t: 'p',
           data: { timestamp: new Date().toISOString() },
           needDeleteClient: false,
         };
       } else {
+        // console.log('techwu message')
         await this.redis.saveData(
           this.sseChannelKey,
           `old-${clientId}`,
@@ -140,6 +143,7 @@ export class SseClient {
 
   // 定向发送消息给特定客户端
   sendToClient(clientId: string, data: any, unregister: boolean = false): void {
+    console.log('techwu sendToClient', data);
     this.clients.forEach((client) => {
       if (client.id === clientId) {
         client.stream.next(data);

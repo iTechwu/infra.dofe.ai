@@ -2,18 +2,18 @@ import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@dofe/infra-common';
-import { RedisService } from '@dofe/infra-redis';
-import { FileStorageService } from '../file-storage';
+import { ApiException, apiError } from '@/filter/exception/api.exception';
+import { RedisService } from '@app/redis';
+import { FileStorageService } from '@app/shared-services/file-storage';
 import { ConfigService } from '@nestjs/config';
-import { rsaDecrypt } from '@dofe/infra-utils';
+import { rsaDecrypt } from '@/utils/crypto.util';
 
-import timer from '@dofe/infra-utils';
-import { DofeApp, Locale, LocaleString } from '@dofe/infra-common';
-import { AppConfig } from '@dofe/infra-common';
-import stringUtil from '@dofe/infra-utils';
-import enviromentUtil from '@dofe/infra-utils';
-import fileUtil from '@dofe/infra-common';
+import timer from '@/utils/timer.util';
+import { DoFeApp, Locale, LocaleString } from '@/config/dto/config.dto';
+import { AppConfig } from '@/config/validation';
+import stringUtil from '@/utils/string.util';
+import enviromentUtil from '@/utils/enviroment.util';
+import fileUtil from '@/utils/file.util';
 import { FileBucketVendor } from '@prisma/client';
 
 /**
@@ -83,11 +83,14 @@ export class UploaderService {
       }
       signatureData = JSON.parse(jsonString);
     } catch (e) {
-      this.logger.error('[Signature Validation] Decryption or parsing failed:', {
-        error: e.message || e,
-        signature: cmd.signature?.substring(0, 50) + '...',
-        userId,
-      });
+      this.logger.error(
+        '[Signature Validation] Decryption or parsing failed:',
+        {
+          error: e.message || e,
+          signature: cmd.signature?.substring(0, 50) + '...',
+          userId,
+        },
+      );
       throw apiError(CommonErrorCode.SignatureError);
     }
     const uploaderUserId = !signatureData?.userId

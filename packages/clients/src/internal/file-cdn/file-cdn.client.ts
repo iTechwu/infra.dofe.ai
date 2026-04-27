@@ -16,12 +16,12 @@ import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import { FileBucketVendor } from '@prisma/client';
 
-import { RedisService } from '@dofe/infra-redis';
-import { FileStorageService } from '@dofe/infra-shared-services';
-import { CryptClient } from '../crypt';
-import * as cryptoUtil from '@dofe/infra-utils';
+import { RedisService } from '@app/redis';
+import { FileStorageService } from '@app/shared-services/file-storage';
+import { CryptClient } from '@app/clients/internal/crypt';
+import * as cryptoUtil from '@/utils/crypto.util';
 import {
-  DofeFileCdn,
+  DoFeFileCdn,
   CdnUrlResponse,
   ImageTemplateId,
   CloudFlareTemplate,
@@ -127,7 +127,7 @@ export class FileCdnClient {
    * CDN 配置
    * @private
    */
-  private readonly cdnConfig: DofeFileCdn.Configs;
+  private readonly cdnConfig: DoFeFileCdn.Configs;
 
   /**
    * 默认存储供应商
@@ -151,7 +151,7 @@ export class FileCdnClient {
     private readonly crypt: CryptClient,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
-    this.cdnConfig = config.getOrThrow<DofeFileCdn.Configs>('cdn');
+    this.cdnConfig = config.getOrThrow<DoFeFileCdn.Configs>('cdn');
     this.defaultVendor =
       config.getOrThrow<FileBucketVendor>('app.defaultVendor');
   }

@@ -1,10 +1,10 @@
 import { FileBucketVendor, FileSource } from '@prisma/client';
 import stringUtil from './string.util';
 import timerUtil from './timer.util';
-import { DoFeApp } from '@/config/dto/config.dto';
+import { DofeApp } from '@/config/dto/config.dto';
 import { getKeysConfig } from '@/config/configuration';
 import enviromentUtil from './enviroment.util';
-import type { DoFeUploader } from '@app/clients/internal/file-storage';
+import type { DofeUploader } from '@app/clients/internal/file-storage';
 const transcodeExtension = [];
 
 const imageExtensions = [
@@ -292,7 +292,7 @@ export default {
     return basePath ? `${basePath}/${audioFileName}` : audioFileName;
   },
 
-  getPrivateBucketFromKey(key: string): DoFeApp.FileBase {
+  getPrivateBucketFromKey(key: string): DofeApp.FileBase {
     const arr = key.split('/');
     return { vendor: arr[0] as FileBucketVendor, bucket: arr[1], key };
   },
@@ -405,7 +405,7 @@ export default {
     return lastIndex !== -1 ? name.substring(0, lastIndex) : name;
   },
 
-  completeKeyString(fileKey: Partial<FileSource> | DoFeApp.FileBase): string {
+  completeKeyString(fileKey: Partial<FileSource> | DofeApp.FileBase): string {
     const key = fileKey.key;
     const ext = fileKey?.ext ? `.${fileKey.ext}` : '';
     const nodeEnv = fileKey?.env || enviromentUtil.getEnv();

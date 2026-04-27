@@ -5,7 +5,7 @@
  * Ensures all required application settings are correctly configured.
  */
 import { z } from 'zod';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)
@@ -516,8 +516,10 @@ export function validateYamlConfig(config: unknown): YamlConfig {
   const result = yamlConfigSchema.safeParse(config);
 
   if (!result.success) {
-    const errorMessages = result.error.issues
-      .map((err) => `  - ${err.path.join('.')}: ${err.message}`)
+    // Zod 4 uses issues instead of errors
+    const issues = (result.error as any).issues || [];
+    const errorMessages = issues
+      .map((err: any) => `  - ${err.path.join('.')}: ${err.message}`)
       .join('\n');
 
     console.error('❌ YAML configuration validation failed:');

@@ -13,7 +13,7 @@ export const FileLocalSchema = z.object({
 });
 
 // Config Schema
-export const DofeUploaderConfigSchema = z.object({
+export const DoFeUploaderConfigSchema = z.object({
   vendor: z.nativeEnum(FileBucketVendor),
   bucket: z.string(),
   region: z.string(),
@@ -108,7 +108,7 @@ export const BatchOpsResultSchema = z.array(OperationResponseSchema);
 // Type exports (inferred from Zod schemas)
 export type FileApiKey = z.infer<typeof FileApiKeySchema>;
 export type FileLocal = z.infer<typeof FileLocalSchema>;
-export type DofeUploaderConfig = z.infer<typeof DofeUploaderConfigSchema>;
+export type DoFeUploaderConfig = z.infer<typeof DoFeUploaderConfigSchema>;
 export type PutObjectOptions = z.infer<typeof PutObjectOptionsSchema>;
 export type GetObjectOptions = z.infer<typeof GetObjectOptionsSchema>;
 export type PresignedPutUrlObject = z.infer<typeof PresignedPutUrlObjectSchema>;
@@ -120,8 +120,8 @@ export type OperationResponse = z.infer<typeof OperationResponseSchema>;
 export type BatchOpsResult = z.infer<typeof BatchOpsResultSchema>;
 
 // Namespace for backward compatibility
-export namespace DofeUploader {
+export namespace DoFeUploader {
   export type FileApiKey = z.infer<typeof FileApiKeySchema>;
   export type FileLocal = z.infer<typeof FileLocalSchema>;
-  export type Config = z.infer<typeof DofeUploaderConfigSchema>;
+  export type Config = z.infer<typeof DoFeUploaderConfigSchema>;
 }

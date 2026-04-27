@@ -8,8 +8,8 @@
 
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { JwtModule } from '@dofe/infra-jwt';
-import { RedisModule } from '@dofe/infra-redis';
+import { JwtModule } from '@app/jwt/jwt.module';
+import { RedisModule } from '@app/redis';
 import { StreamingAsrService } from './streaming-asr.service';
 
 /**

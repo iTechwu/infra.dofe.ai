@@ -5,7 +5,7 @@
 
 import { Module } from '@nestjs/common';
 import { UnitOfWorkService } from './unit-of-work.service';
-import { PrismaModule } from '@dofe/infra-prisma';
+import { PrismaModule } from '@/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],

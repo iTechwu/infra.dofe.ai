@@ -9,11 +9,11 @@ import { Logger } from 'winston';
 import * as amqplib from 'amqplib';
 
 import { RABBITMQ_CONNECTION, RabbitmqConnection } from './dto/rabbitmq.dto';
-import { RedisService } from '@dofe/infra-redis';
-import { PrismaService } from '@dofe/infra-prisma';
-import stringUtil from '@dofe/infra-utils';
-import objectUtil from '@dofe/infra-utils';
-import enviroment from '@dofe/infra-utils';
+import { RedisService } from '@app/redis';
+import { PrismaService } from '@app/prisma';
+import stringUtil from '@/utils/string.util';
+import objectUtil from '@/utils/object.util';
+import enviroment from '@/utils/enviroment.util';
 
 interface MessageHandler {
   (message: any): Promise<void>;

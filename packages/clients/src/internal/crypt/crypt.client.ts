@@ -2,9 +2,9 @@ import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
-import * as cryptoUtil from '@dofe/infra-utils';
-import urlencodeUtil from '@dofe/infra-utils';
-import { CryptoConfig } from '@dofe/infra-common';
+import * as cryptoUtil from '@/utils/crypto.util';
+import urlencodeUtil from '@/utils/urlencode.util';
+import { CryptoConfig } from '@/config/validation';
 
 @Injectable()
 export class CryptClient {

@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_AUTH } from './dto/redis.dto';
+import { REDIS_AUTH } from '@app/redis/dto/redis.dto';
 import { RedisService } from './redis.service';
+import { CacheService } from './cache.service';
 import { ConfigModule } from '@nestjs/config';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@dofe/infra-common';
-import enviroment from '@dofe/infra-utils';
+import { ApiException, apiError } from '@/filter/exception/api.exception';
+import enviroment from '@/utils/enviroment.util';
 
 @Module({
   imports: [ConfigModule],
@@ -56,8 +57,9 @@ import enviroment from '@dofe/infra-utils';
       },
     },
     RedisService,
+    CacheService,
   ],
-  exports: [REDIS_AUTH, RedisService],
+  exports: [REDIS_AUTH, RedisService, CacheService],
   // 导出 Redis 客户端和服务
 })
 export class RedisModule {}

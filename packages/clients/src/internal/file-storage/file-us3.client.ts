@@ -9,16 +9,16 @@ import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 
 import {
-  DofeUploader,
+  DoFeUploader,
   GetObjectOptions,
   PresignedPutUrlObject,
   PutObjectOptions,
 } from './dto/file.dto';
 
-import { DofeApp } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileS3Client } from './file-s3.client';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { createHmac } from 'crypto';
 import { GetObjectCommand, S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -33,7 +33,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 export class FileUs3Client extends FileS3Client {
   protected urlRedisKey = 'privateDownloadUrl';
   constructor(
-    config: DofeUploader.Config,
+    config: DoFeUploader.Config,
     storageConfig: StorageCredentialsConfig,
     appConfig: AppConfig,
     redis: RedisService,

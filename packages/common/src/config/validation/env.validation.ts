@@ -83,8 +83,10 @@ export function validateEnv(): EnvConfig {
   const result = envSchema.safeParse(expandedEnv);
 
   if (!result.success) {
-    const errorMessages = result.error.issues
-      .map((err) => `  - ${err.path.join('.')}: ${err.message}`)
+    // Zod 4 uses issues instead of errors
+    const issues = (result.error as any).issues || [];
+    const errorMessages = issues
+      .map((err: any) => `  - ${err.path.join('.')}: ${err.message}`)
       .join('\n');
 
     console.error('❌ Environment variable validation failed:');

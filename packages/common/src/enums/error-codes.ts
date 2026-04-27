@@ -7,7 +7,7 @@
  *
  * Migration Guide:
  * - New code: import { UserErrorCode } from '@repo/contracts/errors';
- * - New code: import { apiError } from '@dofe/infra-common';
+ * - New code: import { apiError } from '@/filter/exception/api.exception';
  */
 
 // Re-export all error codes from @repo/contracts

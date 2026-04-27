@@ -64,7 +64,10 @@ export type TsRestSuccessResponse<T, S extends number = 200> = {
  * }
  * ```
  */
-export function success<T>(data: T, status: 200 = 200): TsRestSuccessResponse<T, 200> {
+export function success<T>(
+  data: T,
+  status: 200 = 200,
+): TsRestSuccessResponse<T, 200> {
   return {
     status,
     body: {
@@ -98,12 +101,12 @@ export function paginated<T>(
 /**
  * 创建 201 响应（创建成功）
  */
-export function created<T>(data: T): TsRestResponse<T, 201> {
+export function created<T>(data: T): TsRestSuccessResponse<T, 201> {
   return {
     status: 201,
     body: {
-      code: 200,
-      msg: 'ok',
+      code: 201,
+      msg: 'created',
       data: serializeDates(data),
     },
   };
@@ -112,7 +115,7 @@ export function created<T>(data: T): TsRestResponse<T, 201> {
 /**
  * 创建删除成功响应
  */
-export function deleted(): TsRestResponse<{ success: boolean }, 200> {
+export function deleted(): TsRestSuccessResponse<{ success: boolean }, 200> {
   return {
     status: 200,
     body: {
@@ -123,7 +126,7 @@ export function deleted(): TsRestResponse<{ success: boolean }, 200> {
   };
 }
 
-export function deletedWithData<T>(data: T): TsRestResponse<T, 200> {
+export function deletedWithData<T>(data: T): TsRestSuccessResponse<T, 200> {
   return {
     status: 200,
     body: {
@@ -238,4 +241,66 @@ export function serializeDates<T>(obj: T): any {
   }
 
   return obj;
+}
+
+// ============================================================================
+// 404 Not Found Helpers
+// ============================================================================
+
+/**
+ * 创建 404 Not Found 响应
+ *
+ * @param resourceName - 资源名称（可选），用于错误消息
+ * @returns 404 响应对象
+ *
+ * @example
+ * ```typescript
+ * const item = await this.service.findById(params.id);
+ * if (!item) return notFound('Provider key');
+ * return success(item);
+ * ```
+ */
+export function notFound(resourceName?: string): {
+  status: 404;
+  body: { error: string };
+} {
+  const msg = resourceName ? `${resourceName} not found` : 'Resource not found';
+  return {
+    status: 404,
+    body: {
+      error: msg,
+    },
+  };
+}
+
+/**
+ * 工具函数：安全获取资源，如果不存在则返回 404
+ *
+ * @param fetcher - 获取资源的异步函数
+ * @param resourceName - 资源名称（可选）
+ * @returns 资源或 null（表示需要返回 404）
+ *
+ * @example
+ * ```typescript
+ * @TsRestHandler(c.providerKeys.get)
+ * async getById() {
+ *   return tsRestHandler(c.providerKeys.get, async ({ params }) => {
+ *     const result = await fetchOrNotFound(
+ *       () => this.service.findById(params.id),
+ *       'Provider key'
+ *     );
+ *     if (result === null) return notFound('Provider key');
+ *     return success(result);
+ *   });
+ * }
+ * ```
+ */
+export async function fetchOrNull<T>(
+  fetcher: () => Promise<T | null | undefined>,
+): Promise<T | null> {
+  const result = await fetcher();
+  if (result === null || result === undefined) {
+    return null;
+  }
+  return result;
 }

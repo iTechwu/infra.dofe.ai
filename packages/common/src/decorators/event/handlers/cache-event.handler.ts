@@ -9,7 +9,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { EventNames } from '../event.decorator';
 
 /**

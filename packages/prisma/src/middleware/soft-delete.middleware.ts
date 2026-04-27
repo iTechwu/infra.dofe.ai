@@ -24,7 +24,7 @@ import { PrismaClient, Prisma } from '@prisma/client';
 /**
  * 查询操作列表
  */
-const QUERY_ACTIONS = [
+export const QUERY_ACTIONS = [
   'findFirst',
   'findMany',
   'findUnique',
@@ -38,16 +38,80 @@ const QUERY_ACTIONS = [
 /**
  * 删除操作列表
  */
-const DELETE_ACTIONS = ['delete', 'deleteMany'];
+export const DELETE_ACTIONS = ['delete', 'deleteMany'];
 
 /**
  * 不支持软删除的模型列表（这些模型没有 isDeleted 字段）
  *
- * 分类说明
+ * 分类说明：
+ * - 系统/配置表：无需软删除的配置和系统表
+ * - 网关与定价相关表：schema 无 isDeleted，不可注入软删条件
+ * - 团队相关表：团队结构表无软删除需求
+ * - Provider 相关表：供应商和密钥配置表
  */
 const NON_SOFT_DELETE_MODELS = [
-  // 系统/配置表
+  // ==================== 系统/配置表 ====================
   'SystemTaskQueue',
+
+  // ==================== Provider Vendor 供应商 ====================
+  'ProviderVendor',
+  'ProviderVendorEndpoint',
+
+  // ==================== Provider Key 密钥 ====================
+  'ProviderKey',
+  'ProviderKeyEndpoint',
+
+  // ==================== 团队相关 ====================
+  'Team',
+  'TeamMember',
+
+  // ==================== Gateway 网关用户 ====================
+  'GatewayUser',
+
+  // ==================== Gateway Model Catalog 模型目录 ====================
+  'GatewayModelCatalog',
+  'GatewayModelAvailability',
+
+  // ==================== Gateway Capability 能力标签 ====================
+  'GatewayCapabilityTag',
+  'GatewayModelCapabilityTag',
+  'GatewayTagGroup',
+
+  // ==================== Gateway Model Capability 模型能力扩展 ====================
+  'GatewayModelCapability',
+
+  // ==================== Gateway API Key ====================
+  'GatewayUserApiKey',
+
+  // ==================== Gateway Usage 使用日志 ====================
+  'GatewayUsageLog',
+
+  // ==================== Gateway Pricing 定价 ====================
+  'GatewayTieredPricingConfig',
+  'GatewayInternalCost',
+
+  // ==================== Gateway Alias 别名 ====================
+  'GatewayAliasMapping',
+  'GatewayAliasRoutingStrategy',
+
+  // ==================== Gateway Cache 缓存 ====================
+  'GatewayCacheStorageRecord',
+  'GatewayUsageAccumulator',
+
+  // ==================== Open Platform 开放平台 ====================
+  'ServiceAccount',
+  'ServiceAccountToken',
+  'WebhookEndpoint',
+  'WebhookDelivery',
+  'ModelAlias',
+  'UsageAlert',
+
+  // ==================== Budget Governance 预算治理 ====================
+  'BudgetConfig',
+  'BudgetSpendingRecord',
+
+  // ==================== Audit Log 审计日志 ====================
+  'AuditLog',
 ] as const;
 
 /**
@@ -63,7 +127,7 @@ export function isSoftDeleteModel(modelName: string | undefined): boolean {
  * 检查 where 条件是否已显式指定 isDeleted
  * 支持嵌套的 OR/AND/NOT 条件
  */
-function hasExplicitIsDeleted(
+export function hasExplicitIsDeleted(
   where: Record<string, unknown> | undefined,
 ): boolean {
   if (!where) return false;

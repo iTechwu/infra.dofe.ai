@@ -31,11 +31,11 @@ import { FileBucketVendor } from '@prisma/client';
 
 import {
   FileStorageInterface,
-  DofeUploader,
-} from '@dofe/infra-clients';
-import { DofeApp } from '@dofe/infra-common';
+  DoFeUploader,
+} from '@app/clients/internal/file-storage';
+import { DoFeApp } from '@/config/dto/config.dto';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { apiError } from '@dofe/infra-common';
+import { apiError } from '@/filter/exception/api.exception';
 
 import { FileStorageClientFactory } from './file-storage.factory';
 import { BucketResolver } from './bucket-resolver';
@@ -192,7 +192,7 @@ export class FileStorageService {
    * @param {string} [ip] - 客户端 IP
    * @param {boolean} [isPublic] - 是否公开
    * @param {string} [locale] - 区域设置
-   * @returns {Promise<DofeUploader.Config>} 存储桶配置
+   * @returns {Promise<DoFeUploader.Config>} 存储桶配置
    */
   async getFileServiceConfig(
     vendor?: FileBucketVendor,
@@ -200,7 +200,7 @@ export class FileStorageService {
     ip?: string,
     isPublic?: boolean,
     locale?: string,
-  ): Promise<DofeUploader.Config> {
+  ): Promise<DoFeUploader.Config> {
     const client = await this.getFileClient(
       vendor,
       bucket,
@@ -340,13 +340,13 @@ export class FileStorageService {
   /**
    * 复制文件
    *
-   * @param {DofeApp.FileBase} source - 源文件信息
-   * @param {DofeApp.FileBase} destination - 目标文件信息
+   * @param {DoFeApp.FileBase} source - 源文件信息
+   * @param {DoFeApp.FileBase} destination - 目标文件信息
    * @returns {Promise<void>}
    */
   async copyFile(
-    source: DofeApp.FileBase,
-    destination: DofeApp.FileBase,
+    source: DoFeApp.FileBase,
+    destination: DoFeApp.FileBase,
   ): Promise<void> {
     this.logger.info('Copying file', { source, destination });
 

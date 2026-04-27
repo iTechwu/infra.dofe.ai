@@ -6,10 +6,10 @@ import { createNamespace } from 'cls-hooked';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
-import { getReqMainInfo } from '@dofe/infra-utils';
+import { getReqMainInfo } from '@/utils/logger.util';
 import * as parser from 'accept-language-parser';
-import ipUtil from '@dofe/infra-utils';
-import enviroment from '@dofe/infra-utils';
+import ipUtil from '@/utils/ip.util';
+import enviroment from '@/utils/enviroment.util';
 
 // Trace ID 请求头名称
 export const TRACE_ID_HEADER = 'x-trace-id';

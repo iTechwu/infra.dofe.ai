@@ -5,7 +5,7 @@
  * 使用方式：
  * ```typescript
  * @TsRestHandler(c.loginByEmail)
- * async loginByEmail(@DeviceInfo() deviceInfo: DofeApp.HeaderData) {
+ * async loginByEmail(@DeviceInfo() deviceInfo: DoFeApp.HeaderData) {
  *   // deviceInfo 自动注入
  *   const result = await this.signService.loginByEmail(body, deviceInfo);
  *   return success(result);
@@ -15,7 +15,7 @@
 
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
-import { DofeApp } from '../config/dto/config.dto';
+import { DoFeApp } from '@/config/dto/config.dto';
 
 /**
  * @DeviceInfo() decorator - 从请求头提取设备信息
@@ -28,12 +28,12 @@ import { DofeApp } from '../config/dto/config.dto';
  *
  * @example
  * // 在控制器方法中使用
- * async login(@DeviceInfo() deviceInfo: DofeApp.HeaderData) {
+ * async login(@DeviceInfo() deviceInfo: DoFeApp.HeaderData) {
  *   console.log(deviceInfo.platform, deviceInfo.os, deviceInfo.deviceid);
  * }
  */
 export const DeviceInfo = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): DofeApp.HeaderData => {
+  (data: unknown, ctx: ExecutionContext): DoFeApp.HeaderData => {
     const request = ctx.switchToHttp().getRequest<FastifyRequest>();
     const headers = request.headers;
 

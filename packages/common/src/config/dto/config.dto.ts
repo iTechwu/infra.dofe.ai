@@ -29,7 +29,6 @@ export type {
   CdnZoneConfig,
   CdnConfig,
   RedisCacheKeyConfig,
-  WechatConfig,
   PathConfig,
   RolePermissionConfig,
   BucketConfig,
@@ -45,9 +44,6 @@ export type {
 // Keys Configuration Types
 export type {
   KeysConfig,
-  GoogleServiceAccountConfig,
-  JinaAiConfig,
-  OAuthProviderConfig,
   EmailTemplateConfig,
   SendCloudConfig,
   SmsTemplateBaseConfig,
@@ -55,19 +51,13 @@ export type {
   SmsConfig,
   StorageCredentialsConfig,
   StorageConfig,
-  OpenSpeechProviderConfig,
   OpenSpeechConfig,
-  TranscodeProviderConfig,
-  TranscodeConfig,
   TtsProviderConfig,
   TtsConfig,
   RiskProviderConfig,
   RiskConfig,
   ImageProviderConfig,
   ImageConfig,
-  VectorProviderConfig,
-  VectorConfig,
-  MiniprogramConfig,
 } from '../validation';
 
 // Environment Configuration Types
@@ -88,23 +78,18 @@ import type {
   RedisCacheKeyConfig as RedisCacheKeyConfigType,
   PathConfig as PathConfigType,
   KeysConfig as KeysConfigType,
-  GoogleServiceAccountConfig as GoogleServiceAccountConfigType,
-  OAuthProviderConfig as OAuthProviderConfigType,
   StorageCredentialsConfig as StorageCredentialsConfigType,
   OpenSpeechConfig as OpenSpeechConfigType,
-  TranscodeConfig as TranscodeConfigType,
   TtsConfig as TtsConfigType,
   RiskConfig as RiskConfigType,
   ImageConfig as ImageConfigType,
-  VectorConfig as VectorConfigType,
-  MiniprogramConfig as MiniprogramConfigType,
 } from '../validation';
 
 // ============================================================================
-// DofeApp Namespace (保持向后兼容)
+// DoFeApp Namespace (保持向后兼容)
 // ============================================================================
 
-export namespace DofeApp {
+export namespace DoFeApp {
   // ========================================================================
   // API Response DTOs (非配置相关)
   // ========================================================================
@@ -123,7 +108,7 @@ export namespace DofeApp {
    * @template T - 列表项类型
    * @example
    * ```typescript
-   * async getUsers(): Promise<DofeApp.PageResponseData<User>> {
+   * async getUsers(): Promise<DoFeApp.PageResponseData<User>> {
    *   return { list: users, total: 100, page: 1, limit: 20 };
    * }
    * ```
@@ -178,12 +163,6 @@ export namespace DofeApp {
   /** @deprecated 使用 AppConfig from '../validation' */
   export type LocalConfig = AppConfigType;
 
-  /** @deprecated 使用 MiniprogramConfig from '../validation' */
-  export type Miniprogram = MiniprogramConfigType;
-
-  /** @deprecated 使用 OAuthProviderConfig from '../validation' */
-  export type OauthConfig = OAuthProviderConfigType;
-
   /** @deprecated 使用 StorageCredentialsConfig from '../validation' */
   export type StorageSecret = StorageCredentialsConfigType;
 
@@ -192,9 +171,6 @@ export namespace DofeApp {
 
   /** @deprecated 使用 ZoneConfig from '../validation' */
   export type Zone = ZoneConfigType;
-
-  /** @deprecated 使用 TranscodeConfig from '../validation' */
-  export type Transcode = TranscodeConfigType;
 
   /** @deprecated 使用 OpenSpeechConfig from '../validation' */
   export type OpenSpeechConfig = OpenSpeechConfigType;
@@ -208,14 +184,8 @@ export namespace DofeApp {
   /** @deprecated 使用 ImageConfig from '../validation' */
   export type ImageConfig = ImageConfigType;
 
-  /** @deprecated 使用 VectorConfig from '../validation' */
-  export type VectorConfig = VectorConfigType;
-
   /** 完整 Keys 配置类型 - 从 Zod schema 推断 */
   export type Keys = KeysConfigType;
-
-  /** @deprecated 使用 GoogleServiceAccountConfig from '../validation' */
-  export type GoogleKeys = GoogleServiceAccountConfigType;
 
   /** @deprecated 使用 IpInfoConfig from '../validation' */
   export type IpInfoConfig = IpInfoConfigType;

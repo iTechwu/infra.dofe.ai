@@ -1,12 +1,12 @@
 import { Injectable, Inject, OnModuleDestroy } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { REDIS_AUTH } from './dto/redis.dto';
+import { REDIS_AUTH } from '@app/redis/dto/redis.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import { RedisCacheKeyConfig } from '@dofe/infra-common';
+import { RedisCacheKeyConfig } from '@/config/validation';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private redisConfigs: Record<string, RedisCacheKeyConfig> = {};
@@ -383,6 +383,55 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
+  /**
+   * Set key-value with NX (only if not exists) and EX (expiration) options
+   * Returns 'OK' if the key was set, null if the key already exists or on error
+   */
+  async setNX(
+    key: string,
+    value: any,
+    options: { EX: number },
+  ): Promise<string | null> {
+    if (!this.redisClient || !this.isConnectionAvailable()) {
+      return null;
+    }
+    try {
+      // Use set with NX and EX options for distributed lock pattern
+      // ioredis 5.x TypeScript types have strict overloads
+      // Cast to any to bypass the strict type checking for NX+EX combination
+      const result = await (this.redisClient as any).set(
+        key,
+        typeof value === 'number' ? value.toString() : JSON.stringify(value),
+        'NX',
+        'EX',
+        options.EX,
+      );
+      return result as string | null;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('closed')) {
+        if (this.shouldLogClosedError()) {
+          if (enviroment.isProduction()) {
+            this.logger.warn('Redis connection closed, setNX operation failed');
+          } else {
+            this.logger.debug(
+              'Redis connection closed, setNX operation failed',
+              {
+                error,
+              },
+            );
+          }
+        }
+      } else {
+        if (enviroment.isProduction()) {
+          this.logger.error('Redis setNX error:', { error });
+        } else {
+          this.logger.debug('Redis setNX error:', { error });
+        }
+      }
+      return null;
+    }
+  }
+
   async get(key: string) {
     if (!this.redisClient || !this.isConnectionAvailable()) {
       return null;
@@ -725,6 +774,177 @@ export class RedisService implements OnModuleDestroy {
         }
       }
       return 0;
+    }
+  }
+
+  // ============================================================================
+  // Pipeline Operations - 批量操作优化
+  // ============================================================================
+
+  /**
+   * Execute multiple Redis operations in a pipeline
+   * 在管道中执行多个 Redis 操作，减少网络往返
+   *
+   * @param commands - Array of command functions to execute in pipeline
+   * @returns Array of results from each command
+   *
+   * @example
+   * ```typescript
+   * const results = await redisService.pipeline([
+   *   (pipeline) => pipeline.set('key1', 'value1'),
+   *   (pipeline) => pipeline.set('key2', 'value2'),
+   *   (pipeline) => pipeline.get('key3'),
+   * ]);
+   * ```
+   */
+  async pipeline(
+    commands: (
+      pipeline: ReturnType<typeof this.redisClient.pipeline>,
+    ) => void[],
+  ): Promise<unknown[]> {
+    if (!this.redisClient || !this.isConnectionAvailable()) {
+      return [];
+    }
+
+    try {
+      const pipeline = this.redisClient.pipeline();
+      commands(pipeline);
+      const results = await pipeline.exec();
+
+      if (!results) {
+        return [];
+      }
+
+      // ioredis returns [error, result] tuples
+      return results.map(([error, result]) => {
+        if (error) {
+          this.logger.error('Pipeline command error:', { error });
+          return null;
+        }
+        return result;
+      });
+    } catch (error) {
+      if (enviroment.isProduction()) {
+        this.logger.error('Redis pipeline error:', { error });
+      } else {
+        this.logger.debug('Redis pipeline error:', { error });
+      }
+      return [];
+    }
+  }
+
+  /**
+   * Pipeline batch save - save multiple key-value pairs with optional TTL
+   * 批量保存多个键值对，支持可选的过期时间
+   *
+   * @param items - Array of { name, key, value, expireIn? } items
+   */
+  async pipelineSave(
+    items: Array<{
+      name: string;
+      key: string;
+      value: unknown;
+      expireIn?: number;
+    }>,
+  ): Promise<void> {
+    if (
+      !this.redisClient ||
+      !this.isConnectionAvailable() ||
+      items.length === 0
+    ) {
+      return;
+    }
+
+    try {
+      const pipeline = this.redisClient.pipeline();
+
+      for (const item of items) {
+        const redisKey = this.redisConfigs[item.name]?.key + item.key;
+        const expireIn =
+          item.expireIn ?? this.redisConfigs[item.name]?.expireIn ?? -1;
+        const value =
+          typeof item.value === 'number'
+            ? item.value.toString()
+            : JSON.stringify(item.value);
+
+        if (expireIn > 0) {
+          pipeline.set(redisKey, value, 'EX', expireIn);
+        } else {
+          pipeline.set(redisKey, value);
+        }
+      }
+
+      await pipeline.exec();
+    } catch (error) {
+      if (enviroment.isProduction()) {
+        this.logger.error('Redis pipelineSave error:', { error });
+      } else {
+        this.logger.debug('Redis pipelineSave error:', { error });
+      }
+    }
+  }
+
+  /**
+   * Pipeline batch get - get multiple values by keys
+   * 批量获取多个键的值
+   *
+   * @param items - Array of { name, key } items
+   * @returns Map of key -> value
+   */
+  async pipelineGet(
+    items: Array<{ name: string; key: string }>,
+  ): Promise<Map<string, unknown>> {
+    const result = new Map<string, unknown>();
+
+    if (
+      !this.redisClient ||
+      !this.isConnectionAvailable() ||
+      items.length === 0
+    ) {
+      return result;
+    }
+
+    try {
+      const pipeline = this.redisClient.pipeline();
+      const keys: string[] = [];
+
+      for (const item of items) {
+        const redisKey = this.redisConfigs[item.name]?.key + item.key;
+        keys.push(`${item.name}:${item.key}`);
+        pipeline.get(redisKey);
+      }
+
+      const results = await pipeline.exec();
+
+      if (!results) {
+        return result;
+      }
+
+      results.forEach(([error, value], index) => {
+        if (error) {
+          this.logger.debug(`Pipeline get error for key ${keys[index]}:`, {
+            error,
+          });
+          return;
+        }
+
+        if (value === null) return;
+
+        try {
+          result.set(keys[index], JSON.parse(value as string));
+        } catch {
+          result.set(keys[index], value);
+        }
+      });
+
+      return result;
+    } catch (error) {
+      if (enviroment.isProduction()) {
+        this.logger.error('Redis pipelineGet error:', { error });
+      } else {
+        this.logger.debug('Redis pipelineGet error:', { error });
+      }
+      return result;
     }
   }
 }

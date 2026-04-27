@@ -36,7 +36,7 @@ import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 
 import {
@@ -48,7 +48,7 @@ import {
   RateLimitOptions,
   RateLimitResult,
 } from './dto/rate-limit.dto';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // Constants

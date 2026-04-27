@@ -11,7 +11,7 @@
 
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import {
   SmsProviderConfig,
   SmsDefaultTemplate,
@@ -19,9 +19,9 @@ import {
   SmsZxjcTemplate,
   SmsVolcengineTemplate,
   VerifyCodeResult,
-} from '@dofe/infra-clients';
+} from '@app/clients/internal/sms';
 import { MobileAuth } from '@prisma/client';
-import { DofeApp } from '@dofe/infra-common';
+import { DoFeApp } from '@/config/dto/config.dto';
 
 // ============================================================================
 // SMS 供应商类型
@@ -203,7 +203,7 @@ export interface ProcessSendSmsOptions {
   /** 手机账户信息 */
   mobileAccount: Partial<MobileAuth>;
   /** 设备信息 */
-  deviceInfo: DofeApp.HeaderData;
+  deviceInfo: DoFeApp.HeaderData;
   /** 模板 ID */
   templateId?: string;
 }
@@ -294,4 +294,4 @@ export {
   SmsZxjcTemplate,
   SmsVolcengineTemplate,
   VerifyCodeResult,
-} from '@dofe/infra-clients';
+} from '@app/clients/internal/sms';

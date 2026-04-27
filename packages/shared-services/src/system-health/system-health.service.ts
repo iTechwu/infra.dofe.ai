@@ -1,10 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@dofe/infra-redis';
-import { RabbitmqService } from '@dofe/infra-rabbitmq';
+import { RedisService } from '@app/redis';
+import { RabbitmqService } from '@app/rabbitmq';
 // eslint-disable-next-line import/no-restricted-paths -- 健康检查服务需要直接访问 Prisma 检查数据库连接状态
-import { PrismaService } from '@dofe/infra-prisma';
+import { PrismaService } from '@app/prisma';
 
 @Injectable()
 export class SystemHealthService {

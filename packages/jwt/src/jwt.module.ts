@@ -1,4 +1,3 @@
-// new-jwt.module.ts
 import type { JwtConfig } from '@dofe/infra-common';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -21,6 +20,6 @@ import { JwtModule as NestJwtModule, JwtService } from '@nestjs/jwt';
       inject: [ConfigService],
     }),
   ],
-  exports: [NestJwtModule], // 如果你打算在其他模块中使用这个 JWT 模块，记得导出它
+  exports: [NestJwtModule],
 })
 export class JwtModule {}

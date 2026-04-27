@@ -11,7 +11,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { FileStorageServiceModule } from '@dofe/infra-shared-services';
+import { FileStorageServiceModule } from '@app/shared-services/file-storage';
 import { OpenspeechClient } from './openspeech.client';
 import { OpenspeechProviderFactory } from './openspeech.factory';
 

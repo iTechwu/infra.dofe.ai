@@ -23,25 +23,25 @@ import {
   FileGcsClient,
   FileUs3Client,
   FileTosClient,
-  DofeUploader,
-} from '@dofe/infra-clients';
-import { RedisService } from '@dofe/infra-redis';
-import { getKeysConfig } from '@dofe/infra-common';
-import { AppConfig, StorageCredentialsConfig } from '@dofe/infra-common';
+  DoFeUploader,
+} from '@app/clients/internal/file-storage';
+import { RedisService } from '@app/redis';
+import { getKeysConfig } from '@/config/configuration';
+import { AppConfig, StorageCredentialsConfig } from '@/config/validation';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { apiError } from '@dofe/infra-common';
+import { apiError } from '@/filter/exception/api.exception';
 import {
   StorageClientKey,
   buildStorageClientKey,
   StorageCredentialsMap,
 } from './types';
-import enviromentUtil from '@dofe/infra-utils';
+import enviromentUtil from '@/utils/enviroment.util';
 
 /**
  * 存储客户端类类型
  */
 type StorageClientClass = new (
-  config: DofeUploader.Config,
+  config: DoFeUploader.Config,
   storageConfig: StorageCredentialsConfig,
   appConfig: AppConfig,
   redis: RedisService,
@@ -113,7 +113,7 @@ export class FileStorageClientFactory {
    * 存储桶配置列表
    * @private
    */
-  private readonly bucketConfigs: DofeUploader.Config[];
+  private readonly bucketConfigs: DoFeUploader.Config[];
 
   /**
    * 存储凭证配置
@@ -149,7 +149,7 @@ export class FileStorageClientFactory {
   ) {
     // 加载配置
     this.bucketConfigs =
-      configService.getOrThrow<DofeUploader.Config[]>('buckets');
+      configService.getOrThrow<DoFeUploader.Config[]>('buckets');
     this.appConfig = configService.getOrThrow<AppConfig>('app');
     this.defaultVendor = this.appConfig.defaultVendor;
     this.storageCredentials =
@@ -191,13 +191,13 @@ export class FileStorageClientFactory {
    *
    * @private
    * @param {FileBucketVendor} vendor - 存储供应商
-   * @param {DofeUploader.Config} config - 存储桶配置
+   * @param {DoFeUploader.Config} config - 存储桶配置
    * @returns {FileStorageInterface} 客户端实例
    * @throws {Error} 不支持的供应商类型时抛出异常
    */
   private createClient(
     vendor: FileBucketVendor,
-    config: DofeUploader.Config,
+    config: DoFeUploader.Config,
   ): FileStorageInterface {
     const ClientClass = VENDOR_CLIENT_MAP[vendor];
 
@@ -296,12 +296,12 @@ export class FileStorageClientFactory {
    *
    * @param {FileBucketVendor} vendor - 存储供应商
    * @param {string} bucket - 存储桶名称
-   * @returns {DofeUploader.Config | undefined} 存储桶配置
+   * @returns {DoFeUploader.Config | undefined} 存储桶配置
    */
   getBucketConfig(
     vendor: FileBucketVendor,
     bucket: string,
-  ): DofeUploader.Config | undefined {
+  ): DoFeUploader.Config | undefined {
     return this.bucketConfigs.find(
       (config) =>
         config.bucket === bucket &&
@@ -312,9 +312,9 @@ export class FileStorageClientFactory {
   /**
    * 获取所有存储桶配置
    *
-   * @returns {DofeUploader.Config[]} 存储桶配置列表
+   * @returns {DoFeUploader.Config[]} 存储桶配置列表
    */
-  getAllBucketConfigs(): DofeUploader.Config[] {
+  getAllBucketConfigs(): DoFeUploader.Config[] {
     return [...this.bucketConfigs];
   }
 

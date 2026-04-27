@@ -5,18 +5,18 @@
  */
 import { StreamingBlobPayloadInputTypes } from '@smithy/types';
 import {
-  DofeUploader,
+  DoFeUploader,
   GetObjectOptions,
   PresignedPutUrlObject,
   PutObjectOptions,
 } from './dto/file.dto';
-import { DofeApp } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { ReadStream } from 'fs';
 
 export interface FileStorageInterface {
   // ...
-  config: DofeUploader.Config;
+  config: DoFeUploader.Config;
   appConfig: AppConfig;
   storageConfig: StorageCredentialsConfig;
 
@@ -31,7 +31,7 @@ export interface FileStorageInterface {
     neeSpiltPart?: boolean,
   ): Promise<string>;
 
-  getConfig(): DofeUploader.Config;
+  getConfig(): DoFeUploader.Config;
 
   listFilesPrefix(
     prefix?: string,
@@ -108,7 +108,7 @@ export interface FileStorageInterface {
     bucket?: string,
   ): Promise<void>;
 
-  fileDownloader(source: DofeApp.FileBase);
+  fileDownloader(source: DoFeApp.FileBase);
 
-  fileUploader(buffer: Buffer, destination: DofeApp.FileBase): Promise<void>;
+  fileUploader(buffer: Buffer, destination: DoFeApp.FileBase): Promise<void>;
 }

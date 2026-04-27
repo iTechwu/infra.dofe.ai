@@ -1,19 +1,19 @@
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 
-import { DofeUploader } from './dto/file.dto';
+import { DoFeUploader } from './dto/file.dto';
 
-import { DofeApp } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { isURL } from 'class-validator';
 import { FileS3Client } from './file-s3.client';
 import {
   Storage as GcsStorage,
   GetSignedUrlConfig,
 } from '@google-cloud/storage';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
-import enviromentUtil from '@dofe/infra-utils';
+import enviromentUtil from '@/utils/enviroment.util';
 
 /**
  * Google Cloud Storage Client
@@ -26,7 +26,7 @@ export class FileGcsClient extends FileS3Client {
   protected storage: GcsStorage;
   protected urlRedisKey = 'privateDownloadUrl';
   constructor(
-    config: DofeUploader.Config,
+    config: DoFeUploader.Config,
     storageConfig: StorageCredentialsConfig,
     appConfig: AppConfig,
     redis: RedisService,

@@ -12,7 +12,7 @@ import {
   VerifyCodeResult,
 } from './dto/sms.dto';
 import { sms } from '@volcengine/openapi';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import { v4 as uuidv4 } from 'uuid';
 
 export class SmsVolcengineClient {

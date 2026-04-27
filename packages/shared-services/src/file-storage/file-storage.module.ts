@@ -12,8 +12,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { IpGeoModule } from '../ip-geo';
-import { RedisModule } from '@dofe/infra-redis';
+import { IpGeoModule } from '@app/shared-services/ip-geo';
+import { RedisModule } from '@app/redis';
 import { FileStorageService } from './file-storage.service';
 import { FileStorageClientFactory } from './file-storage.factory';
 import { BucketResolver } from './bucket-resolver';

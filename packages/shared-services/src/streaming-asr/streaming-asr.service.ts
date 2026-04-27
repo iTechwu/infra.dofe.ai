@@ -28,11 +28,11 @@ import {
   VolcengineSaucConfig,
   StreamingAsrResult,
   StreamingAsrCallbacks,
-} from '@dofe/infra-clients';
-import { getKeysConfig } from '@dofe/infra-common';
-import { OpenSpeechConfig, JwtConfig } from '@dofe/infra-common';
-import { RedisService } from '@dofe/infra-redis';
-import enviroment from '@dofe/infra-utils';
+} from '@app/clients/internal/openspeech';
+import { getKeysConfig } from '@/config/configuration';
+import { OpenSpeechConfig, JwtConfig } from '@/config/validation';
+import { RedisService } from '@app/redis';
+import enviroment from '@/utils/enviroment.util';
 import {
   CreateStreamingSessionDto,
   StreamingSessionResult,

@@ -26,7 +26,7 @@
 
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
-import { RedisService } from '@dofe/infra-redis';
+import { RedisService } from '@app/redis';
 import {
   SmsAliyunClient,
   SmsTencentClient,
@@ -34,7 +34,7 @@ import {
   SmsZxjcClient,
   SmsVolcengineClient,
   SmsProviderConfig,
-} from '@dofe/infra-clients';
+} from '@app/clients/internal/sms';
 
 import {
   SmsVendor,
@@ -50,7 +50,7 @@ import {
   VerifyCodeCheckResult,
   SmsVolcengineTemplate,
 } from './types';
-import enviroment from '@dofe/infra-utils';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // SMS Client Factory

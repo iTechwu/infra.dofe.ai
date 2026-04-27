@@ -8,7 +8,7 @@
  *
  * @example
  * ```typescript
- * import { IpGeoModule, IpGeoService } from '@dofe/infra-shared-services';
+ * import { IpGeoModule, IpGeoService } from '@app/shared-services/ip-geo';
  *
  * @Module({
  *   imports: [IpGeoModule],

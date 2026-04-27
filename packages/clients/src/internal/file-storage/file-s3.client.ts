@@ -8,7 +8,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
 import {
-  DofeUploader,
+  DoFeUploader,
   GetObjectOptions,
   PresignedPutUrlObject,
   PutObjectOptions,
@@ -37,17 +37,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as fs from 'node:fs';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3/dist-types/commands/PutObjectCommand';
-import { DofeApp } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import { DoFeApp } from '@/config/dto/config.dto';
+import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileStorageInterface } from './file-storage.interface';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@dofe/infra-common';
+import { ApiException, apiError } from '@/filter/exception/api.exception';
 import { isURL } from 'class-validator';
-import { RedisService } from '@dofe/infra-redis';
-import enviromentUtil from '@dofe/infra-utils';
-import enviroment from '@dofe/infra-utils';
+import { RedisService } from '@app/redis';
+import enviromentUtil from '@/utils/enviroment.util';
+import enviroment from '@/utils/enviroment.util';
 
 /**
  * S3 File Storage Client
@@ -59,7 +59,7 @@ import enviroment from '@dofe/infra-utils';
 export class FileS3Client implements FileStorageInterface {
   protected externalClient: S3Client;
   protected internalClient: S3Client;
-  config: DofeUploader.Config;
+  config: DoFeUploader.Config;
   storageConfig: StorageCredentialsConfig;
   appConfig: AppConfig;
   redis: RedisService;
@@ -80,7 +80,7 @@ export class FileS3Client implements FileStorageInterface {
    *
    */
   constructor(
-    config: DofeUploader.Config,
+    config: DoFeUploader.Config,
     storageConfig: StorageCredentialsConfig,
     appConfig: AppConfig,
     redis: RedisService,
@@ -374,7 +374,7 @@ export class FileS3Client implements FileStorageInterface {
     }
   }
 
-  async fileDownloader(source: DofeApp.FileBase): Promise<Buffer> {
+  async fileDownloader(source: DoFeApp.FileBase): Promise<Buffer> {
     const context = {
       key: source.key,
       bucket: source.bucket,
@@ -418,7 +418,7 @@ export class FileS3Client implements FileStorageInterface {
 
   async fileUploader(
     buffer: Buffer,
-    destination: DofeApp.FileBase,
+    destination: DoFeApp.FileBase,
   ): Promise<void> {
     const context = {
       key: destination.key,
@@ -814,7 +814,7 @@ export class FileS3Client implements FileStorageInterface {
     }
   }
 
-  getConfig(): DofeUploader.Config {
+  getConfig(): DoFeUploader.Config {
     return this.config;
   }
 

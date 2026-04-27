@@ -78,7 +78,7 @@ export type EmailAccount = z.infer<typeof EmailAccountSchema>;
 // Legacy Namespace (for backward compatibility)
 // ============================================================================
 
-export namespace DofeEmailSender {
+export namespace DoFeEmailSender {
   export type EmailKeys = z.infer<typeof EmailKeysSchema>;
   export type Config = z.infer<typeof EmailConfigSchema>;
   export type SignalMessage = z.infer<typeof SignalMessageSchema>;

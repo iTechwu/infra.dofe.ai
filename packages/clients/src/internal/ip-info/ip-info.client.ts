@@ -13,7 +13,7 @@ import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { IpInfoResponse } from './dto/ip-info.dto';
-import { IpInfoConfig } from '@dofe/infra-common';
+import { IpInfoConfig } from '@/config/validation';
 
 @Injectable()
 export class IpInfoClient {
