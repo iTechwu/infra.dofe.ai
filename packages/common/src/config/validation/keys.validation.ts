@@ -8,7 +8,7 @@
  * Never log or expose the actual values.
  */
 import { z } from 'zod';
-import environment from '@/utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)

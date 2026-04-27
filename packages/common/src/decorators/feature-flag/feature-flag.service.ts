@@ -32,7 +32,7 @@ import {
   FeatureFlagOptions,
   FeatureFlagStrategy,
 } from './feature-flag.decorator';
-import environment from '@/utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // Types

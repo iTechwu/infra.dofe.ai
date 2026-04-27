@@ -15,7 +15,7 @@
 
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
-import { DoFeApp } from '@/config/dto/config.dto';
+import { DoFeApp } from '../config/dto/config.dto';
 
 /**
  * @DeviceInfo() decorator - 从请求头提取设备信息

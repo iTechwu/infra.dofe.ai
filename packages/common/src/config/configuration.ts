@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as process from 'process';
-import { ApiException } from '@/filter/exception/api.exception';
+import { ApiException } from '../filter/exception/api.exception';
 import {
   validateEnv,
   validateEnvSafe,
@@ -14,7 +14,7 @@ import {
   type YamlConfig,
   type KeysConfig,
 } from './validation';
-import environment from '@/utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // Configuration State
