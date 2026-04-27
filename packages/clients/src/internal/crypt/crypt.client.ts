@@ -4,34 +4,34 @@ import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import * as cryptoUtil from '@/utils/crypto.util';
 import urlencodeUtil from '@/utils/urlencode.util';
-import { CryptoConfig } from '@/config/validation';
 
 @Injectable()
 export class CryptClient {
-  private config: CryptoConfig;
+  private readonly key: string;
+  private readonly iv: string;
   constructor(
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
-    this.config = configService.getOrThrow<CryptoConfig>('crypto');
+    this.key = configService.getOrThrow<string>('CRYPTO_KEY');
+    this.iv = configService.getOrThrow<string>('CRYPTO_IV');
   }
 
   encrypt(text: string, iv?: string, key?: string): string {
-    key = key || this.config.key;
-    iv = iv || this.config.iv;
+    key = key || this.key;
+    iv = iv || this.iv;
     const cry = cryptoUtil.aesCbcEncrypt(text, key, iv);
     return urlencodeUtil.base64ToUrlSafe(cry);
   }
 
   decrypt(text: string, iv?: string, key?: string): string {
     text = urlencodeUtil.urlSafeToBase64(text);
-    // this.logger.info('decrypt', {key:this.config.key, iv:this.config.iv , text})
-    key = key || this.config.key;
-    iv = iv || this.config.iv;
+    key = key || this.key;
+    iv = iv || this.iv;
     return cryptoUtil.aesCbcDecrypt(text, key, iv);
   }
 
   getSignUrl(url: string): string {
-    return cryptoUtil.signUrl(url, this.config.key);
+    return cryptoUtil.signUrl(url, this.key);
   }
 }

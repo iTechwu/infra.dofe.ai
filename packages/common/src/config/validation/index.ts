@@ -131,6 +131,7 @@ export {
   imageProviderSchema,
   imageConfigSchema,
   openaiSchema,
+  ipInfoKeysSchema,
   // Functions
   validateKeysConfig,
   validateKeysConfigSafe,
@@ -162,4 +163,5 @@ export type {
   ImageConfig,
   OpenAIConfig,
   ExchangeRateConfig,
+  IpInfoKeysConfig,
 } from './keys.validation';

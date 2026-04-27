@@ -232,6 +232,14 @@ export const exchangerateSchema = z.object({
   baseUrl: z.string().url(),
 });
 
+// IP Info Service Schema
+export const ipInfoKeysSchema = z.object({
+  /** ipinfo.io API URL */
+  url: z.string().url(),
+  /** ipinfo.io API Token */
+  token: z.string().min(1),
+});
+
 // Full Keys Configuration Schema
 export const keysConfigSchema = z.object({
   sendcloud: sendcloudSchema.optional(),
@@ -243,6 +251,7 @@ export const keysConfigSchema = z.object({
   image: imageConfigSchema.optional(),
   openai: openaiSchema.optional(),
   exchangerate: exchangerateSchema.optional(),
+  ipinfo: ipInfoKeysSchema.optional(),
 });
 
 // ============================================================================
@@ -309,6 +318,9 @@ export type OpenAIConfig = z.infer<typeof openaiSchema>;
 
 /** ExchangeRate 配置类型 */
 export type ExchangeRateConfig = z.infer<typeof exchangerateSchema>;
+
+/** IP Info 配置类型 */
+export type IpInfoKeysConfig = z.infer<typeof ipInfoKeysSchema>;
 
 /**
  * Validation result type
@@ -387,7 +399,8 @@ export function isProviderConfigured(
     | 'risk'
     | 'image'
     | 'openai'
-    | 'exchangerate',
+    | 'exchangerate'
+    | 'ipinfo',
 ): boolean {
   return !!config[provider];
 }

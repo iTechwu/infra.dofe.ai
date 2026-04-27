@@ -5,6 +5,7 @@ import {
   Inject,
   Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -56,6 +57,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    private readonly configService: ConfigService,
     @Optional() private readonly dbMetrics?: DbMetricsService,
   ) {
     // Prisma 7.x: 使用 @prisma/adapter-pg 驱动适配器
@@ -105,6 +107,8 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
     // 保存引用以便在回调中使用
     const dbMetrics = this.dbMetrics;
     const fallbackLog = this.fallbackLog.bind(this);
+    const nonSoftDeleteModels: string[] =
+      this.configService.get('prisma.nonSoftDeleteModels') ?? [];
 
     // 合并软删除和监控扩展为一个 $extends 调用
     return basePrisma.$extends({
@@ -112,7 +116,10 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
         $allOperations({ operation, model, args, query }) {
           // 1. 处理软删除逻辑
           let processedArgs = args;
-          if (isSoftDeleteModel(model) && QUERY_ACTIONS.includes(operation)) {
+          if (
+            isSoftDeleteModel(model, nonSoftDeleteModels) &&
+            QUERY_ACTIONS.includes(operation)
+          ) {
             const newArgs = { ...args };
             if (!newArgs.where) {
               newArgs.where = {};
@@ -139,8 +146,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
           const result = query(processedArgs);
 
           // 处理 Promise 结果
-          if (result instanceof Promise) {
-            return result
+          return result
               .then((res) => {
                 const serialized = bigintUtil.serialize(res);
                 if (dbMetrics) {
@@ -187,53 +193,6 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
                 }
                 throw error;
               });
-          }
-
-          // 同步结果处理
-          try {
-            const serialized = bigintUtil.serialize(result);
-            if (dbMetrics) {
-              dbMetrics.recordQueryEnd(
-                ctx,
-                {
-                  model: model || 'unknown',
-                  action: operation,
-                  dbType: 'read',
-                },
-                'success',
-                processedArgs,
-              );
-            } else {
-              fallbackLog(
-                ctx.startTime,
-                { model, action: operation, args: processedArgs },
-                'success',
-              );
-            }
-            return serialized;
-          } catch (error) {
-            if (dbMetrics) {
-              dbMetrics.recordQueryEnd(
-                ctx,
-                {
-                  model: model || 'unknown',
-                  action: operation,
-                  dbType: 'read',
-                },
-                'error',
-                processedArgs,
-                error as Error,
-              );
-            } else {
-              fallbackLog(
-                ctx.startTime,
-                { model, action: operation, args: processedArgs },
-                'error',
-                error as Error,
-              );
-            }
-            throw error;
-          }
         },
       },
     }) as any;

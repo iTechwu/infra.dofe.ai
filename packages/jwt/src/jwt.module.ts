@@ -1,4 +1,3 @@
-import type { JwtConfig } from '@dofe/infra-common';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule as NestJwtModule, JwtService } from '@nestjs/jwt';
@@ -9,12 +8,14 @@ import { JwtModule as NestJwtModule, JwtService } from '@nestjs/jwt';
     NestJwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const config = configService.getOrThrow('jwt') as JwtConfig;
+        const secret = configService.getOrThrow<string>('JWT_SECRET');
+        const expiresIn = parseInt(
+          configService.get<string>('JWT_EXPIRE_IN') || '3600',
+          10,
+        );
         return {
-          secret: config.secret,
-          signOptions: {
-            expiresIn: config.expireIn,
-          },
+          secret,
+          signOptions: { expiresIn },
         };
       },
       inject: [ConfigService],

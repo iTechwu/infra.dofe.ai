@@ -41,86 +41,17 @@ export const QUERY_ACTIONS = [
 export const DELETE_ACTIONS = ['delete', 'deleteMany'];
 
 /**
- * 不支持软删除的模型列表（这些模型没有 isDeleted 字段）
- *
- * 分类说明：
- * - 系统/配置表：无需软删除的配置和系统表
- * - 网关与定价相关表：schema 无 isDeleted，不可注入软删条件
- * - 团队相关表：团队结构表无软删除需求
- * - Provider 相关表：供应商和密钥配置表
- */
-const NON_SOFT_DELETE_MODELS = [
-  // ==================== 系统/配置表 ====================
-  'SystemTaskQueue',
-
-  // ==================== Provider Vendor 供应商 ====================
-  'ProviderVendor',
-  'ProviderVendorEndpoint',
-
-  // ==================== Provider Key 密钥 ====================
-  'ProviderKey',
-  'ProviderKeyEndpoint',
-
-  // ==================== 团队相关 ====================
-  'Team',
-  'TeamMember',
-
-  // ==================== Gateway 网关用户 ====================
-  'GatewayUser',
-
-  // ==================== Gateway Model Catalog 模型目录 ====================
-  'GatewayModelCatalog',
-  'GatewayModelAvailability',
-
-  // ==================== Gateway Capability 能力标签 ====================
-  'GatewayCapabilityTag',
-  'GatewayModelCapabilityTag',
-  'GatewayTagGroup',
-
-  // ==================== Gateway Model Capability 模型能力扩展 ====================
-  'GatewayModelCapability',
-
-  // ==================== Gateway API Key ====================
-  'GatewayUserApiKey',
-
-  // ==================== Gateway Usage 使用日志 ====================
-  'GatewayUsageLog',
-
-  // ==================== Gateway Pricing 定价 ====================
-  'GatewayTieredPricingConfig',
-  'GatewayInternalCost',
-
-  // ==================== Gateway Alias 别名 ====================
-  'GatewayAliasMapping',
-  'GatewayAliasRoutingStrategy',
-
-  // ==================== Gateway Cache 缓存 ====================
-  'GatewayCacheStorageRecord',
-  'GatewayUsageAccumulator',
-
-  // ==================== Open Platform 开放平台 ====================
-  'ServiceAccount',
-  'ServiceAccountToken',
-  'WebhookEndpoint',
-  'WebhookDelivery',
-  'ModelAlias',
-  'UsageAlert',
-
-  // ==================== Budget Governance 预算治理 ====================
-  'BudgetConfig',
-  'BudgetSpendingRecord',
-
-  // ==================== Audit Log 审计日志 ====================
-  'AuditLog',
-] as const;
-
-/**
  * 检查模型是否支持软删除
+ *
+ * @param modelName - Prisma 模型名称
+ * @param nonSoftDeleteModels - 不支持软删除的模型名称列表（从配置中读取，默认为 []）
  */
-export function isSoftDeleteModel(modelName: string | undefined): boolean {
+export function isSoftDeleteModel(
+  modelName: string | undefined,
+  nonSoftDeleteModels: readonly string[] = [],
+): boolean {
   if (!modelName) return false;
-  // 如果模型在不支持软删除的列表中，返回 false
-  return !NON_SOFT_DELETE_MODELS.includes(modelName as any);
+  return !nonSoftDeleteModels.includes(modelName);
 }
 
 /**

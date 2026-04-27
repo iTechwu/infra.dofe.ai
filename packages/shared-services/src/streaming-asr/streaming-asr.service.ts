@@ -30,7 +30,7 @@ import {
   StreamingAsrCallbacks,
 } from '@app/clients/internal/openspeech';
 import { getKeysConfig } from '@/config/configuration';
-import { OpenSpeechConfig, JwtConfig } from '@/config/validation';
+import { OpenSpeechConfig } from '@/config/validation';
 import { RedisService } from '@app/redis';
 import environment from '@/utils/environment.util';
 import {
@@ -1319,7 +1319,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     sessionId: string,
     userId: string,
   ): Promise<string> {
-    const jwtConfig = this.config.getOrThrow<JwtConfig>('jwt');
+    const secret = this.config.getOrThrow<string>('JWT_SECRET');
 
     return await this.jwt.signAsync(
       {
@@ -1328,7 +1328,7 @@ export class StreamingAsrService implements OnModuleDestroy {
         type: 'streaming-asr-session',
       },
       {
-        secret: jwtConfig.secret,
+        secret,
         expiresIn: '4h', // 4小时，比 session 最大时长(2小时)长
       },
     );

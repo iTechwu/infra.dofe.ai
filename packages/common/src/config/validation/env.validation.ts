@@ -54,6 +54,14 @@ export const envSchema = z.object({
   // External services
   API_BASE_URL: z.string().url().optional(),
   INTERNAL_API_BASE_URL: z.string().url().optional(),
+
+  // JWT configuration (migrated from config.local.yaml)
+  JWT_SECRET: z.string().min(8, 'JWT secret must be at least 8 characters'),
+  JWT_EXPIRE_IN: z.coerce.number().int().positive().default(3600),
+
+  // Crypto configuration (migrated from config.local.yaml)
+  CRYPTO_KEY: z.string().min(1),
+  CRYPTO_IV: z.string().min(1),
 });
 
 /**
@@ -99,7 +107,7 @@ export function validateEnv(): EnvConfig {
 
     // In dev, log warning but continue
     console.warn('⚠️  Continuing with invalid environment in dev mode');
-    return expandedEnv as EnvConfig;
+    return expandedEnv as unknown as EnvConfig;
   }
 
   console.log('✅ Environment variables validated successfully');

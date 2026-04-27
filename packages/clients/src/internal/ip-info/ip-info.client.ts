@@ -10,21 +10,20 @@ import { Injectable, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { getKeysConfig } from '@/config/configuration';
 import { IpInfoResponse } from './dto/ip-info.dto';
-import { IpInfoConfig } from '@/config/validation';
+import type { IpInfoKeysConfig } from '@/config/validation';
 
 @Injectable()
 export class IpInfoClient {
-  private readonly config: IpInfoConfig;
+  private readonly config: IpInfoKeysConfig;
 
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
-    this.config = configService.getOrThrow<IpInfoConfig>('ipinfo');
+    this.config = getKeysConfig()?.ipinfo as IpInfoKeysConfig;
   }
 
   /**
