@@ -1,12 +1,10 @@
-import { Module, Global } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { DockerService } from './docker.service';
-import { DockerImageService } from './docker-image.service';
+import { DockerRuntimeModule } from './docker-runtime.module';
+import { DockerImageModule } from './docker-image.module';
 
-@Global()
 @Module({
-  imports: [ConfigModule],
-  providers: [DockerService, DockerImageService],
-  exports: [DockerService, DockerImageService],
+  imports: [ConfigModule, DockerRuntimeModule, DockerImageModule],
+  exports: [DockerRuntimeModule, DockerImageModule],
 })
 export class DockerModule {}

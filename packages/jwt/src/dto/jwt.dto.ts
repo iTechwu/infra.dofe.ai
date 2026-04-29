@@ -1,1 +1,1 @@
-import { IsNumber, IsNotEmpty } from 'class-validator';
+// DTO file intentionally empty (unused imports removed)

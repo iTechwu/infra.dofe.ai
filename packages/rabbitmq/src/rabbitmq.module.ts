@@ -2,100 +2,105 @@ import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { RABBITMQ_CONNECTION, RabbitmqConnection } from './dto/rabbitmq.dto';
 import { RabbitmqService } from './rabbitmq.service';
-import { PrismaModule } from '@app/prisma';
-import { RedisModule } from '@app/redis';
-import { ConfigModule } from '@nestjs/config';
-import environment from '@/utils/environment.util';
+import { createContextLogger } from '@/utils/logger-standalone.util';
+
+const logger = createContextLogger('RabbitmqModule');
+const CONNECT_TIMEOUT_MS = 5000;
 
 @Module({
-  imports: [PrismaModule, RedisModule, ConfigModule],
   providers: [
     {
       provide: RABBITMQ_CONNECTION,
       useFactory: async (): Promise<RabbitmqConnection> => {
-        const maxRetries = 5;
-        const retryDelay = 3000; // 3 seconds
-        let lastError: Error | null = null;
+        const rabbitmqUrl = process.env.RABBITMQ_URL;
+        let connection: Rabbitmq.Connection | null = null;
+        let connectPromise: Promise<Rabbitmq.Connection> | null = null;
+        logger.info(`init RabbitmqModule rabbitmqUrl=${rabbitmqUrl}`);
 
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          try {
-            console.log(
-              `Attempting to connect to RabbitMQ (attempt ${attempt}/${maxRetries}): ${process.env.RABBITMQ_URL}`,
-            );
-
-            const connection = await Rabbitmq.connect(
-              process.env.RABBITMQ_URL,
-              {
-                heartbeat: 60,
-                reconnect: true,
-                reconnectBackoffStrategy: 'linear',
-                reconnectBackoffTime: 1000,
-              },
-            );
-            if (environment.isProduction()) {
-              console.log('RabbitMQ connection established successfully');
-            }
-
-            // 设置连接错误监听
-            connection.on('error', (error) => {
-              console.error('RabbitMQ connection error:', error);
-            });
-
-            connection.on('close', () => {
-              if (environment.isProduction()) {
-                console.warn('❌ RabbitMQ connection closed');
-              }
-            });
-
-            return {
-              connection,
-              close: async () => {
-                try {
-                  await connection.close();
-                  if (environment.isProduction()) {
-                    console.log('✅ RabbitMQ connection closed gracefully');
-                  }
-                } catch (error) {
-                  // 忽略已关闭的连接错误
-                  if (
-                    !(error instanceof Error) ||
-                    (!error.message.includes('closed') &&
-                      !error.message.includes('Connection closed') &&
-                      !error.message.includes('IllegalOperationError'))
-                  ) {
-                    console.error(
-                      '❌ Error closing RabbitMQ connection:',
-                      error,
-                    );
-                  }
-                }
-              },
-            };
-          } catch (error) {
-            lastError = error as Error;
-            console.error(
-              `RabbitMQ connection attempt ${attempt}/${maxRetries} failed:`,
-              error,
-            );
-
-            if (attempt < maxRetries) {
-              console.log(`Retrying in ${retryDelay}ms...`);
-              await new Promise((resolve) => setTimeout(resolve, retryDelay));
-            }
+        const connect = async (): Promise<Rabbitmq.Connection> => {
+          logger.info(`connect RabbitmqModule rabbitmqUrl=${rabbitmqUrl}`);
+          if (!rabbitmqUrl) {
+            throw new Error('RABBITMQ_URL environment variable is not set');
           }
-        }
 
-        console.error(
-          'Failed to establish RabbitMQ connection after all retries',
-        );
-        throw new Error(
-          `Failed to connect to RabbitMQ after ${maxRetries} attempts. Last error: ${lastError?.message}`,
-        );
+          if (connection && !connection.connection?.closed) {
+            return connection;
+          }
+
+          if (connectPromise) {
+            return connectPromise;
+          }
+
+          logger.info(
+            `Attempting to connect to RabbitMQ host---${rabbitmqUrl}`,
+          );
+
+          connectPromise = Promise.race([
+            Rabbitmq.connect(rabbitmqUrl, {
+              heartbeat: 60,
+            }),
+            new Promise<never>((_, reject) => {
+              setTimeout(() => {
+                reject(
+                  new Error(
+                    `RabbitMQ connect timeout after ${CONNECT_TIMEOUT_MS}ms`,
+                  ),
+                );
+              }, CONNECT_TIMEOUT_MS);
+            }),
+          ])
+            .then((conn) => {
+              connection = conn;
+              // logger.info('RabbitMQ connection established successfully');
+              return conn;
+            })
+            .catch((error) => {
+              connection = null;
+              logger.error('Failed to connect to RabbitMQ', {
+                error: error instanceof Error ? error.message : String(error),
+              });
+              throw error;
+            })
+            .finally(() => {
+              connectPromise = null;
+            });
+
+          return connectPromise;
+        };
+
+        return {
+          get connection() {
+            return connection;
+          },
+          connect,
+          close: async () => {
+            if (!connection) {
+              return;
+            }
+
+            try {
+              await connection.close();
+              logger.info('RabbitMQ connection closed gracefully');
+            } catch (error) {
+              if (
+                !(error instanceof Error) ||
+                (!error.message.includes('closed') &&
+                  !error.message.includes('Connection closed') &&
+                  !error.message.includes('IllegalOperationError'))
+              ) {
+                logger.error('Error closing RabbitMQ connection', {
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
+            } finally {
+              connection = null;
+            }
+          },
+        };
       },
     },
     RabbitmqService,
   ],
-
   exports: [RABBITMQ_CONNECTION, RabbitmqService],
 })
 export class RabbitmqModule {}

@@ -385,6 +385,8 @@ export const rateLimitConfigSchema = z.object({
 export const prismaConfigSchema = z.object({
   /** 不使用软删除的模型列表 */
   nonSoftDeleteModels: z.array(z.string()).default([]),
+  /** Prisma 客户端初始化时校验的关键模型列表，用于确认客户端包含必需的 model delegate */
+  criticalModels: z.array(z.string()).default([]),
 });
 
 /**

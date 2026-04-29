@@ -12,6 +12,9 @@ import {
   exports: [ModuleRegistry, ModuleScanner],
 })
 export class ModuleRegistryModule {
+  /**
+   * Register with custom scanner options
+   */
   static withOptions(options: ModuleScannerOptions): DynamicModule {
     const optionsProvider: Provider = {
       provide: MODULE_SCANNER_OPTIONS,
@@ -26,6 +29,9 @@ export class ModuleRegistryModule {
     };
   }
 
+  /**
+   * Register without auto-scan (manual registration only)
+   */
   static withoutAutoScan(): DynamicModule {
     return this.withOptions({ autoScan: false });
   }

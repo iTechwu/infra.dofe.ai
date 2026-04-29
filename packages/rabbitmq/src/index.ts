@@ -1,6 +1,6 @@
-export * from './rabbitmq-events.constants';
-export * from './rabbitmq.module';
+/**
+ * RabbitMQ 模块导出
+ */
+export { RabbitmqModule } from './rabbitmq.module';
 export * from './rabbitmq.service';
-export * from './rabbitmq-events.module';
-export * from './rabbitmq-events.service';
 export * from './dto/rabbitmq.dto';

@@ -8,6 +8,7 @@ export class AppRabbitConfig {
 }
 
 export interface RabbitmqConnection {
-  connection: Rabbitmq.Connection;
+  connection: Rabbitmq.Connection | null;
+  connect(): Promise<Rabbitmq.Connection>;
   close(): Promise<void>;
 }

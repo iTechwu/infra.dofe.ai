@@ -8,23 +8,7 @@
 import Docker from 'dockerode';
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-
-/**
- * Orphan report types
- */
-export interface OrphanReport {
-  orphanedContainers: string[];
-  orphanedWorkspaces: string[];
-  orphanedSecrets: string[];
-  total: number;
-}
-
-export interface CleanupReport {
-  success: boolean;
-  containersRemoved: number;
-  workspacesRemoved: number;
-  secretsRemoved: number;
-}
+import type { OrphanReport, CleanupReport } from '@repo/contracts';
 
 /**
  * Sandbox 孤儿信息
@@ -36,22 +20,6 @@ export interface SandboxOrphanInfo {
   gatewayContainer?: string;
   lastUsedAtMs?: number;
   idleMs?: number;
-}
-
-/**
- * Sandbox 清理报告
- */
-export interface SandboxCleanupReport {
-  scanned: number;
-  orphansFound: number;
-  removed: number;
-  skipped: number;
-  errors: number;
-  details: Array<{
-    containerName: string;
-    action: 'removed' | 'skipped' | 'error';
-    reason: string;
-  }>;
 }
 
 /**
@@ -81,6 +49,22 @@ interface AgentSession {
 
 interface SessionsRegistry {
   [sessionKey: string]: AgentSession;
+}
+
+/**
+ * Sandbox 清理报告
+ */
+export interface SandboxCleanupReport {
+  scanned: number;
+  orphansFound: number;
+  removed: number;
+  skipped: number;
+  errors: number;
+  details: Array<{
+    containerName: string;
+    action: 'removed' | 'skipped' | 'error';
+    reason: string;
+  }>;
 }
 
 /**
@@ -382,10 +366,14 @@ export class DockerOrphanCleanerService {
       sandboxName === 'openclaw-browser-sandbox' ||
       sandboxName.startsWith('openclaw-sandbox-')
     ) {
+      // These are shared/standalone sandboxes without gateway association
+      // - openclaw-browser-sandbox: legacy shared sandbox
+      // - openclaw-sandbox-{agentKey}: standalone sandbox without gateway binding
       return null;
     }
 
     // Extract hostname from sandbox name
+    // Pattern: {hostname}-sandbox
     const match = sandboxName.match(/^(.+)-sandbox$/);
     if (!match) {
       return null;
@@ -393,6 +381,8 @@ export class DockerOrphanCleanerService {
     const hostname = match[1];
 
     // Find gateway with matching hostname
+    // Gateway naming: clawbot-manager-{tenantId[:8]}-{hostname}
+    // Use more precise matching to avoid false positives (e.g., bot1 matching bot10)
     const gatewayPattern = new RegExp(
       `clawbot-manager-[a-f0-9]{8}-${hostname}$`,
     );
@@ -442,11 +432,12 @@ export class DockerOrphanCleanerService {
     for (const container of sandboxContainers) {
       const containerName = container.Names[0]?.replace(/^\//, '') || '';
 
-      // Skip special sandbox patterns
+      // Skip special sandbox patterns that don't have gateway association by design
       if (
         containerName === 'openclaw-browser-sandbox' ||
         containerName.startsWith('openclaw-sandbox-')
       ) {
+        // These are shared/standalone sandboxes, not orphans
         continue;
       }
 
@@ -476,6 +467,8 @@ export class DockerOrphanCleanerService {
 
   /**
    * Get activity info for a sandbox container from Gateway's OpenClaw Registry
+   * @param gatewayContainerName - Gateway container name
+   * @param sandboxContainerName - Sandbox container name
    */
   async getSandboxActivityInfo(
     gatewayContainerName: string,
@@ -501,6 +494,8 @@ export class DockerOrphanCleanerService {
         AttachStderr: true,
       });
 
+      // Start exec and collect output using demuxStream
+      // Docker exec stream is multiplexed with 8-byte headers
       const container = this.docker!.getContainer(gatewayContainerName);
       const stream = await registryExec.start({ Detach: false });
 
@@ -517,10 +512,12 @@ export class DockerOrphanCleanerService {
         stream.on('end', () => {
           const stdout = Buffer.concat(stdoutChunks).toString('utf8').trim();
           const stderr = Buffer.concat(stderrChunks).toString('utf8').trim();
+          // Use stderr as fallback if stdout is empty (e.g., file not found)
           resolve(stderr ? stdout || stderr : stdout);
         });
         stream.on('error', reject);
 
+        // Timeout fallback
         setTimeout(() => {
           const stdout = Buffer.concat(stdoutChunks).toString('utf8').trim();
           resolve(stdout);
@@ -546,6 +543,8 @@ export class DockerOrphanCleanerService {
         AttachStderr: true,
       });
 
+      // Start exec and collect output using demuxStream
+      // Docker exec stream is multiplexed with 8-byte headers
       const gatewayContainer = this.docker!.getContainer(gatewayContainerName);
       const sessionsStream = await sessionsExec.start({ Detach: false });
 
@@ -562,10 +561,12 @@ export class DockerOrphanCleanerService {
         sessionsStream.on('end', () => {
           const stdout = Buffer.concat(stdoutChunks).toString('utf8').trim();
           const stderr = Buffer.concat(stderrChunks).toString('utf8').trim();
+          // Use stderr as fallback if stdout is empty (e.g., file not found)
           resolve(stderr ? stdout || stderr : stdout);
         });
         sessionsStream.on('error', reject);
 
+        // Timeout fallback
         setTimeout(() => {
           const stdout = Buffer.concat(stdoutChunks).toString('utf8').trim();
           resolve(stdout);
@@ -574,7 +575,7 @@ export class DockerOrphanCleanerService {
 
       const sessions: SessionsRegistry = JSON.parse(sessionsData);
 
-      // Check if any session is active
+      // Check if any session is active (updatedAt within last 5 minutes)
       const now = Date.now();
       const fiveMinutesAgo = now - 300000;
 
@@ -594,6 +595,8 @@ export class DockerOrphanCleanerService {
 
   /**
    * Find idle sandbox containers
+   * @param knownGatewayContainers - list of known gateway container names with their container IDs
+   * @param idleThresholdMs - idle threshold in milliseconds
    */
   async findIdleSandboxContainers(
     knownGatewayContainers: Array<{ name: string; containerId: string }>,
@@ -610,20 +613,24 @@ export class DockerOrphanCleanerService {
     for (const container of sandboxContainers) {
       const containerName = container.Names[0]?.replace(/^\//, '') || '';
 
+      // Find corresponding Gateway
       const gateway = await this.findGatewayForSandbox(
         containerName,
         knownGatewayContainers.map((g) => g.name),
       );
 
       if (!gateway || !gateway.running) {
+        // Already handled by findOrphanedSandboxContainers
         continue;
       }
 
+      // Get activity info from Gateway's OpenClaw Registry
       const activityInfo = await this.getSandboxActivityInfo(
         gateway.name,
         containerName,
       );
 
+      // Check if idle
       if (activityInfo.lastUsedAtMs) {
         const idleMs = now - activityInfo.lastUsedAtMs;
         if (idleMs > idleThresholdMs && !activityInfo.agentSessionActive) {
@@ -644,6 +651,8 @@ export class DockerOrphanCleanerService {
 
   /**
    * Cleanup a sandbox container with graceful shutdown
+   * @param containerName - sandbox container name
+   * @param graceful - whether to gracefully shutdown Chromium
    */
   async cleanupSandboxContainer(
     containerName: string,
@@ -667,12 +676,16 @@ export class DockerOrphanCleanerService {
       const container = this.docker!.getContainer(containers[0].Id);
       const containerInfo = containers[0];
 
+      // Graceful shutdown: send SIGTERM to Chromium process first
       if (graceful && containerInfo.State === 'running') {
         try {
           this.logFn(
             'log',
             `Gracefully shutting down sandbox: ${containerName}`,
           );
+
+          // Send SIGTERM to the container (allows graceful shutdown)
+          // Docker will send SIGTERM, wait 10s, then SIGKILL
           await container.stop({ t: 10 });
           this.logFn('log', `Sandbox stopped gracefully: ${containerName}`);
         } catch (stopError) {
@@ -683,6 +696,7 @@ export class DockerOrphanCleanerService {
         }
       }
 
+      // Remove container
       await container.remove({ force: true });
       this.logFn('log', `Removed sandbox container: ${containerName}`);
 
@@ -698,10 +712,14 @@ export class DockerOrphanCleanerService {
 
   /**
    * Cleanup all orphaned sandbox containers
+   * @param knownGatewayContainers - list of known gateway container names
+   * @param gracePeriodMs - grace period in milliseconds before cleanup
+   *   TODO: gracePeriodMs is not yet implemented. Future versions should track
+   *   orphan detection time and only cleanup after grace period expires.
    */
   async cleanupOrphanedSandboxes(
     knownGatewayContainers: string[],
-    gracePeriodMs: number = 300000,
+    gracePeriodMs: number = 300000, // eslint-disable-line @typescript-eslint/no-unused-vars -- TODO: implement grace period logic
   ): Promise<SandboxCleanupReport> {
     const report: SandboxCleanupReport = {
       scanned: 0,
@@ -716,6 +734,9 @@ export class DockerOrphanCleanerService {
       return report;
     }
 
+    // Note: listSandboxContainers is called here for scanned count.
+    // findOrphanedSandboxContainers also calls it internally, but we keep this
+    // for clear separation of concerns and accurate scanned count.
     const sandboxContainers = await this.listSandboxContainers();
     report.scanned = sandboxContainers.length;
 
@@ -730,11 +751,13 @@ export class DockerOrphanCleanerService {
     );
 
     for (const orphan of orphans) {
+      // Log detection
       this.logFn(
         'log',
         `[SandboxCleanup] ORPHAN_DETECTED container=${orphan.containerName} reason=${orphan.reason}`,
       );
 
+      // Perform cleanup
       const success = await this.cleanupSandboxContainer(
         orphan.containerName,
         true,
@@ -747,6 +770,10 @@ export class DockerOrphanCleanerService {
           action: 'removed',
           reason: orphan.reason,
         });
+        this.logFn(
+          'log',
+          `[SandboxCleanup] CONTAINER_REMOVED container=${orphan.containerName}`,
+        );
       } else {
         report.errors++;
         report.details.push({

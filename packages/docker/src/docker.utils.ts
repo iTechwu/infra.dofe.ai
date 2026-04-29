@@ -4,23 +4,15 @@
  */
 
 import Docker from 'dockerode';
+import { createContextLogger } from '@/utils/logger-standalone.util';
+import { PROVIDER_CONFIGS, type ProviderVendor } from '@repo/contracts';
 
-/**
- * Simple logger interface for docker utils
- */
-interface Logger {
-  info(message: string, meta?: Record<string, unknown>): void;
-  warn(message: string, meta?: Record<string, unknown>): void;
-}
-
-const defaultLogger: Logger = {
-  info: (message, meta) => console.log(message, meta),
-  warn: (message, meta) => console.warn(message, meta),
-};
+const logger = createContextLogger('DockerUtils');
 
 /**
  * Parse DOCKER_HOST (or socket path) into Dockerode constructor options.
  * Supports: /var/run/docker.sock, unix:///path, tcp://host:port, http(s)://host:port
+ * When DOCKER_HOST is not set or is a socket path, use socketPath; when tcp/http(s), use host+port (socketPath must be null).
  */
 export function getDockerConnectionOptions(
   hostOrUrl: string,
@@ -36,7 +28,7 @@ export function getDockerConnectionOptions(
       protocol: protocol as 'http' | 'https',
       host: tcpMatch[1],
       port: parseInt(tcpMatch[2], 10),
-      socketPath: null,
+      socketPath: null, // 必须显式置空，否则 dockerode 会优先使用默认 socket
     } as Docker.DockerOptions;
   }
   const path = s.startsWith('unix://') ? s.slice(7) : s;
@@ -127,20 +119,26 @@ export function getBaseUrlEnvName(provider: string): string {
 }
 
 /**
+ * Get provider config from PROVIDER_CONFIGS
+ */
+export function getProviderConfig(aiProvider: string) {
+  return PROVIDER_CONFIGS[aiProvider as ProviderVendor];
+}
+
+/**
  * Allocate an available port
  * @param docker - Docker instance
  * @param usedPorts - List of already used ports
  * @param portStart - Starting port number
  * @param containerPrefix - Container name prefix
- * @param logger - Optional logger
  */
 export async function allocatePort(
   docker: Docker | null,
   usedPorts: number[],
   portStart: number,
   containerPrefix: string,
-  logger: Logger = defaultLogger,
 ): Promise<number> {
+  // Get ports used by existing containers
   const containerPorts: number[] = [];
 
   if (docker) {
@@ -151,6 +149,7 @@ export async function allocatePort(
       });
 
       for (const container of containers) {
+        // Only check containers managed by clawbot-manager
         if (!container.Names[0]?.startsWith('/' + containerPrefix)) {
           continue;
         }
@@ -167,8 +166,10 @@ export async function allocatePort(
     }
   }
 
+  // Combine with explicitly used ports
   const allUsedPorts = new Set([...usedPorts, ...containerPorts]);
 
+  // Find first available port
   let port = portStart;
   while (allUsedPorts.has(port)) {
     port++;
@@ -224,7 +225,6 @@ export async function pullImage(
   docker: Docker | null,
   imageName: string,
   timeoutMs = 5 * 60 * 1000,
-  logger: Logger = defaultLogger,
 ): Promise<void> {
   if (!docker) {
     logger.warn(`Docker not available, skipping image pull: ${imageName}`);

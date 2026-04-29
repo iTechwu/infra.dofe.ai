@@ -56,6 +56,11 @@ export class KnowledgeBaseVikingdbClient {
     await this.vikingDbClientService.delete({ ids: [documentId] });
   }
 
+  /**
+   * 批量更新知识库下所有文档的 bots 字段
+   * @param documentIds 该知识库下所有文档的 ID 列表
+   * @param bots 关联的员工 ID 数组
+   */
   async updateKnowledgeBaseBots(
     documentIds: string[],
     bots: string[],
@@ -73,6 +78,7 @@ export class KnowledgeBaseVikingdbClient {
       },
     );
 
+    // 批量更新所有文档的 bots 字段
     const updateDocs = documentIds.map((docId) => ({
       id: docId,
       bots,

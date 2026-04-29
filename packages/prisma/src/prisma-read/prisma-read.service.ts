@@ -197,7 +197,8 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
     }
 
     const prisma = client as Record<string, unknown>;
-    const criticalModels = ['gatewayModelCatalog', 'providerKey', 'gatewayUser', 'userInfo'];
+    const criticalModels: string[] =
+      this.configService.get('prisma.criticalModels') ?? [];
 
     const missingModels: string[] = [];
     for (const model of criticalModels) {

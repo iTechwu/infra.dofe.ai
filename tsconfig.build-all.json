@@ -104,7 +104,6 @@
     "packages/clients/src/internal/file-cdn/**/*.ts",
     "packages/clients/src/internal/openspeech/**/*.ts",
     "packages/clients/src/internal/model-verify/**/*.ts",
-    "packages/docker/**/*.ts",
     "packages/shared-services/**/*.ts",
     "packages/common/src/config/**/*.ts",
     "packages/common/src/decorators/**/*.ts",

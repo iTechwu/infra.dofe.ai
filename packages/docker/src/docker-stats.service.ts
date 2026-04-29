@@ -6,6 +6,7 @@
  */
 
 import Docker from 'dockerode';
+import type { ContainerStats } from '@repo/contracts';
 
 export interface ContainerInfo {
   id: string;
@@ -14,22 +15,6 @@ export interface ContainerInfo {
   exitCode: number;
   startedAt: string;
   finishedAt: string;
-}
-
-export interface ContainerStats {
-  hostname: string;
-  name: string;
-  containerId: string;
-  pid: number | null;
-  uptimeSeconds: number | null;
-  startedAt: string | null;
-  cpuPercent: number;
-  memoryUsage: number;
-  memoryLimit: number;
-  memoryPercent: number;
-  networkRxBytes: number;
-  networkTxBytes: number;
-  timestamp: string;
 }
 
 /**

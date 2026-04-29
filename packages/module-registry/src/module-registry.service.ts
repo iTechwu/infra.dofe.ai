@@ -1,37 +1,83 @@
 import { Injectable, Logger, OnModuleInit, Type } from '@nestjs/common';
 
+/**
+ * Module feature category for grouping related modules
+ */
 export type ModuleCategory =
-  | 'database'
-  | 'cache'
-  | 'queue'
-  | 'client'
-  | 'domain'
-  | 'infrastructure'
-  | 'integration'
-  | 'feature'
-  | 'monitoring'
-  | 'optional';
+  | 'database' // Database access modules (Prisma, DB services)
+  | 'cache' // Caching modules (Redis)
+  | 'queue' // Message queue modules (RabbitMQ)
+  | 'client' // External API clients
+  | 'domain' // Business domain modules
+  | 'infrastructure' // Infrastructure services
+  | 'integration' // Third-party integrations
+  | 'feature' // Feature-specific modules
+  | 'monitoring' // Health checks, monitoring
+  | 'optional'; // Optional/enhancement modules
 
+/**
+ * Module registration metadata
+ */
 export interface ModuleRegistration {
+  /** Unique module identifier */
   id: string;
+  /** Module category for grouping */
   category: ModuleCategory;
+  /** Module class reference */
   module: Type<any>;
+  /** Human-readable name */
   name?: string;
+  /** Module description */
   description?: string;
+  /** Dependencies (module IDs that must be loaded first) */
   dependencies?: string[];
+  /** Whether module is required for app to function */
   required?: boolean;
+  /** Whether module is enabled (can be toggled via config) */
   enabled?: boolean;
+  /** Priority for load order (lower = earlier) */
   priority?: number;
 }
 
+/**
+ * Module group configuration
+ */
 export interface ModuleGroupConfig {
+  /** Group ID */
   id: string;
+  /** Display name */
   name: string;
+  /** Module IDs in this group */
   modules: string[];
+  /** Whether all modules in group are required */
   required?: boolean;
+  /** Whether group is enabled by default */
   enabled?: boolean;
 }
 
+/**
+ * Registry for dynamic module loading and dependency management.
+ *
+ * Provides:
+ * - Module registration with metadata
+ * - Dependency resolution
+ * - Conditional loading based on config
+ * - Load order optimization
+ *
+ * @example
+ * ```typescript
+ * // Register a module
+ * moduleRegistry.register({
+ *   id: 'bot-query',
+ *   category: 'domain',
+ *   module: BotQueryModule,
+ *   dependencies: ['prisma', 'redis'],
+ * });
+ *
+ * // Get modules for a feature
+ * const modules = moduleRegistry.getModulesForFeature('bot-management');
+ * ```
+ */
 @Injectable()
 export class ModuleRegistry implements OnModuleInit {
   private readonly logger = new Logger(ModuleRegistry.name);
@@ -41,11 +87,19 @@ export class ModuleRegistry implements OnModuleInit {
 
   async onModuleInit() {
     if (this.initialized) return;
+
+    // Validate dependencies after all registrations
     this.validateDependencies();
+
+    // Log registration summary
     this.logRegistrationSummary();
+
     this.initialized = true;
   }
 
+  /**
+   * Register a module with metadata
+   */
   register(registration: ModuleRegistration): void {
     if (this.registrations.has(registration.id)) {
       this.logger.warn(
@@ -55,6 +109,7 @@ export class ModuleRegistry implements OnModuleInit {
 
     this.registrations.set(registration.id, registration);
 
+    // Add to category index
     if (!this.categories.has(registration.category)) {
       this.categories.set(registration.category, new Set());
     }
@@ -65,28 +120,46 @@ export class ModuleRegistry implements OnModuleInit {
     );
   }
 
+  /**
+   * Register multiple modules at once
+   */
   registerAll(registrations: ModuleRegistration[]): void {
     for (const reg of registrations) {
       this.register(reg);
     }
   }
 
+  /**
+   * Get a module registration by ID
+   */
   get(id: string): ModuleRegistration | undefined {
     return this.registrations.get(id);
   }
 
+  /**
+   * Check if a module is registered
+   */
   has(id: string): boolean {
     return this.registrations.has(id);
   }
 
+  /**
+   * Get all registered module IDs
+   */
   getAllIds(): string[] {
     return Array.from(this.registrations.keys());
   }
 
+  /**
+   * Get all registrations
+   */
   getAllRegistrations(): ModuleRegistration[] {
     return Array.from(this.registrations.values());
   }
 
+  /**
+   * Get modules by category
+   */
   getByCategory(category: ModuleCategory): ModuleRegistration[] {
     const ids = this.categories.get(category);
     if (!ids) return [];
@@ -96,6 +169,9 @@ export class ModuleRegistry implements OnModuleInit {
       .filter(Boolean);
   }
 
+  /**
+   * Get module classes for dynamic import, sorted by dependencies and priority
+   */
   getModuleClasses(options?: {
     categories?: ModuleCategory[];
     includeOptional?: boolean;
@@ -107,25 +183,33 @@ export class ModuleRegistry implements OnModuleInit {
       onlyEnabled = true,
     } = options || {};
 
+    // Filter registrations
     let filtered = this.getAllRegistrations();
 
+    // Filter by category
     if (categories?.length) {
       filtered = filtered.filter((r) => categories.includes(r.category));
     }
 
+    // Filter by enabled status
     if (onlyEnabled) {
       filtered = filtered.filter((r) => r.enabled !== false);
     }
 
+    // Filter optional modules
     if (!includeOptional) {
       filtered = filtered.filter((r) => r.required !== false);
     }
 
+    // Sort by dependencies and priority
     const sorted = this.topologicalSort(filtered);
 
     return sorted.map((r) => r.module);
   }
 
+  /**
+   * Get module classes for a specific feature set
+   */
   getModulesForFeature(featureIds: string[]): Type<any>[] {
     const featureModules: ModuleRegistration[] = [];
 
@@ -133,6 +217,7 @@ export class ModuleRegistry implements OnModuleInit {
       const reg = this.registrations.get(id);
       if (reg) {
         featureModules.push(reg);
+        // Include dependencies
         const deps = this.getDependenciesRecursive(id);
         for (const depId of deps) {
           const depReg = this.registrations.get(depId);
@@ -146,6 +231,9 @@ export class ModuleRegistry implements OnModuleInit {
     return this.topologicalSort(featureModules).map((r) => r.module);
   }
 
+  /**
+   * Validate all module dependencies exist
+   */
   private validateDependencies(): void {
     const errors: string[] = [];
 
@@ -168,6 +256,9 @@ export class ModuleRegistry implements OnModuleInit {
     }
   }
 
+  /**
+   * Get all dependencies for a module recursively
+   */
   private getDependenciesRecursive(
     moduleId: string,
     visited = new Set<string>(),
@@ -186,6 +277,9 @@ export class ModuleRegistry implements OnModuleInit {
     return deps;
   }
 
+  /**
+   * Topological sort for dependency-ordered loading
+   */
   private topologicalSort(
     registrations: ModuleRegistration[],
   ): ModuleRegistration[] {
@@ -202,6 +296,7 @@ export class ModuleRegistry implements OnModuleInit {
 
       visiting.add(reg.id);
 
+      // Visit dependencies first
       if (reg.dependencies) {
         for (const depId of reg.dependencies) {
           const depReg = this.registrations.get(depId);
@@ -216,6 +311,7 @@ export class ModuleRegistry implements OnModuleInit {
       sorted.push(reg);
     };
 
+    // Sort by priority first (lower priority = earlier)
     const byPriority = [...registrations].sort(
       (a, b) => (a.priority ?? 100) - (b.priority ?? 100),
     );
@@ -227,6 +323,9 @@ export class ModuleRegistry implements OnModuleInit {
     return sorted;
   }
 
+  /**
+   * Log registration summary
+   */
   private logRegistrationSummary(): void {
     const byCategory: Record<string, number> = {};
 
