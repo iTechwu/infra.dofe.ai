@@ -6,7 +6,7 @@
  */
 
 import { Global, Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { RedisModule } from '@app/redis';
 import { FeatureFlagService } from './feature-flag.service';
@@ -16,6 +16,7 @@ import { FeatureFlagInterceptor } from './feature-flag.interceptor';
 @Module({
   imports: [ConfigModule, RedisModule],
   providers: [
+    Reflector,
     FeatureFlagService,
     {
       provide: APP_INTERCEPTOR,

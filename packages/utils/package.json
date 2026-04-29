@@ -49,6 +49,10 @@
     "./file.util": {
       "types": "./dist/file.util.d.ts",
       "default": "./dist/file.util.js"
+    },
+    "./response": {
+      "types": "./dist/response.d.ts",
+      "default": "./dist/response.js"
     }
   },
   "dependencies": {},
