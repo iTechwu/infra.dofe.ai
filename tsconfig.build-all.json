@@ -92,6 +92,15 @@
     "packages/*/node_modules",
     "packages/*/dist",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "packages/clients/src/internal/agentx/**/*",
+    "packages/clients/src/internal/feishu/**/*",
+    "packages/clients/src/internal/mlflow/**/*",
+    "packages/clients/src/internal/model-research-proxy/**/*",
+    "packages/clients/src/internal/openclaw/**/*",
+    "packages/clients/src/internal/provider-verify/**/*",
+    "packages/clients/src/internal/transcode/**/*",
+    "packages/docker/src/**/*",
+    "packages/shared-services/src/**/*"
   ]
 }

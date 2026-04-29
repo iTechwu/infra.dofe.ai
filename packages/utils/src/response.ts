@@ -18,6 +18,6 @@ export class Response<T> {
   data?: T;
 
   static ok<T>(data?: T): Response<T> {
-    return new Response(200, 'ok', bigintUtil.serialize(data));
+    return new Response(200, 'ok', bigintUtil.serialize(data) as T);
   }
 }

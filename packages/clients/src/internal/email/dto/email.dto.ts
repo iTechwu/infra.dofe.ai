@@ -73,3 +73,6 @@ export namespace DoFeEmailSender {
   export type RegisterEmailSub = z.infer<typeof EmailSubValuesSchema>;
   export type EmailTemplate = z.infer<typeof EmailTemplateSchema>;
 }
+
+// Legacy alias for backward compatibility
+export { DoFeEmailSender as PardxEmailSender };

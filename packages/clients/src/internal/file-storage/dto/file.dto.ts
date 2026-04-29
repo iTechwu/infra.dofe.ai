@@ -125,3 +125,6 @@ export namespace DoFeUploader {
   export type FileLocal = z.infer<typeof FileLocalSchema>;
   export type Config = z.infer<typeof DoFeUploaderConfigSchema>;
 }
+
+// Legacy alias for backward compatibility
+export { DoFeUploader as PardxUploader };
