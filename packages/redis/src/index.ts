@@ -1,3 +1,7 @@
 export * from './redis.module';
 export * from './redis.service';
 export * from './cache.service';
+export * from './redis-lock.module';
+export * from './redis-lock.service';
+export * from './tenant-redis.module';
+export * from './tenant-redis.service';
