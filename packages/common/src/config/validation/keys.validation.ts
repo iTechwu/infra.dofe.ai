@@ -240,8 +240,40 @@ export const ipInfoKeysSchema = z.object({
   token: z.string().min(1),
 });
 
+// ============================================================================
+// Core Security Key Schemas (从 .env 迁移到 keys/config.json)
+// ============================================================================
+
+/** JWT 密钥配置 */
+export const jwtKeysSchema = z.object({
+  secret: z.string().min(8, 'JWT secret must be at least 8 characters'),
+  expireIn: z.number().int().positive().default(3600),
+});
+
+/** AES 加解密配置（CryptClient 使用） */
+export const cryptoKeysSchema = z.object({
+  key: z.string().min(1),
+  iv: z.string().min(1),
+});
+
+/** AES-256 加密密钥（EncryptionService 使用） */
+export const encryptionKeysSchema = z.object({
+  key: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 characters'),
+});
+
+/** 管理员注册密钥 */
+export const adminKeysSchema = z.object({
+  registerSecret: z.string().min(1),
+});
+
 // Full Keys Configuration Schema
 export const keysConfigSchema = z.object({
+  // 核心安全密钥
+  jwt: jwtKeysSchema.optional(),
+  crypto: cryptoKeysSchema.optional(),
+  encryption: encryptionKeysSchema.optional(),
+  admin: adminKeysSchema.optional(),
+  // 第三方服务凭证
   sendcloud: sendcloudSchema.optional(),
   sms: smsConfigSchema.optional(),
   storage: storageConfigSchema.optional(),
@@ -260,6 +292,18 @@ export const keysConfigSchema = z.object({
 
 /** 完整 Keys 配置类型 */
 export type KeysConfig = z.infer<typeof keysConfigSchema>;
+
+/** JWT 密钥配置类型 */
+export type JwtKeysConfig = z.infer<typeof jwtKeysSchema>;
+
+/** Crypto 密钥配置类型 */
+export type CryptoKeysConfig = z.infer<typeof cryptoKeysSchema>;
+
+/** Encryption 密钥配置类型 */
+export type EncryptionKeysConfig = z.infer<typeof encryptionKeysSchema>;
+
+/** Admin 密钥配置类型 */
+export type AdminKeysConfig = z.infer<typeof adminKeysSchema>;
 
 /** 邮件模板配置类型 */
 export type EmailTemplateConfig = z.infer<typeof emailTemplateSchema>;
@@ -391,6 +435,10 @@ export function validateKeysConfigSafe(config: unknown): KeysValidationResult {
 export function isProviderConfigured(
   config: KeysConfig,
   provider:
+    | 'jwt'
+    | 'crypto'
+    | 'encryption'
+    | 'admin'
     | 'sendcloud'
     | 'sms'
     | 'storage'

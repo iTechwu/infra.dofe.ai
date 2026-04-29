@@ -10,6 +10,7 @@ import { parseBuffer } from 'music-metadata';
 import { Signer } from '@volcengine/openapi';
 import { getKeysConfig, initKeysConfig } from '@/config/configuration';
 import { StorageCredentialsConfig, TtsConfig } from '@/config/dto/config.dto';
+import { FeatureNotConfiguredError } from '@/config/features';
 import { FileStorageService } from '@app/shared-services/file-storage';
 import { TtsRequestDto, TtsResultDto, TtsResponseDto } from './dto/tts.dto';
 import environment from '@/utils/environment.util';
@@ -58,7 +59,7 @@ export class VolcengineTtsClient {
     const config = getKeysConfig()?.tts as TtsConfig | undefined;
     // console.log('techwu config', config);
     if (!config || !config.volcengine) {
-      throw new Error('Volcengine TTS config not found');
+      throw new FeatureNotConfiguredError('tts', 'keys.tts');
     }
 
     const volcengineConfig = config.volcengine;

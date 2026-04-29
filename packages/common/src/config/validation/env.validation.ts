@@ -55,13 +55,25 @@ export const envSchema = z.object({
   API_BASE_URL: z.string().url().optional(),
   INTERNAL_API_BASE_URL: z.string().url().optional(),
 
-  // JWT configuration (migrated from config.local.yaml)
-  JWT_SECRET: z.string().min(8, 'JWT secret must be at least 8 characters'),
-  JWT_EXPIRE_IN: z.coerce.number().int().positive().default(3600),
+  // JWT configuration — 可选，支持从 keys/config.json 读取
+  // 如果 REQUIRED_FEATURES 包含 jwt，则必须存在于 .env 或 keys/config.json 中
+  JWT_SECRET: z.string().min(8, 'JWT secret must be at least 8 characters').optional(),
+  JWT_EXPIRE_IN: z.coerce.number().int().positive().optional(),
 
-  // Crypto configuration (migrated from config.local.yaml)
-  CRYPTO_KEY: z.string().min(1),
-  CRYPTO_IV: z.string().min(1),
+  // Crypto configuration — 可选，支持从 keys/config.json 读取
+  CRYPTO_KEY: z.string().min(1).optional(),
+  CRYPTO_IV: z.string().min(1).optional(),
+
+  // Feature declaration — 声明本项目需要哪些 infra 功能模块
+  REQUIRED_FEATURES: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val
+        ?.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean) ?? [],
+    ),
 });
 
 /**

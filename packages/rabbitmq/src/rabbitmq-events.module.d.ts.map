@@ -1,0 +1,1 @@
+{"version":3,"file":"rabbitmq-events.module.d.ts","sourceRoot":"","sources":["rabbitmq-events.module.ts"],"names":[],"mappings":"AAYA,OAAO,EACL,0BAA0B,EAC1B,KAAK,wBAAwB,EAC9B,MAAM,6BAA6B,CAAC;AAErC,OAAO,EAAE,0BAA0B,EAAE,wBAAwB,EAAE,CAAC;AAEhE,qBA4Ga,oBAAoB;CAAG"}

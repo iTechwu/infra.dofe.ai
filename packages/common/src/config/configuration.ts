@@ -15,6 +15,11 @@ import {
   type KeysConfig,
 } from './validation';
 import environment from '@dofe/infra-utils/environment.util';
+import {
+  validateRequiredFeatures,
+  type FeatureValidationContext,
+  type FeatureValidationResult,
+} from './features';
 
 // ============================================================================
 // Configuration State
@@ -22,7 +27,7 @@ import environment from '@dofe/infra-utils/environment.util';
 
 let config: YamlConfig | undefined = undefined;
 let envConfig: EnvConfig | undefined = undefined;
-let keysConfig: KeysConfig | undefined = undefined;
+let keysConfig: KeysConfig | undefined;
 let validationEnabled = true;
 
 /**
@@ -37,19 +42,13 @@ export function setValidationEnabled(enabled: boolean) {
 // Configuration Getters
 // ============================================================================
 
-/**
- * 获取项目根目录路径
- * 处理 Windows 环境下 $(pwd) 未展开的问题
- */
 function getProjectRoot(): string {
   let projectRoot = process.env.PROJECT_ROOT;
 
-  // 如果 PROJECT_ROOT 包含 $(pwd)，则替换为实际的工作目录
   if (projectRoot && projectRoot.includes('$(pwd)')) {
     projectRoot = projectRoot.replace('$(pwd)', process.cwd());
   }
 
-  // 如果 PROJECT_ROOT 未设置或为空，使用当前工作目录
   if (!projectRoot) {
     projectRoot = process.cwd();
   }
@@ -61,16 +60,10 @@ export function getConfig(): YamlConfig | undefined {
   return config;
 }
 
-/**
- * Get validated environment configuration
- */
 export function getEnvConfig(): EnvConfig | undefined {
   return envConfig;
 }
 
-/**
- * Get validated keys configuration
- */
 export function getKeysConfig(): KeysConfig | undefined {
   return keysConfig;
 }
@@ -79,12 +72,6 @@ export function getKeysConfig(): KeysConfig | undefined {
 // Environment Validation
 // ============================================================================
 
-/**
- * Initialize and validate environment variables
- * Should be called early in application bootstrap
- *
- * @throws Error in production if validation fails
- */
 export function initEnvValidation(): EnvConfig {
   if (!validationEnabled) {
     console.log('⚠️  Environment validation disabled');
@@ -95,7 +82,6 @@ export function initEnvValidation(): EnvConfig {
     envConfig = validateEnv();
     return envConfig;
   } catch (error) {
-    // In dev, log warning but allow startup
     if (!process.env.NODE_ENV?.startsWith('prod')) {
       console.warn('⚠️  Environment validation failed, continuing in dev mode');
       return process.env as unknown as EnvConfig;
@@ -104,9 +90,6 @@ export function initEnvValidation(): EnvConfig {
   }
 }
 
-/**
- * Validate environment without throwing
- */
 export function validateEnvConfig() {
   return validateEnvSafe();
 }
@@ -117,14 +100,11 @@ export function validateEnvConfig() {
 
 export async function initConfig() {
   try {
-    // 获取项目根目录
     const projectRoot = getProjectRoot();
 
-    // 获取 YAML 配置文件名，若环境变量未设置，则使用默认值 'config.local.yaml'
     const YAML_CONFIG_FILENAME =
       process.env.YAML_CONFIG_FILENAME || 'config.local.yaml';
 
-    // 构建配置文件路径
     const configPath = path.join(projectRoot, YAML_CONFIG_FILENAME);
 
     if (environment.isProduction()) {
@@ -135,19 +115,16 @@ export async function initConfig() {
       throw new Error(`Configuration file not found: ${configPath}`);
     }
 
-    // 读取 YAML 配置文件内容
     const rawConfig = yaml.load(readFileSync(configPath, 'utf8'));
     if (environment.isProduction()) {
       console.log('✅ Config loaded successfully, validating...');
     }
 
-    // 使用 Zod 验证配置
     if (validationEnabled) {
       try {
         const validated = validateYamlConfig(rawConfig) as unknown;
         config = validated as YamlConfig;
       } catch (validationError) {
-        // In dev, log warning but continue with raw config
         if (!process.env.NODE_ENV?.startsWith('prod')) {
           console.warn(
             '⚠️  YAML validation failed, using raw config in dev mode',
@@ -171,9 +148,6 @@ export async function initConfig() {
   }
 }
 
-/**
- * Validate YAML config without throwing
- */
 export function validateYamlConfigResult(rawConfig: unknown) {
   return validateYamlConfigSafe(rawConfig);
 }
@@ -182,10 +156,6 @@ export function validateYamlConfigResult(rawConfig: unknown) {
 // Keys Configuration
 // ============================================================================
 
-/**
- * Initialize and validate keys configuration
- * Loads and validates the entire keys/config.json file
- */
 export function initKeysConfig(): KeysConfig | undefined {
   const projectRoot = getProjectRoot();
   const keysConfigPath = `${projectRoot}/keys/config.json`;
@@ -202,7 +172,6 @@ export function initKeysConfig(): KeysConfig | undefined {
       try {
         keysConfig = validateKeysConfig(rawConfig);
       } catch (validationError) {
-        // In dev, log warning but continue with raw config
         if (!process.env.NODE_ENV?.startsWith('prod')) {
           console.warn(
             '⚠️  Keys validation failed, using raw config in dev mode',
@@ -225,7 +194,6 @@ export function initKeysConfig(): KeysConfig | undefined {
 }
 
 /**
- * Get a specific key from the keys configuration
  * @deprecated Use getKeysConfig() and access properties directly for type safety
  */
 export function getSecretConfigByKey(key: string) {
@@ -245,25 +213,103 @@ export function getSecretConfigByKey(key: string) {
   return keysConfig[key];
 }
 
-/**
- * Validate keys config without throwing
- */
 export function validateKeysConfigResult(rawConfig: unknown) {
   return validateKeysConfigSafe(rawConfig);
+}
+
+// ============================================================================
+// Keys → Env Sync (向后兼容)
+// ============================================================================
+
+/**
+ * 将 keys/config.json 中的核心密钥同步到 process.env，
+ * 使现有 ConfigService.getOrThrow('JWT_SECRET') 等调用无需修改。
+ */
+function syncKeysToEnv(keys: KeysConfig): void {
+  if (keys.jwt) {
+    if (!process.env.JWT_SECRET) {
+      process.env.JWT_SECRET = keys.jwt.secret;
+    }
+    if (!process.env.JWT_EXPIRE_IN) {
+      process.env.JWT_EXPIRE_IN = String(keys.jwt.expireIn ?? 3600);
+    }
+  }
+  if (keys.crypto) {
+    if (!process.env.CRYPTO_KEY) {
+      process.env.CRYPTO_KEY = keys.crypto.key;
+    }
+    if (!process.env.CRYPTO_IV) {
+      process.env.CRYPTO_IV = keys.crypto.iv;
+    }
+  }
+  if (keys.encryption) {
+    if (!process.env.ENCRYPTION_KEY) {
+      process.env.ENCRYPTION_KEY = keys.encryption.key;
+    }
+  }
+}
+
+// ============================================================================
+// Feature Validation
+// ============================================================================
+
+function getRequiredFeaturesFromConfig(): string[] {
+  const envVal = process.env.REQUIRED_FEATURES;
+  const fromEnv: string[] = envVal
+    ? envVal.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+  const fromYaml: string[] = config?.app?.requiredFeatures ?? [];
+  return [...new Set([...fromEnv, ...fromYaml])];
+}
+
+function runFeatureValidation(): FeatureValidationResult | null {
+  const requiredFeatures = getRequiredFeaturesFromConfig();
+  if (requiredFeatures.length === 0) return null;
+
+  const ctx: FeatureValidationContext = {
+    env: process.env as Record<string, string>,
+    yaml: (config ?? {}) as Record<string, unknown>,
+    keys: (keysConfig ?? undefined) as Record<string, unknown> | undefined,
+  };
+
+  const result = validateRequiredFeatures(requiredFeatures, ctx);
+
+  if (result.valid) {
+    console.info(
+      `[Config] ${result.validatedFeatures.length} 个功能校验通过 ✓`,
+    );
+  } else {
+    const nodeEnv = process.env.NODE_ENV ?? 'dev';
+    if (
+      nodeEnv === 'prod' ||
+      nodeEnv === 'produs' ||
+      nodeEnv === 'prodap'
+    ) {
+      console.error('[Config] 功能配置校验失败:');
+      result.errors.forEach((e) => console.error(`  ✗ ${e}`));
+      throw new Error('配置校验失败，请检查上述缺失项');
+    } else {
+      console.warn('[Config] 功能配置校验警告 (dev 模式继续):');
+      result.errors.forEach((e) => console.warn(`  ⚠ ${e}`));
+    }
+  }
+
+  if (result.warnings.length > 0) {
+    result.warnings.forEach((w) => console.warn(`  ⚠ ${w}`));
+  }
+
+  return result;
 }
 
 // ============================================================================
 // Full Configuration Initialization
 // ============================================================================
 
-/**
- * Initialize all configuration with validation
- * Call this in application bootstrap
- */
 export async function initAllConfig(): Promise<{
   env: EnvConfig;
   yaml: YamlConfig;
   keys?: KeysConfig;
+  featureValidation?: FeatureValidationResult | null;
 }> {
   console.log('🔧 Initializing all configuration...');
 
@@ -276,11 +322,20 @@ export async function initAllConfig(): Promise<{
   // 3. Load and validate keys config
   const keys = initKeysConfig();
 
+  // 4. Sync keys → process.env (backward compatibility)
+  if (keys) {
+    syncKeysToEnv(keys);
+  }
+
+  // 5. Feature validation (if REQUIRED_FEATURES is set)
+  const featureValidation = runFeatureValidation();
+
   console.log('✅ All configuration initialized successfully');
 
   return {
     env,
     yaml: config,
     keys,
+    featureValidation,
   };
 }

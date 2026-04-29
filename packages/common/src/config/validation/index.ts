@@ -63,6 +63,8 @@ export {
   // Transaction Schemas
   transactionRetryConfigSchema,
   transactionConfigSchema,
+  // Prisma Schemas
+  prismaConfigSchema,
   // Functions
   validateYamlConfig,
   validateYamlConfigSafe,
@@ -104,6 +106,8 @@ export type {
   // Transaction Types
   TransactionRetryConfig,
   TransactionConfig,
+  // Prisma Types
+  PrismaConfig,
 } from './yaml.validation';
 
 // ============================================================================
@@ -113,6 +117,10 @@ export type {
 export {
   // Schemas
   keysConfigSchema,
+  jwtKeysSchema,
+  cryptoKeysSchema,
+  encryptionKeysSchema,
+  adminKeysSchema,
   emailTemplateSchema,
   sendcloudSchema,
   smsTemplateBaseSchema,
@@ -144,6 +152,11 @@ export type {
   // Main type
   KeysConfig,
   KeysValidationResult,
+  // Core security key types
+  JwtKeysConfig,
+  CryptoKeysConfig,
+  EncryptionKeysConfig,
+  AdminKeysConfig,
   // Inferred types
   EmailTemplateConfig,
   SendCloudConfig,

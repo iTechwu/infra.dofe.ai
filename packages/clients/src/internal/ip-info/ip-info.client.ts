@@ -14,16 +14,20 @@ import { firstValueFrom } from 'rxjs';
 import { getKeysConfig } from '@/config/configuration';
 import { IpInfoResponse } from './dto/ip-info.dto';
 import type { IpInfoKeysConfig } from '@/config/validation';
+import { FeatureNotConfiguredError } from '@/config/features';
 
 @Injectable()
 export class IpInfoClient {
-  private readonly config: IpInfoKeysConfig;
+  private readonly config: IpInfoKeysConfig | undefined;
 
   constructor(
     private readonly httpService: HttpService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
-    this.config = getKeysConfig()?.ipinfo as IpInfoKeysConfig;
+    this.config = getKeysConfig()?.ipinfo as IpInfoKeysConfig | undefined;
+    if (!this.config) {
+      this.logger.warn('IP Info config not found in keys/config.json, feature disabled');
+    }
   }
 
   /**
@@ -32,6 +36,9 @@ export class IpInfoClient {
    * @returns IP 信息
    */
   async getIpInfo(ip: string): Promise<IpInfoResponse> {
+    if (!this.config) {
+      throw new FeatureNotConfiguredError('ipinfo', 'keys.ipinfo');
+    }
     const url = `${this.config.url}/${ip}?token=${this.config.token}`;
 
     try {

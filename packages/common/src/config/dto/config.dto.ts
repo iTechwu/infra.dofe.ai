@@ -39,11 +39,17 @@ export type {
   // Transaction Types
   TransactionRetryConfig,
   TransactionConfig,
+  // Prisma Types
+  PrismaConfig,
 } from '../validation';
 
 // Keys Configuration Types
 export type {
   KeysConfig,
+  JwtKeysConfig,
+  CryptoKeysConfig,
+  EncryptionKeysConfig,
+  AdminKeysConfig,
   EmailTemplateConfig,
   SendCloudConfig,
   SmsTemplateBaseConfig,

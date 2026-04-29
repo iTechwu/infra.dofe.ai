@@ -18,6 +18,7 @@ export * from './decorators/response.decorator';
 // Config
 export * from './config/dto/config.dto';
 export * from './config/validation';
+export * from './config/features';
 
 // Enums
 export * from './enums/action.enum';

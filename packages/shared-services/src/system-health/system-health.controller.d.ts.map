@@ -1,0 +1,1 @@
+{"version":3,"file":"system-health.controller.d.ts","sourceRoot":"","sources":["system-health.controller.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,mBAAmB,EAAE,MAAM,yBAAyB,CAAC;AAG9D;;;;;;;;;GASG;AACH,qBACa,sBAAsB;IACrB,OAAO,CAAC,QAAQ,CAAC,aAAa;gBAAb,aAAa,EAAE,mBAAmB;IAE/D;;;;;;OAMG;IAEG,KAAK;;;;IAOX;;;;;;OAMG;IAEG,KAAK;;;;;;;;;CAmBZ"}

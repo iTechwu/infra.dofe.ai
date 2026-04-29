@@ -53,6 +53,7 @@ export const appConfigSchema = microServiceSchema.extend({
 
   admin: microServiceSchema.optional(),
   zones: z.array(zoneSchema).min(1),
+  requiredFeatures: z.array(z.string()).optional(),
 });
 
 /**
@@ -379,6 +380,14 @@ export const rateLimitConfigSchema = z.object({
 });
 
 /**
+ * Prisma configuration schema
+ */
+export const prismaConfigSchema = z.object({
+  /** 不使用软删除的模型列表 */
+  nonSoftDeleteModels: z.array(z.string()).default([]),
+});
+
+/**
  * Full YAML configuration schema
  */
 export const yamlConfigSchema = z.object({
@@ -393,9 +402,9 @@ export const yamlConfigSchema = z.object({
   buckets: z.array(bucketConfigSchema).optional(),
   featureFlags: featureFlagsConfigSchema.optional(),
   rateLimit: rateLimitConfigSchema.optional(),
-  // Database monitoring and transaction configuration
   dbMetrics: dbMetricsConfigSchema.optional(),
   transaction: transactionConfigSchema.optional(),
+  prisma: prismaConfigSchema.optional(),
 });
 
 // ============================================================================
@@ -495,6 +504,9 @@ export type TransactionRetryConfig = z.infer<
 
 /** 事务配置类型 */
 export type TransactionConfig = z.infer<typeof transactionConfigSchema>;
+
+/** Prisma 配置类型 */
+export type PrismaConfig = z.infer<typeof prismaConfigSchema>;
 
 /**
  * Validation result type
