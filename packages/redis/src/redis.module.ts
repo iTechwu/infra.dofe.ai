@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
 import Redis from 'ioredis';
-import { REDIS_AUTH } from '@app/redis/dto/redis.dto';
+import { REDIS_AUTH } from './dto/redis.dto';
 import { RedisService } from './redis.service';
 import { CacheService } from './cache.service';
 import { ConfigModule } from '@nestjs/config';
-import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@/filter/exception/api.exception';
-import environment from '@/utils/environment.util';
+
+/**
+ * Check if running in production environment
+ */
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
 
 @Module({
   imports: [ConfigModule],
@@ -15,9 +19,9 @@ import environment from '@/utils/environment.util';
       provide: REDIS_AUTH,
       useFactory: async () => {
         const redisUrl = process.env.REDIS_URL;
-        // console.log( "TECHWU" , redisUrl )
         if (!redisUrl) {
-          throw apiError(CommonErrorCode.InvalidRedis);
+          console.error('Redis URL not configured');
+          return null;
         }
         try {
           const client = new Redis(redisUrl, {
@@ -34,24 +38,22 @@ import environment from '@/utils/environment.util';
           });
 
           client.on('connect', () => {
-            if (environment.isProduction()) {
+            if (isProduction()) {
               console.log('Redis client connected');
             }
           });
 
           client.on('error', (error) => {
-            if (environment.isProduction()) {
+            if (isProduction()) {
               console.error('Error connecting to Redis', error);
             } else {
               console.debug('Error connecting to Redis', error);
             }
-            // throw new ApiException('invalidRedis');
           });
 
           return client;
         } catch (e) {
           console.error('Redis error', e);
-          // throw new ApiException('invalidRedis');
           return null;
         }
       },
@@ -60,6 +62,5 @@ import environment from '@/utils/environment.util';
     CacheService,
   ],
   exports: [REDIS_AUTH, RedisService, CacheService],
-  // 导出 Redis 客户端和服务
 })
 export class RedisModule {}

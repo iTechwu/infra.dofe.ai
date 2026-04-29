@@ -1,15 +1,38 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { Logger } from 'winston';
+import { Injectable, Inject, Optional } from '@nestjs/common';
 import Redis from 'ioredis';
 import { REDIS_AUTH } from './dto/redis.dto';
 
+/**
+ * Check if running in production environment
+ */
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
+/**
+ * Simple console logger fallback when Winston is not available
+ */
+const consoleLogger = {
+  error: (message: string, meta?: any) => console.error(message, meta),
+  warn: (message: string, meta?: any) => console.warn(message, meta),
+  info: (message: string, meta?: any) => console.info(message, meta),
+  debug: (message: string, meta?: any) => {
+    if (!isProduction()) console.debug(message, meta);
+  },
+};
+
+type LoggerLike = typeof consoleLogger;
+
 @Injectable()
 export class RedisLockService {
+  private readonly logger: LoggerLike;
+
   constructor(
     @Inject(REDIS_AUTH) private readonly redis: Redis,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+    @Optional() @Inject('WINSTON_LOGGER') winstonLogger?: LoggerLike,
+  ) {
+    this.logger = winstonLogger ?? consoleLogger;
+  }
 
   async acquireLock(
     key: string,
@@ -26,13 +49,7 @@ export class RedisLockService {
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const result = await this.redis.set(
-          key,
-          lockValue,
-          'EX',
-          ttlSeconds,
-          'NX',
-        );
+        const result = await this.redis.set(key, lockValue, 'EX', ttlSeconds, 'NX');
 
         if (result === 'OK') {
           this.logger.debug('[RedisLock] Lock acquired', {
@@ -90,13 +107,10 @@ export class RedisLockService {
       if (result === 1) {
         this.logger.debug('[RedisLock] Lock released', { key, lockValue });
       } else {
-        this.logger.warn(
-          '[RedisLock] Lock not released (already expired or not owned)',
-          {
-            key,
-            lockValue,
-          },
-        );
+        this.logger.warn('[RedisLock] Lock not released (already expired or not owned)', {
+          key,
+          lockValue,
+        });
       }
     } catch (error) {
       this.logger.error('[RedisLock] Error releasing lock', {

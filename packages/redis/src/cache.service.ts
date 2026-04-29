@@ -1,21 +1,39 @@
-import { Injectable, OnModuleDestroy, Inject } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Inject, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import type { Logger } from 'winston';
+
+/**
+ * Check if running in production environment
+ */
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
+/**
+ * Simple console logger fallback when Winston is not available
+ */
+const consoleLogger = {
+  error: (message: string, meta?: any) => console.error(message, meta),
+  warn: (message: string, meta?: any) => console.warn(message, meta),
+  info: (message: string, meta?: any) => console.info(message, meta),
+  debug: (message: string, meta?: any) => {
+    if (!isProduction()) console.debug(message, meta);
+  },
+};
+
+type LoggerLike = typeof consoleLogger;
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
   private readonly redis: Redis;
+  private readonly logger: LoggerLike;
 
   constructor(
     private readonly configService: ConfigService,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    @Optional() @Inject('WINSTON_LOGGER') winstonLogger?: LoggerLike,
   ) {
-    const redisUrl = this.configService.get<string>(
-      'REDIS_URL',
-      'redis://localhost:6379',
-    );
+    this.logger = winstonLogger ?? consoleLogger;
+    const redisUrl = this.configService.get<string>('REDIS_URL', 'redis://localhost:6379');
     this.redis = new Redis(redisUrl);
   }
 
@@ -30,8 +48,7 @@ export class CacheService implements OnModuleDestroy {
   }
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
-    const serialized =
-      typeof value === 'string' ? value : JSON.stringify(value);
+    const serialized = typeof value === 'string' ? value : JSON.stringify(value);
     if (ttl) {
       await this.redis.setex(key, ttl, serialized);
     } else {

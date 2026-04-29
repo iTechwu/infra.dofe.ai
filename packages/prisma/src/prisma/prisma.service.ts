@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaReadService } from '@/prisma-read/prisma-read.service';
-import { PrismaWriteService } from '@/prisma-write/prisma-write.service';
+import { PrismaReadService } from '../prisma-read/prisma-read.service';
+import { PrismaWriteService } from '../prisma-write/prisma-write.service';
 
 @Injectable()
 export class PrismaService {
@@ -16,18 +16,10 @@ export class PrismaService {
     return this.prismaWrite.client;
   }
 
-  /**
-   * Check if both read and write clients are ready
-   * 检查读写客户端是否都已就绪
-   */
   get isReady(): boolean {
     return this.prismaRead.isReady && this.prismaWrite.isReady;
   }
 
-  /**
-   * Wait for Prisma clients to be ready
-   * 等待 Prisma 客户端就绪
-   */
   async waitForReady(timeoutMs: number = 10000): Promise<void> {
     const startTime = Date.now();
 

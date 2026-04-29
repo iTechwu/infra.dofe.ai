@@ -7,3 +7,4 @@ export * from './middleware/soft-delete.middleware';
 export * from './extensions/tenant-isolation-extension';
 export * from './db-metrics';
 export * from './prometheus/prometheus.module';
+export * from './utils';
