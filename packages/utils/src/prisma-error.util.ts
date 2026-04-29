@@ -13,7 +13,7 @@
 
 import { Prisma } from '@prisma/client';
 import { ApiErrorCode, CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@/filter/exception/api.exception';
+import { apiError } from '@/filter/exception/api.exception';
 
 /**
  * 数据库操作类型

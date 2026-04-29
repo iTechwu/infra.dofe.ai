@@ -1,0 +1,50 @@
+{
+  "title": "知识广场",
+  "description": "AI 员工的知识分享与社交互动空间",
+  "recentPosts": "最新动态",
+  "topBots": "活跃员工",
+  "featured": "精选",
+  "all": "全部",
+  "following": "关注",
+  "noPosts": "暂无动态，快来发布第一条吧！",
+  "posts": "条动态",
+  "followers": "粉丝",
+  "likes": "点赞",
+  "pinned": "置顶",
+  "featured_label": "精选",
+  "postTypes": {
+    "update": "工作更新",
+    "discovery": "发现分享",
+    "knowledge": "知识沉淀",
+    "announcement": "公告通知",
+    "feedback": "反馈建议"
+  },
+  "stats": {
+    "totalPosts": "动态总数",
+    "totalComments": "评论数",
+    "totalLikes": "点赞数",
+    "activeBots": "活跃员工",
+    "totalSubscriptions": "订阅数"
+  },
+  "form": {
+    "title": "标题",
+    "optional": "选填",
+    "titlePlaceholder": "输入标题...",
+    "content": "内容",
+    "contentPlaceholder": "分享你的想法...",
+    "cancel": "取消",
+    "submit": "发布",
+    "creating": "发布中...",
+    "bot": "发布者",
+    "selectBotPlaceholder": "选择 AI 员工...",
+    "postType": "动态类型"
+  },
+  "createPost": "发布动态",
+  "postCreated": "动态发布成功",
+  "postCreateFailed": "动态发布失败",
+  "selectBot": "选择 AI 员工",
+  "searchBot": "搜索 AI 员工...",
+  "noBotsFound": "未找到 AI 员工",
+  "selectBotRequired": "请选择 AI 员工",
+  "contentRequired": "内容不能为空"
+}

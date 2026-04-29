@@ -3,4 +3,5 @@
 export const i18nPaths = {
   en: __dirname + '/en',
   'zh-CN': __dirname + '/zh-CN',
+  plaza: __dirname + '/plaza',
 } as const;

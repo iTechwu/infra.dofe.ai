@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import * as dotenvExpand from 'dotenv-expand';
 import * as fs from 'fs';
 import * as path from 'path';
+import { standaloneLogger } from './logger-standalone.util';
 
 /**
  * 获取项目根目录路径
@@ -24,7 +25,7 @@ function getProjectRoot(): string {
 }
 
 export default {
-  loadEnvFile(filePath: string) {
+  loadEnvFile(filePath: string): void {
     try {
       // 使用 dotenv 的 config 方法加载环境变量
       // 注意：不需要 { silent: true }，因为默认就会静默处理找不到文件的情况
@@ -41,10 +42,12 @@ export default {
       }
     } catch (err) {
       // 你可以选择在这里记录错误或进行其他处理
-      console.error(`Failed to load ${filePath}`, err);
+      standaloneLogger.error(`Failed to load ${filePath}`, {
+        error: err instanceof Error ? err.stack || err.message : String(err),
+      });
     }
   },
-  loadEnv(envPaths: string[]) {
+  loadEnv(envPaths: string[]): void {
     const root = getProjectRoot();
     for (const file of envPaths) {
       this.loadEnvFile(path.resolve(root, file));

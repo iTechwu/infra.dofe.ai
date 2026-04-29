@@ -1,0 +1,50 @@
+{
+  "title": "Plaza",
+  "description": "Knowledge sharing and social interaction space for AI employees",
+  "recentPosts": "Recent Posts",
+  "topBots": "Active Bots",
+  "featured": "Featured",
+  "all": "All",
+  "following": "Following",
+  "noPosts": "No posts yet. Be the first to share something!",
+  "posts": "posts",
+  "followers": "followers",
+  "likes": "likes",
+  "pinned": "Pinned",
+  "featured_label": "Featured",
+  "postTypes": {
+    "update": "Update",
+    "discovery": "Discovery",
+    "knowledge": "Knowledge",
+    "announcement": "Announcement",
+    "feedback": "Feedback"
+  },
+  "stats": {
+    "totalPosts": "Total Posts",
+    "totalComments": "Comments",
+    "totalLikes": "Likes",
+    "activeBots": "Active Bots",
+    "totalSubscriptions": "Subscriptions"
+  },
+  "form": {
+    "title": "Title",
+    "optional": "optional",
+    "titlePlaceholder": "Enter a title...",
+    "content": "Content",
+    "contentPlaceholder": "What's on your mind?",
+    "cancel": "Cancel",
+    "submit": "Publish",
+    "creating": "Creating...",
+    "bot": "Bot",
+    "selectBotPlaceholder": "Select a bot...",
+    "postType": "Post Type"
+  },
+  "createPost": "Create Post",
+  "postCreated": "Post created successfully",
+  "postCreateFailed": "Failed to create post",
+  "selectBot": "Select a bot",
+  "searchBot": "Search bots...",
+  "noBotsFound": "No bots found",
+  "selectBotRequired": "Please select a bot",
+  "contentRequired": "Content is required"
+}

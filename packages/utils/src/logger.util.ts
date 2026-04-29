@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import * as _ from 'lodash';
+import { pick } from 'lodash';
 import * as path from 'path';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
@@ -95,7 +95,7 @@ export function getReqMainInfo(
   res: FastifyReply,
 ): Record<string, unknown> {
   return {
-    ..._.pick(req, [
+    ...pick(req, [
       'ip',
       'hostname',
       'method',
@@ -105,7 +105,7 @@ export function getReqMainInfo(
       'httpVersion',
       'headers',
     ]),
-    ..._.pick(res, ['statusCode']),
+    ...pick(res, ['statusCode']),
   };
 }
 
