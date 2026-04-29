@@ -20,7 +20,13 @@ import {
   QUERY_ACTIONS,
 } from '../middleware/soft-delete.middleware';
 
-const { PrismaClient: PrismaClientRuntime } = __non_webpack_require__(
+// Dynamic require for PrismaClient from generated location
+// This bypasses webpack's module resolution and allows runtime resolution
+const dynamicRequire = typeof __non_webpack_require__ !== 'undefined'
+  ? __non_webpack_require__
+  : (typeof require !== 'undefined' ? require : (m: string) => eval('require')(m));
+
+const { PrismaClient: PrismaClientRuntime } = dynamicRequire(
   `${process.cwd()}/generated/prisma-client`,
 );
 
