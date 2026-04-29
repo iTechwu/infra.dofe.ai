@@ -13,6 +13,7 @@ export * from './internal/openspeech';
 export * from './internal/sms';
 export * from './internal/sse';
 export * from './internal/third-party-sse';
+export * from './internal/transcode';
 export * from './internal/verify';
 export * from './internal/volcengine-tts';
 export * from './internal/wechat';
