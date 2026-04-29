@@ -7,4 +7,4 @@ import { ExchangeRateClient } from './exchange-rate.client';
   providers: [ExchangeRateClient],
   exports: [ExchangeRateClient],
 })
-export class ExchangeRateModule {}
+export class ExchangeRateClientModule {}
