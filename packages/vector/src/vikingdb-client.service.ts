@@ -21,6 +21,7 @@ type VolcVikingdbService = any;
 export class VikingDbClientService implements OnModuleInit {
   private config: VikingDbConfig;
   private volcService?: VolcVikingdbService;
+  private initialized = false;
 
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -28,7 +29,35 @@ export class VikingDbClientService implements OnModuleInit {
     private readonly httpService: HttpService,
   ) {}
 
+  /**
+   * Configure the client with custom settings (can be called before onModuleInit)
+   * Useful when config comes from external sources (keys.json, etc.)
+   */
+  configure(customConfig: Partial<VikingDbConfig>): void {
+    this.config = {
+      ...this.config,
+      ...customConfig,
+    };
+    this.initialized = true;
+    this.logger.info('[VikingDB] Client configured with custom settings', {
+      provider: this.config.provider,
+      baseUrl: this.config.baseUrl,
+    });
+  }
+
+  /**
+   * Get current configuration (for inspection or debugging)
+   */
+  getConfig(): VikingDbConfig {
+    return this.config;
+  }
+
   onModuleInit() {
+    // Skip if already configured via configure()
+    if (this.initialized) {
+      return;
+    }
+
     const provider =
       (this.configService.get<string>('VIKINGDB_PROVIDER') as any) ?? 'custom-http';
 
@@ -98,6 +127,7 @@ export class VikingDbClientService implements OnModuleInit {
       ),
     };
 
+    this.initialized = true;
     this.logger.info('[VikingDB] Client initialized', {
       provider: this.config.provider,
       baseUrl: this.config.baseUrl,

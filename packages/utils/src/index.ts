@@ -19,6 +19,9 @@ export * from './ip.util';
 export * from './crypto.util';
 export * from './sensitive-data-masker.util';
 
+// SSRF Protection
+export * from './ssrf-protection.util';
+
 // File & Folder utilities
 export * from './file.util';
 export * from './folder.util';
