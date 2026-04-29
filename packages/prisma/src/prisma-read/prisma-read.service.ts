@@ -8,7 +8,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import bigintUtil from '@/utils/bigint.util';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -52,7 +51,6 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
   private basePrisma: PrismaClient;
   private extendedPrisma: PrismaClient | null = null;
   private prisma: PrismaClient;
-  private pool: Pool;
   private initialized = false;
 
   constructor(
@@ -71,17 +69,16 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    // 创建 pg 连接池
-    this.pool = new Pool({
+    // 传入连接配置对象（而非 Pool 实例），避免跨 pnpm workspace 的
+    // instanceof 检查失败导致连接参数丢失
+    const poolConfig = {
       connectionString,
-      // 连接池配置，与 Prisma 6 保持一致
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 300000, // 5分钟
       max: 10, // 最大连接数
-    });
+    };
 
-    // 创建 Prisma 适配器 - 直接传入 Pool 实例
-    const adapter = new PrismaPg(this.pool);
+    const adapter = new PrismaPg(poolConfig);
 
     // 使用适配器创建 PrismaClient
     // Use runtime PrismaClient from generated location
@@ -354,15 +351,6 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
       await this.prisma.$disconnect();
     } catch (error) {
       this.logger.warn('Error disconnecting Prisma client', { error });
-    }
-
-    // 检查 pool 是否已经关闭，避免重复调用 end()
-    if (this.pool && !this.pool.ended) {
-      try {
-        await this.pool.end();
-      } catch (error) {
-        this.logger.warn('Error closing database pool', { error });
-      }
     }
 
     if (environment.isProduction()) {
