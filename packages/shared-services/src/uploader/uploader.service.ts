@@ -2,17 +2,14 @@ import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@/filter/exception/api.exception';
-import { RedisService } from '@app/redis';
+import { apiError } from '@/filter/exception/api.exception';
+import { RedisService } from '@dofe/infra-redis';
 import { FileStorageService } from '@app/shared-services/file-storage';
 import { ConfigService } from '@nestjs/config';
 import { rsaDecrypt } from '@/utils/crypto.util';
 
-import timer from '@/utils/timer.util';
-import { DoFeApp, Locale, LocaleString } from '@/config/dto/config.dto';
 import { AppConfig } from '@/config/validation';
-import stringUtil from '@/utils/string.util';
-import environmentUtil from '@/utils/environment.util';
+import enviromentUtil from '@/utils/enviroment.util';
 import fileUtil from '@/utils/file.util';
 import { FileBucketVendor } from '@prisma/client';
 
@@ -107,7 +104,7 @@ export class UploaderService {
     //时间戳距离当前时间超过15秒，则无效
     const now = new Date().getTime();
     if (
-      environmentUtil.isProduction() &&
+      enviromentUtil.isProduction() &&
       now - signatureData.timestamp > 15 * 1000
     ) {
       this.logger.error('[Signature Validation] Timestamp expired:', {

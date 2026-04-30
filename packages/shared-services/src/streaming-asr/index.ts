@@ -41,7 +41,7 @@
  */
 
 // 模块导出
-export * from './streaming-asr.module';
+export { StreamingAsrServiceModule } from './streaming-asr.module';
 
 // 服务导出
 export * from './streaming-asr.service';

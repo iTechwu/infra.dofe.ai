@@ -6,10 +6,10 @@
  * @module streaming-asr/module
  */
 
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { JwtModule } from '@app/jwt/jwt.module';
-import { RedisModule } from '@app/redis';
+import { JwtModule } from '@dofe/infra-jwt';
+import { RedisModule } from '@dofe/infra-redis';
 import { StreamingAsrService } from './streaming-asr.service';
 
 /**

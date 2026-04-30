@@ -12,15 +12,15 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import type { UserInfo } from '@prisma/client';
 
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@app/rabbitmq';
 import { VerifyClient } from '@app/clients/internal/verify';
 import { CommonErrorCode } from '@repo/contracts/errors';
 import { apiError } from '@/filter/exception/api.exception';
-import { DoFeApp, SendCloudConfig } from '@/config/dto/config.dto';
+import { PardxApp, SendCloudConfig } from '@/config/dto/config.dto';
 import { getKeysConfig } from '@/config/configuration';
 
-import { SendCloudClient, DoFeEmailSender } from '@app/clients/internal/email';
+import { SendCloudClient, PardxEmailSender } from '@app/clients/internal/email';
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -29,7 +29,7 @@ export class EmailService implements OnModuleInit {
   private emailCodePerDayLoggerKey = 'emailCodePerDay';
   private deviceCodePerDayLoggerKey = 'deviceCodePerDay';
   private secretConfig: SendCloudConfig;
-  private templates: Record<string, DoFeEmailSender.EmailTemplate> = {};
+  private templates: Record<string, PardxEmailSender.EmailTemplate> = {};
   private emailClient: SendCloudClient;
 
   constructor(
@@ -58,7 +58,8 @@ export class EmailService implements OnModuleInit {
       this.logger,
     );
     (sendcloudConfig.templates || []).forEach((template: any) => {
-      this.templates[template.name] = template as DoFeEmailSender.EmailTemplate;
+      this.templates[template.name] =
+        template as PardxEmailSender.EmailTemplate;
     });
   }
 
@@ -113,11 +114,11 @@ export class EmailService implements OnModuleInit {
 
   async processingEmail(
     user: { email: string; nickname?: string; name?: string },
-    deviceInfo: DoFeApp.HeaderData,
+    deviceInfo: PardxApp.HeaderData,
     templateName: string,
     subValues?: any | null,
   ) {
-    const message: DoFeEmailSender.SignalMessage = await this.getEmailContent(
+    const message: PardxEmailSender.SignalMessage = await this.getEmailContent(
       user,
       deviceInfo,
       templateName,
@@ -129,10 +130,10 @@ export class EmailService implements OnModuleInit {
 
   async processingSendVerifyEmail(
     userInfo: UserInfo,
-    deviceInfo: DoFeApp.HeaderData,
+    deviceInfo: PardxApp.HeaderData,
   ) {
     const templateName: string = 'verify';
-    const template: DoFeEmailSender.EmailTemplate | undefined =
+    const template: PardxEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -143,7 +144,7 @@ export class EmailService implements OnModuleInit {
       to,
       template.codeExpire,
     );
-    const subValues: DoFeEmailSender.RegisterEmailSub = {
+    const subValues: PardxEmailSender.RegisterEmailSub = {
       name: userInfo.nickname!,
       code: code,
     };
@@ -152,10 +153,10 @@ export class EmailService implements OnModuleInit {
 
   async processingSendResetPasswordeEmail(
     emailAccount: { email: string; name: string },
-    deviceInfo: DoFeApp.HeaderData,
+    deviceInfo: PardxApp.HeaderData,
   ) {
     const templateName: string = 'resetpassword';
-    const template: DoFeEmailSender.EmailTemplate | undefined =
+    const template: PardxEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -169,7 +170,7 @@ export class EmailService implements OnModuleInit {
       to,
       template.codeExpire,
     );
-    const subValues: DoFeEmailSender.RegisterEmailSub = {
+    const subValues: PardxEmailSender.RegisterEmailSub = {
       name: emailAccount.name,
       code: code,
     };
@@ -183,10 +184,10 @@ export class EmailService implements OnModuleInit {
 
   async processingSendRegisterEmail(
     emailAccount: { email: string; name: string },
-    deviceInfo: DoFeApp.HeaderData,
+    deviceInfo: PardxApp.HeaderData,
   ) {
     const templateName: string = 'register';
-    const template: DoFeEmailSender.EmailTemplate | undefined =
+    const template: PardxEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -201,7 +202,7 @@ export class EmailService implements OnModuleInit {
       to,
       template.codeExpire,
     );
-    const subValues: DoFeEmailSender.RegisterEmailSub = {
+    const subValues: PardxEmailSender.RegisterEmailSub = {
       name: emailAccount.name,
       code: code,
     };
@@ -216,11 +217,11 @@ export class EmailService implements OnModuleInit {
 
   async getEmailContent(
     user: { email: string; nickname?: string; name?: string },
-    deviceInfo: DoFeApp.HeaderData,
+    deviceInfo: PardxApp.HeaderData,
     templateName: string,
     subValues?: any | null,
-  ): Promise<DoFeEmailSender.SignalMessage> {
-    const template: DoFeEmailSender.EmailTemplate | undefined =
+  ): Promise<PardxEmailSender.SignalMessage> {
+    const template: PardxEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -232,13 +233,12 @@ export class EmailService implements OnModuleInit {
       template.frequency,
     );
     const sub = template.sub;
-    const subVery: Record<string, string[]> = {};
+    const subVery = {};
     if (sub && subValues) {
-      for (const key in sub) {
-        const subKey = sub[key];
-        const subValue = (subValues as Record<string, string>)[subKey];
-        if (subValue) {
-          subVery['%' + subKey + '%'] = [subValue];
+      for (const key of Object.keys(sub)) {
+        const subKey = sub[key] as string;
+        if (subKey && typeof subValues === 'object' && subKey in subValues) {
+          subVery['%' + subKey + '%'] = [subValues[subKey]];
         }
       }
     }

@@ -23,9 +23,9 @@ import {
   FileGcsClient,
   FileUs3Client,
   FileTosClient,
-  DoFeUploader,
+  PardxUploader,
 } from '@app/clients/internal/file-storage';
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import { getKeysConfig } from '@/config/configuration';
 import { AppConfig, StorageCredentialsConfig } from '@/config/validation';
 import { CommonErrorCode } from '@repo/contracts/errors';
@@ -35,13 +35,13 @@ import {
   buildStorageClientKey,
   StorageCredentialsMap,
 } from './types';
-import environmentUtil from '@/utils/environment.util';
+import enviromentUtil from '@/utils/enviroment.util';
 
 /**
  * 存储客户端类类型
  */
 type StorageClientClass = new (
-  config: DoFeUploader.Config,
+  config: PardxUploader.Config,
   storageConfig: StorageCredentialsConfig,
   appConfig: AppConfig,
   redis: RedisService,
@@ -113,7 +113,7 @@ export class FileStorageClientFactory {
    * 存储桶配置列表
    * @private
    */
-  private readonly bucketConfigs: DoFeUploader.Config[];
+  private readonly bucketConfigs: PardxUploader.Config[];
 
   /**
    * 存储凭证配置
@@ -149,7 +149,7 @@ export class FileStorageClientFactory {
   ) {
     // 加载配置
     this.bucketConfigs =
-      configService.getOrThrow<DoFeUploader.Config[]>('buckets');
+      configService.getOrThrow<PardxUploader.Config[]>('buckets');
     this.appConfig = configService.getOrThrow<AppConfig>('app');
     this.defaultVendor = this.appConfig.defaultVendor;
     this.storageCredentials =
@@ -178,7 +178,7 @@ export class FileStorageClientFactory {
       }
     }
 
-    if (environmentUtil.isProduction()) {
+    if (enviromentUtil.isProduction()) {
       this.logger.info('FileStorageClientFactory module initialized', {
         clientCount: this.clients.size,
         vendors: [...new Set(this.bucketConfigs.map((c) => c.vendor))],
@@ -191,13 +191,13 @@ export class FileStorageClientFactory {
    *
    * @private
    * @param {FileBucketVendor} vendor - 存储供应商
-   * @param {DoFeUploader.Config} config - 存储桶配置
+   * @param {PardxUploader.Config} config - 存储桶配置
    * @returns {FileStorageInterface} 客户端实例
    * @throws {Error} 不支持的供应商类型时抛出异常
    */
   private createClient(
     vendor: FileBucketVendor,
-    config: DoFeUploader.Config,
+    config: PardxUploader.Config,
   ): FileStorageInterface {
     const ClientClass = VENDOR_CLIENT_MAP[vendor];
 
@@ -296,12 +296,12 @@ export class FileStorageClientFactory {
    *
    * @param {FileBucketVendor} vendor - 存储供应商
    * @param {string} bucket - 存储桶名称
-   * @returns {DoFeUploader.Config | undefined} 存储桶配置
+   * @returns {PardxUploader.Config | undefined} 存储桶配置
    */
   getBucketConfig(
     vendor: FileBucketVendor,
     bucket: string,
-  ): DoFeUploader.Config | undefined {
+  ): PardxUploader.Config | undefined {
     return this.bucketConfigs.find(
       (config) =>
         config.bucket === bucket &&
@@ -312,9 +312,9 @@ export class FileStorageClientFactory {
   /**
    * 获取所有存储桶配置
    *
-   * @returns {DoFeUploader.Config[]} 存储桶配置列表
+   * @returns {PardxUploader.Config[]} 存储桶配置列表
    */
-  getAllBucketConfigs(): DoFeUploader.Config[] {
+  getAllBucketConfigs(): PardxUploader.Config[] {
     return [...this.bucketConfigs];
   }
 

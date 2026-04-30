@@ -26,7 +26,7 @@
 
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import {
   SmsAliyunClient,
   SmsTencentClient,
@@ -50,7 +50,7 @@ import {
   VerifyCodeCheckResult,
   SmsVolcengineTemplate,
 } from './types';
-import environment from '@/utils/environment.util';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // SMS Client Factory
@@ -126,7 +126,7 @@ export class SmsClientFactory {
       const name = meta.name || 'default';
       this.templates[name] = template;
     });
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info(
         `SMS templates initialized: ${Object.keys(this.templates).join(', ')}`,
       );
@@ -139,7 +139,7 @@ export class SmsClientFactory {
   private createClient(provider: SmsProviderConfig): ISmsClient {
     const vendor = provider.vendor as SmsVendor;
 
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info(
         `Creating SMS client for vendor: ${SMS_VENDOR_NAMES[vendor] || vendor}`,
       );

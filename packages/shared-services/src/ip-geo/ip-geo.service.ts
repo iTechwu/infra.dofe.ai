@@ -14,12 +14,11 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@app/redis';
-import { FastifyRequest } from 'fastify';
-import ipUtil from '@/utils/ip.util';
+import { RedisService } from '@dofe/infra-redis';
+import ipUtil, { MinimalIpRequest } from '@/utils/ip.util';
 import validateUtil from '@/utils/validate.util';
-import { DoFeApp } from '@/config/dto/config.dto';
-import environmentUtil from '@/utils/environment.util';
+import { PardxApp } from '@/config/dto/config.dto';
+import enviromentUtil from '@/utils/enviroment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
 import { IpInfoClient, IpInfoResponse } from '@app/clients/internal/ip-info';
 
@@ -43,15 +42,15 @@ export class IpGeoService {
   /**
    * 从请求中提取 IP 地址
    */
-  extractIp(req: FastifyRequest): string {
-    return ipUtil.extractIp(req as any);
+  extractIp(req: MinimalIpRequest): string {
+    return ipUtil.extractIp(req);
   }
 
   /**
    * 获取 IP 信息
    */
-  async getIpInfo(ip: string): Promise<Partial<DoFeApp.IPInfo>> {
-    if (environmentUtil.getBaseZone() === 'cn') {
+  async getIpInfo(ip: string): Promise<Partial<PardxApp.IPInfo>> {
+    if (enviromentUtil.getBaseZone() === 'cn') {
       return {
         ip,
         country: 'CN',
@@ -78,7 +77,7 @@ export class IpGeoService {
 
     try {
       const response: IpInfoResponse = await this.ipInfoClient.getIpInfo(ip);
-      let ipInfoData: DoFeApp.IPInfo = response;
+      let ipInfoData: PardxApp.IPInfo = response;
       this.logger.info('IP info:', { ipInfoData });
       await this.redis.saveData(this.ipinfoRedisKey, ip, ipInfoData);
 
@@ -121,7 +120,7 @@ export class IpGeoService {
    */
   async getContinent(ip: string): Promise<Continent> {
     const countryCode = await this.getIpCountry(ip);
-    const defaultZone = environmentUtil.getBaseZone() as Continent;
+    const defaultZone = enviromentUtil.getBaseZone() as Continent;
     return getContinentByCountry(countryCode, defaultZone);
   }
 

@@ -31,20 +31,17 @@ import { FileBucketVendor } from '@prisma/client';
 
 import {
   FileStorageInterface,
-  DoFeUploader,
+  PardxUploader,
 } from '@app/clients/internal/file-storage';
-import { DoFeApp } from '@/config/dto/config.dto';
+import { PardxApp } from '@/config/dto/config.dto';
 import { CommonErrorCode } from '@repo/contracts/errors';
 import { apiError } from '@/filter/exception/api.exception';
 
 import { FileStorageClientFactory } from './file-storage.factory';
 import { BucketResolver } from './bucket-resolver';
 import {
-  FileLocation,
-  BucketLookupOptions,
   MultipartPart,
   PresignedUrlOptions,
-  ListFilesOptions,
   SnapshotOptions,
   PrivateDownloadOptions,
 } from './types';
@@ -192,7 +189,7 @@ export class FileStorageService {
    * @param {string} [ip] - 客户端 IP
    * @param {boolean} [isPublic] - 是否公开
    * @param {string} [locale] - 区域设置
-   * @returns {Promise<DoFeUploader.Config>} 存储桶配置
+   * @returns {Promise<PardxUploader.Config>} 存储桶配置
    */
   async getFileServiceConfig(
     vendor?: FileBucketVendor,
@@ -200,7 +197,7 @@ export class FileStorageService {
     ip?: string,
     isPublic?: boolean,
     locale?: string,
-  ): Promise<DoFeUploader.Config> {
+  ): Promise<PardxUploader.Config> {
     const client = await this.getFileClient(
       vendor,
       bucket,
@@ -340,13 +337,13 @@ export class FileStorageService {
   /**
    * 复制文件
    *
-   * @param {DoFeApp.FileBase} source - 源文件信息
-   * @param {DoFeApp.FileBase} destination - 目标文件信息
+   * @param {PardxApp.FileBase} source - 源文件信息
+   * @param {PardxApp.FileBase} destination - 目标文件信息
    * @returns {Promise<void>}
    */
   async copyFile(
-    source: DoFeApp.FileBase,
-    destination: DoFeApp.FileBase,
+    source: PardxApp.FileBase,
+    destination: PardxApp.FileBase,
   ): Promise<void> {
     this.logger.info('Copying file', { source, destination });
 

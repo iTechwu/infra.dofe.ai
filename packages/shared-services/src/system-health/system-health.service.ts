@@ -1,10 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@app/rabbitmq';
 // eslint-disable-next-line import/no-restricted-paths -- 健康检查服务需要直接访问 Prisma 检查数据库连接状态
-import { PrismaService } from '@app/prisma';
+import { PrismaService } from '@dofe/infra-prisma';
 
 @Injectable()
 export class SystemHealthService {
@@ -18,7 +18,7 @@ export class SystemHealthService {
   async checkDiskSpace(): Promise<boolean> {
     const { exec } = require('child_process');
     return new Promise((resolve, reject) => {
-      exec('df -h | grep /dev/sda1', (error, stdout, stderr) => {
+      exec('df -h | grep /dev/sda1', (error, stdout, _stderr) => {
         if (error) {
           console.error(`exec error: ${error}`);
           return reject(false);
@@ -42,7 +42,7 @@ export class SystemHealthService {
         return false;
       }
       return true;
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
   }
@@ -53,7 +53,7 @@ export class SystemHealthService {
         return false;
       }
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -62,7 +62,7 @@ export class SystemHealthService {
     try {
       const result = await this.redis.redis.ping();
       return result === 'PONG';
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

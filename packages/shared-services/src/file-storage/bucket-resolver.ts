@@ -15,11 +15,11 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FileBucketVendor } from '@prisma/client';
 
-import { DoFeUploader } from '@app/clients/internal/file-storage';
+import { PardxUploader } from '@app/clients/internal/file-storage';
 import { IpGeoService } from '@app/shared-services/ip-geo';
 import { AppConfig } from '@/config/validation';
 import arrayUtil from '@/utils/array.util';
-import environmentUtil from '@/utils/environment.util';
+import enviromentUtil from '@/utils/enviroment.util';
 import { BucketLookupOptions } from './types';
 
 /**
@@ -33,7 +33,7 @@ export interface BucketResolveResult {
   /** 解析后的存储供应商 */
   vendor: FileBucketVendor;
   /** 存储桶配置（如果找到） */
-  config?: DoFeUploader.Config;
+  config?: PardxUploader.Config;
 }
 
 /**
@@ -71,7 +71,7 @@ export class BucketResolver {
    * 存储桶配置列表
    * @private
    */
-  private readonly bucketConfigs: DoFeUploader.Config[];
+  private readonly bucketConfigs: PardxUploader.Config[];
 
   /**
    * 应用配置
@@ -98,7 +98,7 @@ export class BucketResolver {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     this.bucketConfigs =
-      configService.getOrThrow<DoFeUploader.Config[]>('buckets');
+      configService.getOrThrow<PardxUploader.Config[]>('buckets');
     this.appConfig = configService.getOrThrow<AppConfig>('app');
     this.defaultVendor = this.appConfig.defaultVendor;
   }
@@ -176,7 +176,7 @@ export class BucketResolver {
     locale?: string,
   ): Promise<string> {
     // 确定区域
-    let zone = environmentUtil.getBaseZone();
+    let zone = enviromentUtil.getBaseZone();
     if (ip) {
       const continent = await this.ipGeoService.getContinent(ip);
       zone = continent ?? zone;
@@ -195,7 +195,7 @@ export class BucketResolver {
     buckets = arrayUtil.filter(buckets, { locale: locale }, zone);
 
     // 查找默认存储桶
-    const bucketConfig = arrayUtil.findOne(buckets, { isDefault: true }, false) as DoFeUploader.Config | null;
+    const bucketConfig = arrayUtil.findOne(buckets, { isDefault: true }, false);
 
     if (bucketConfig?.bucket) {
       return bucketConfig.bucket;
@@ -239,12 +239,12 @@ export class BucketResolver {
    *
    * @param {FileBucketVendor} vendor - 存储供应商
    * @param {string} bucket - 存储桶名称
-   * @returns {DoFeUploader.Config | undefined} 配置或 undefined
+   * @returns {PardxUploader.Config | undefined} 配置或 undefined
    */
   findBucketConfig(
     vendor: FileBucketVendor,
     bucket: string,
-  ): DoFeUploader.Config | undefined {
+  ): PardxUploader.Config | undefined {
     return this.bucketConfigs.find(
       (config) =>
         config.bucket === bucket &&
@@ -255,19 +255,19 @@ export class BucketResolver {
   /**
    * 获取所有存储桶配置
    *
-   * @returns {DoFeUploader.Config[]} 配置列表
+   * @returns {PardxUploader.Config[]} 配置列表
    */
-  getAllConfigs(): DoFeUploader.Config[] {
+  getAllConfigs(): PardxUploader.Config[] {
     return [...this.bucketConfigs];
   }
 
   /**
    * 根据属性过滤存储桶
    *
-   * @param {Partial<DoFeUploader.Config>} filter - 过滤条件
-   * @returns {DoFeUploader.Config[]} 匹配的配置列表
+   * @param {Partial<PardxUploader.Config>} filter - 过滤条件
+   * @returns {PardxUploader.Config[]} 匹配的配置列表
    */
-  filterBuckets(filter: Partial<DoFeUploader.Config>): DoFeUploader.Config[] {
+  filterBuckets(filter: Partial<PardxUploader.Config>): PardxUploader.Config[] {
     return this.bucketConfigs.filter((config) => {
       for (const [key, value] of Object.entries(filter)) {
         if (config[key] !== value) {
@@ -296,7 +296,7 @@ export class BucketResolver {
    */
   generateFileKey(root: string, ext: string, bucket?: string): string {
     const prefix = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    const env = environmentUtil.getEnv();
+    const env = enviromentUtil.getEnv();
 
     if (bucket) {
       return `${bucket}/${env}/${root}/${prefix}.${ext}`;

@@ -30,12 +30,12 @@ import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 import type { MobileAuth } from '@prisma/client';
 
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@app/rabbitmq';
 import { VerifyClient } from '@app/clients/internal/verify';
 import { CommonErrorCode } from '@repo/contracts/errors';
 import { apiError } from '@/filter/exception/api.exception';
-import { DoFeApp } from '@/config/dto/config.dto';
+import { PardxApp } from '@/config/dto/config.dto';
 import { getKeysConfig } from '@/config/configuration';
 import type { AppSmsConfig } from '@app/clients/internal/sms';
 
@@ -49,7 +49,7 @@ import {
   DEFAULT_SEND_FREQUENCY,
   DEFAULT_CODE_EXPIRE,
 } from './types';
-import environmentUtil from '@/utils/environment.util';
+import enviromentUtil from '@/utils/enviroment.util';
 
 // ============================================================================
 // SMS Service
@@ -100,7 +100,7 @@ export class SmsService implements OnModuleInit {
         },
       );
 
-      if (environmentUtil.isProduction()) {
+      if (enviromentUtil.isProduction()) {
         this.logger.info(
           `SMS service initialized with vendor: ${this.factory.currentVendorName}`,
         );
@@ -259,7 +259,7 @@ export class SmsService implements OnModuleInit {
    */
   async processingSendSmsVerifyCode(
     mobileAccount: Partial<MobileAuth>,
-    deviceInfo: DoFeApp.HeaderData,
+    deviceInfo: PardxApp.HeaderData,
     templateId: string = 'verify',
   ): Promise<void> {
     this.ensureInitialized();

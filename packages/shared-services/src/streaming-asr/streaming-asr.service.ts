@@ -15,7 +15,6 @@ import {
   Inject,
   NotFoundException,
   OnModuleDestroy,
-  forwardRef,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -30,9 +29,9 @@ import {
   StreamingAsrCallbacks,
 } from '@app/clients/internal/openspeech';
 import { getKeysConfig } from '@/config/configuration';
-import { OpenSpeechConfig } from '@/config/validation';
-import { RedisService } from '@app/redis';
-import environment from '@/utils/environment.util';
+import { OpenSpeechConfig, JwtConfig } from '@/config/validation';
+import { RedisService } from '@dofe/infra-redis';
+import enviroment from '@/utils/enviroment.util';
 import {
   CreateStreamingSessionDto,
   StreamingSessionResult,
@@ -177,7 +176,7 @@ export class StreamingAsrService implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     this.stopCleanupTimer();
     await this.cleanupAllSessions();
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info('StreamingAsrService module destroyed');
     } else {
       this.logger.debug('StreamingAsrService module destroyed');
@@ -213,7 +212,7 @@ export class StreamingAsrService implements OnModuleDestroy {
 
     this.provider = new VolcengineStreamingAsrProvider(this.logger, config);
 
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info('StreamingAsrService module initialized');
     } else {
       this.logger.debug('StreamingAsrService module initialized');
@@ -320,11 +319,8 @@ export class StreamingAsrService implements OnModuleDestroy {
     // 如果关联了会议记录，更新会议状态
     if (dto.meetingRecordId) {
       try {
-      } catch (error) {
-        this.logger.warn('Failed to update meeting status', {
-          meetingRecordId: dto.meetingRecordId,
-          error: (error as Error).message,
-        });
+      } catch {
+        // Empty catch - meeting status update failed, but session continues
       }
     }
 
@@ -949,7 +945,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     this.cleanupTimer = setInterval(() => {
       this.checkAndCleanupSessions();
     }, SESSION_TIMEOUT_CONFIG.cleanupInterval);
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info('Session cleanup timer started', {
         intervalMs: SESSION_TIMEOUT_CONFIG.cleanupInterval,
       });
@@ -1262,7 +1258,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     for (const sessionId of sessionIds) {
       await this.forceCleanupSession(sessionId);
     }
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info('StreamingAsrService all sessions cleaned up');
     } else {
       this.logger.debug('StreamingAsrService all sessions cleaned up');
@@ -1319,7 +1315,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     sessionId: string,
     userId: string,
   ): Promise<string> {
-    const secret = this.config.getOrThrow<string>('JWT_SECRET');
+    const jwtConfig = this.config.getOrThrow<JwtConfig>('jwt');
 
     return await this.jwt.signAsync(
       {
@@ -1328,7 +1324,7 @@ export class StreamingAsrService implements OnModuleDestroy {
         type: 'streaming-asr-session',
       },
       {
-        secret,
+        secret: jwtConfig.secret,
         expiresIn: '4h', // 4小时，比 session 最大时长(2小时)长
       },
     );

@@ -1,7 +1,11 @@
-import { FastifyRequest } from 'fastify';
+/** Minimal request shape for extractIp — avoids FastifyRequest version conflicts across workspaces */
+export interface MinimalIpRequest {
+  headers: Record<string, string | string[] | undefined>;
+  ip: string;
+}
 
 export default {
-  extractIp(req: FastifyRequest): string {
+  extractIp(req: MinimalIpRequest): string {
     // 优先处理 'x-real-ip' 头部
     const xRealIp = req.headers['x-real-ip'];
     if (xRealIp) {

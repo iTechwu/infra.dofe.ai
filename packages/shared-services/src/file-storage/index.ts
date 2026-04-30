@@ -36,7 +36,7 @@
  */
 
 // 模块导出
-export * from './file-storage.module';
+export { FileStorageServiceModule } from './file-storage.module';
 
 // 服务导出
 export * from './file-storage.service';
@@ -52,6 +52,6 @@ export * from './types';
 
 // Re-export DTOs from client layer for convenience
 export {
-  DoFeUploader,
+  PardxUploader,
   FileStorageInterface,
 } from '@app/clients/internal/file-storage';

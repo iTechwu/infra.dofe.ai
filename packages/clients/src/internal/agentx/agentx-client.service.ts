@@ -15,7 +15,7 @@ import {
 import { getKeysConfig } from '@/config/configuration';
 import { AgentXConfigHelper } from '@/config/agentx.config';
 import type { AgentXConfig } from '@/config/validation';
-import enviromentUtil from 'libs/infra/utils/enviroment.util';
+import enviromentUtil from '@dofe/infra-utils/enviroment.util';
 
 // ============================================================================
 // Types - 协同过滤推荐
