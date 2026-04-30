@@ -30,7 +30,6 @@
     "@nestjs/jwt": "^11.0.2"
   },
   "dependencies": {
-    "@dofe/infra-clients": "workspace:*",
     "@dofe/infra-common": "workspace:*",
     "@dofe/infra-jwt": "workspace:*",
     "@dofe/infra-prisma": "workspace:*",
