@@ -170,11 +170,11 @@ export class DbMetricsService implements OnModuleInit {
       this.config = { ...DEFAULT_CONFIG, ...config };
     }
     if (enviroment.isProduction()) {
-      this.logger.info('DbMetricsService module initialized', {
+      this.logger?.info('DbMetricsService module initialized', {
         config: this.config,
       });
     } else {
-      this.logger.debug('DbMetricsService module initialized', {
+      this.logger?.debug('DbMetricsService module initialized', {
         config: this.config,
       });
     }

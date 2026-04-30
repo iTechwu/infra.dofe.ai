@@ -93,7 +93,7 @@ export class BucketResolver {
    * @param {Logger} logger - Winston 日志记录器
    */
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly ipGeoService: IpGeoService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
