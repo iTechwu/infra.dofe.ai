@@ -5,10 +5,14 @@ export { getKeysConfig, initKeysConfig, getEnvConfig, getConfig } from './config
 export type { KeysConfig, YamlConfig, EnvConfig } from './config/validation';
 export type { JwtConfig, EmbeddingKeysConfig, VikingDbKeysConfig } from './config/validation';
 export type { AppConfig, SendCloudConfig, StorageCredentialsConfig, IpInfoConfig, OpenSpeechConfig } from './config/validation';
+export type { TranscodeConfig, TtsConfig } from './config/validation';
+export type { RiskConfig, OpenAIConfig, ExchangeRateConfig, ImageConfig, VectorConfig, AgentXConfig } from './config/validation';
+export type { ZoneConfig, VideoQuality } from './config/validation';
+export type { IpInfoKeysConfig } from './config/validation';
 export { PardxApp, DoFeApp, Locale, LocaleString, VideoResolutionDto } from './config/dto/config.dto';
 export { FeatureNotConfiguredError } from './config/features';
 export { AgentXConfigHelper } from './config/agentx.config';
-export { TRANSCODE_CONSTANTS } from './config/constant/config.constants';
+export { TRANSCODE_CONSTANTS, SUPPORTED_VIDEO_FORMATS, SUPPORTED_AUDIO_FORMATS, SUPPORTED_IMAGE_FORMATS } from './config/constant/config.constants';
 export * from './filter/exception/api.exception';
 
 // Prisma utilities (moved from @dofe/infra-utils)

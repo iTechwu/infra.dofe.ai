@@ -15,7 +15,7 @@ import {
 import { getKeysConfig } from '@dofe/infra-common';
 import { AgentXConfigHelper } from '@dofe/infra-common';
 import type { AgentXConfig } from '@dofe/infra-common';
-import enviromentUtil from '@dofe/infra-utils';
+import { environmentUtil as enviromentUtil } from '@dofe/infra-utils';
 
 // ============================================================================
 // Types - 协同过滤推荐

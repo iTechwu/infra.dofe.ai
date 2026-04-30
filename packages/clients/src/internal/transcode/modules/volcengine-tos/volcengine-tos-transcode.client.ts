@@ -14,8 +14,8 @@ import {
 import { getKeysConfig } from '@dofe/infra-common';
 import { TranscodeConfig, AppConfig } from '@dofe/infra-common';
 import { FileStorageService, PardxUploader } from '@dofe/infra-shared-services';
-import arrayUtil from '@dofe/infra-utils';
-import fileUtil from '@dofe/infra-utils';
+import { arrayUtil } from '@dofe/infra-utils';
+import { fileUtil } from '@dofe/infra-utils';
 import { Signer } from '@volcengine/openapi';
 import {
     MediaConvertTaskResult,
@@ -55,7 +55,7 @@ import {
     VolcengineRetrievedJobInfo,
     VolcengineCancelJobRequest,
 } from './volcengine-tos-transcode.dto';
-import enviromentUtil from '@dofe/infra-utils';
+import { environmentUtil as enviromentUtil } from '@dofe/infra-utils';
 
 @Injectable()
 export class VolcengineTosTranscodeClient {

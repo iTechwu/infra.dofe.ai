@@ -12,7 +12,7 @@ import {
 } from '@google-cloud/storage';
 import { RedisService } from '@dofe/infra-redis';
 import { S3Client, S3ClientConfig } from '@aws-sdk/client-s3';
-import environmentUtil from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 
 /**
  * Google Cloud Storage Client

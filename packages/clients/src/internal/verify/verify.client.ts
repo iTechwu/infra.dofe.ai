@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import stringUtil from '@dofe/infra-utils';
+import { stringUtil } from '@dofe/infra-utils';
 import { RedisService } from '@dofe/infra-redis';
 
 @Injectable()

@@ -10,7 +10,7 @@ import { rsaDecrypt } from '@dofe/infra-utils';
 
 import { AppConfig } from '@dofe/infra-common';
 import enviromentUtil from '@dofe/infra-utils/environment.util';
-import fileUtil from '@dofe/infra-utils';
+import { fileUtil } from '@dofe/infra-utils';
 import { FileBucketVendor } from '@prisma/client';
 
 /**

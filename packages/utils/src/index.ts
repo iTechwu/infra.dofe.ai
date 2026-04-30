@@ -23,6 +23,7 @@ export * from './ssrf-protection.util';
 // File & Folder utilities
 export { default as fileUtil } from './file.util';
 export * from './file.util';
+export { default as folderUtil } from './folder.util';
 export * from './folder.util';
 export * from './ffmpeg.util';
 export * from './frame.util';

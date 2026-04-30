@@ -16,10 +16,10 @@ import Credential from '@alicloud/credentials';
 import { TranscodeOptions } from '../../types/transcode.types';
 import { AliyunOssTranscodeConfig } from '../../config/aliyun-oss.config';
 import { PardxUploader } from '@dofe/infra-shared-services';
-import arrayUtil from '@dofe/infra-utils';
+import { arrayUtil } from '@dofe/infra-utils';
 import { getKeysConfig } from '@dofe/infra-common';
 import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
-import fileUtil from '@dofe/infra-utils';
+import { fileUtil } from '@dofe/infra-utils';
 
 export interface MediaMetaResult {
     type: 'video' | 'audio' | 'image';

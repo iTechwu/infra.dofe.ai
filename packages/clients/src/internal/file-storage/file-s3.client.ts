@@ -33,7 +33,7 @@ import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
 import { isURL } from 'class-validator';
 import { RedisService } from '@dofe/infra-redis';
-import environmentUtil from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 
 /**
  * S3 File Storage Client

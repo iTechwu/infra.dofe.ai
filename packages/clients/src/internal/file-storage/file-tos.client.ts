@@ -7,7 +7,7 @@ import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
 import { FileS3Client } from './file-s3.client';
 import { RedisService } from '@dofe/infra-redis';
 import { TosClient } from '@volcengine/tos-sdk';
-import environmentUtil from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 import { TRANSCODE_CONSTANTS } from '@dofe/infra-common';
 
 /**

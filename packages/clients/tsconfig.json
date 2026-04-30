@@ -15,7 +15,9 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@dofe/infra-clients": ["./src/index.ts"],
+      "@dofe/infra-clients/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"]

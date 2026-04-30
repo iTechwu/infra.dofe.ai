@@ -13,7 +13,7 @@ import { StorageCredentialsConfig, TtsConfig } from '@dofe/infra-common';
 import { FeatureNotConfiguredError } from '@dofe/infra-common';
 import { FileStorageService } from '@dofe/infra-shared-services';
 import { TtsRequestDto, TtsResultDto, TtsResponseDto } from './dto/tts.dto';
-import environment from '@dofe/infra-utils';
+import { environmentUtil as environment } from '@dofe/infra-utils';
 
 /**
  * Volcengine TTS服务

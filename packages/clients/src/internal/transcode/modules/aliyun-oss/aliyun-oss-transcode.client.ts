@@ -11,7 +11,7 @@ import {
     VideoQuality,
 } from '@prisma/client';
 import { FileStorageService, PardxUploader } from '@dofe/infra-shared-services';
-import arrayUtil from '@dofe/infra-utils';
+import { arrayUtil } from '@dofe/infra-utils';
 import { getKeysConfig } from '@dofe/infra-common';
 import { StorageCredentialsConfig } from '@dofe/infra-common';
 import {
@@ -22,7 +22,7 @@ import {
 import { AliyunOssTranscodeConfig } from '../../config/aliyun-oss.config';
 import OSS from 'ali-oss';
 import { firstValueFrom } from 'rxjs';
-import fileUtil from '@dofe/infra-utils';
+import { fileUtil } from '@dofe/infra-utils';
 import imm, * as $imm from '@alicloud/imm20200930';
 
 export interface TranscodeOptions {

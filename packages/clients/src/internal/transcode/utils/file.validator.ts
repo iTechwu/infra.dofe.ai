@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import fileUtil from '@dofe/infra-utils';
+import { fileUtil } from '@dofe/infra-utils';
 import {
     TRANSCODE_CONSTANTS,
     SUPPORTED_VIDEO_FORMATS,

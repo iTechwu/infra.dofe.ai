@@ -7,15 +7,15 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { Logger } from 'winston';
 import qiniuHostConfig from './config/file.config';
-import urlencodeUtil from '@dofe/infra-utils';
+import { urlencodeUtil } from '@dofe/infra-utils';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
 import { DoFeApp } from '@dofe/infra-common';
 import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
 import { FileStorageInterface } from './file-storage.interface';
-import folderUtil from '@dofe/infra-utils';
+import { folderUtil } from '@dofe/infra-utils';
 import { RedisService } from '@dofe/infra-redis';
-import environmentUtil from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 
 /**
  * Qiniu File Storage Client
