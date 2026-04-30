@@ -21,6 +21,7 @@ export { default as maskUtil } from './mask.util';
 export * from './ssrf-protection.util';
 
 // File & Folder utilities
+export { default as fileUtil } from './file.util';
 export * from './file.util';
 export * from './folder.util';
 export * from './ffmpeg.util';
@@ -34,6 +35,7 @@ export * from './response';
 
 // Environment utilities
 export * from './load-env.util';
+export { default as environmentUtil } from './environment.util';
 export * from './environment.util';
 
 // Retry logic

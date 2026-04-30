@@ -4,7 +4,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
 import type { AxiosError } from 'axios';
-import { researchConfig } from '@/common/config/env-config.service';
+import { researchConfig } from '@dofe/infra-common';
 
 /**
  * Anthropic-compatible message types

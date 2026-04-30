@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { WinstonModule } from 'nest-winston';
 import { VolcengineTosTranscodeClient } from './volcengine-tos-transcode.client';
-import { FileStorageServiceModule } from '@app/services/file-storage';
+import { FileStorageServiceModule } from '@dofe/infra-shared-services';
 
 @Module({
     imports: [

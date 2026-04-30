@@ -3,10 +3,10 @@ import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { of, throwError } from 'rxjs';
 import { AnthropicProxyResearchClient } from './anthropic-proxy-research.client';
-import { researchConfig, clearEnvCache } from '@/common/config/env-config.service';
+import { researchConfig, clearEnvCache } from '@dofe/infra-common';
 
 // Mock the config
-jest.mock('@/common/config/env-config.service', () => ({
+jest.mock('@dofe/infra-common', () => ({
   researchConfig: {
     get apiBaseUrl() {
       return 'http://localhost:3100';

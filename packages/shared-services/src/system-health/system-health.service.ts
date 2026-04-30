@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '@dofe/infra-redis';
-import { RabbitmqService } from '@app/rabbitmq';
+import { RabbitmqService } from '@dofe/infra-rabbitmq';
 // eslint-disable-next-line import/no-restricted-paths -- 健康检查服务需要直接访问 Prisma 检查数据库连接状态
 import { PrismaService } from '@dofe/infra-prisma';
 

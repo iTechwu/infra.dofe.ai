@@ -12,7 +12,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { RedisModule } from '@dofe/infra-redis';
-import { CountryCodeModule } from '@app/db';
+import { CountryCodeModule } from '@dofe/infra-shared-db';
 import { IpInfoClient } from './ip-info.client';
 import { IpInfoService } from './ip-info.service';
 

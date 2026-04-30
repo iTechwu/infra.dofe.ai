@@ -12,10 +12,10 @@ import {
   TaskStatusResponse,
   CancelTaskResponse,
 } from './interfaces/task.interface';
-import { getKeysConfig } from '@/config/configuration';
-import { AgentXConfigHelper } from '@/config/agentx.config';
-import type { AgentXConfig } from '@/config/validation';
-import enviromentUtil from '@dofe/infra-utils/enviroment.util';
+import { getKeysConfig } from '@dofe/infra-common';
+import { AgentXConfigHelper } from '@dofe/infra-common';
+import type { AgentXConfig } from '@dofe/infra-common';
+import enviromentUtil from '@dofe/infra-utils';
 
 // ============================================================================
 // Types - 协同过滤推荐

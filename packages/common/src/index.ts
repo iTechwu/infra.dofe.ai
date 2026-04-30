@@ -4,6 +4,11 @@ export * from './config/env-config.service';
 export { getKeysConfig, initKeysConfig, getEnvConfig, getConfig } from './config/configuration';
 export type { KeysConfig, YamlConfig, EnvConfig } from './config/validation';
 export type { JwtConfig, EmbeddingKeysConfig, VikingDbKeysConfig } from './config/validation';
+export type { AppConfig, SendCloudConfig, StorageCredentialsConfig, IpInfoConfig, OpenSpeechConfig } from './config/validation';
+export { PardxApp, DoFeApp, Locale, LocaleString, VideoResolutionDto } from './config/dto/config.dto';
+export { FeatureNotConfiguredError } from './config/features';
+export { AgentXConfigHelper } from './config/agentx.config';
+export { TRANSCODE_CONSTANTS } from './config/constant/config.constants';
 export * from './filter/exception/api.exception';
 
 // Prisma utilities (moved from @dofe/infra-utils)

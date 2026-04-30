@@ -1,5 +1,5 @@
-import { RedisService } from '@app/redis';
-import objectUtil from '@/utils/object.util';
+import { RedisService } from '@dofe/infra-redis';
+import objectUtil from '@dofe/infra-utils';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {

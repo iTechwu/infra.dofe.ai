@@ -6,7 +6,7 @@
  */
 import { Module } from '@nestjs/common';
 import { SseClient } from './sse.client';
-import { RedisModule } from '@app/redis';
+import { RedisModule } from '@dofe/infra-redis';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({

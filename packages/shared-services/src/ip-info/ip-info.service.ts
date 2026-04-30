@@ -23,7 +23,7 @@ import validateUtil from '@dofe/infra-utils/validate.util';
 import { PardxApp } from '@dofe/infra-common';
 import { IpInfoConfig } from '@dofe/infra-common';
 import enviromentUtil from '@dofe/infra-utils/environment.util';
-import { CountryCodeService } from '@app/db';
+import { CountryCodeService } from '@dofe/infra-shared-db';
 import { IpInfoClient } from './ip-info.client';
 
 @Injectable()

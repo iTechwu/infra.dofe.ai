@@ -4,7 +4,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { DockerRuntimeModule } from '@app/docker';
+import { DockerRuntimeModule } from '@dofe/infra-docker';
 import { DockerExecService } from './docker-exec.service';
 import { OpenClawClient } from './openclaw.client';
 import { OpenClawGatewayClient } from './openclaw-gateway.client';
@@ -13,7 +13,7 @@ import { OpenClawAgentCoordinationClient } from './openclaw-agent-coordination.c
 import { OpenClawSkillSyncClient } from './openclaw-skill-sync.client';
 import { OpenClawContextStatusClient } from './openclaw-context-status.client';
 import { SkillTranslationService } from './skill-translation.service';
-import { OpenAIClientModule } from '@app/clients/internal/openai';
+import { OpenAIClientModule } from '@dofe/infra-clients';
 
 @Module({
   imports: [

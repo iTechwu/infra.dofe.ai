@@ -12,7 +12,7 @@
  * @example
  * ```typescript
  * // 导入模块
- * import { OpenspeechModule, OpenspeechClient } from '@app/clients/internal/openspeech';
+ * import { OpenspeechModule, OpenspeechClient } from '@dofe/infra-clients';
  *
  * // 在 NestJS 模块中使用
  * @Module({

@@ -11,10 +11,10 @@ import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
-import { getKeysConfig } from '@/config/configuration';
+import { getKeysConfig } from '@dofe/infra-common';
 import { IpInfoResponse } from './dto/ip-info.dto';
-import type { IpInfoKeysConfig } from '@/config/validation';
-import { FeatureNotConfiguredError } from '@/config/features';
+import type { IpInfoKeysConfig } from '@dofe/infra-common';
+import { FeatureNotConfiguredError } from '@dofe/infra-common';
 
 @Injectable()
 export class IpInfoClient {

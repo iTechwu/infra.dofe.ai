@@ -4,8 +4,8 @@
  * 定义所有文件存储客户端需要实现的接口
  */
 import { DoFeUploader } from './dto/file.dto';
-import { DoFeApp } from '@/config/dto/config.dto';
-import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
+import { DoFeApp } from '@dofe/infra-common';
+import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
 
 export interface FileStorageInterface {
   // ...

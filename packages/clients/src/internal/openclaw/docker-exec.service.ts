@@ -12,7 +12,7 @@ import { firstValueFrom, timeout, catchError } from 'rxjs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as stream from 'stream';
-import { DockerService } from '@app/docker';
+import { DockerService } from '@dofe/infra-docker';
 
 /**
  * Docker exec 执行选项

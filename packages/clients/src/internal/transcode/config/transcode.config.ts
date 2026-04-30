@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { getKeysConfig } from '@/libs/config/configuration';
+import { getKeysConfig } from '@dofe/infra-common';
 import {
     TranscodeConfig as ValidationTranscodeConfig,
     ZoneConfig,
     AppConfig,
-} from '@/libs/config/validation';
+} from '@dofe/infra-common';
 
 // 新的转码配置接口，用于云服务转码
 export interface CloudTranscodeConfig {

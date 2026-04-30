@@ -9,7 +9,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { OpenAIClient } from '@app/clients/internal/openai';
+import { OpenAIClient } from '@dofe/infra-clients';
 
 export interface TranslationResult {
   nameZh: string;

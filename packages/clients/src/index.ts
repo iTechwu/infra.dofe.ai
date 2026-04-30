@@ -1,4 +1,5 @@
 export * from './plugin';
+export * from './internal/agentx';
 export * from './internal/ai';
 export * from './internal/ai-provider';
 export * from './internal/crypt';

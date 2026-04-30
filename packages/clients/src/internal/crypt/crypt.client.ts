@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as cryptoUtil from '@/utils/crypto.util';
-import urlencodeUtil from '@/utils/urlencode.util';
+import * as cryptoUtil from '@dofe/infra-utils';
+import urlencodeUtil from '@dofe/infra-utils';
 
 @Injectable()
 export class CryptClient {

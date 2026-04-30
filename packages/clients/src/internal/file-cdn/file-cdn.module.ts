@@ -6,10 +6,10 @@
  */
 import { Module } from '@nestjs/common';
 import { FileCdnClient } from './file-cdn.client';
-import { FileStorageServiceModule } from '@app/shared-services/file-storage';
-import { RedisModule } from '@app/redis';
+import { FileStorageServiceModule } from '@dofe/infra-shared-services';
+import { RedisModule } from '@dofe/infra-redis';
 import { ConfigModule } from '@nestjs/config';
-import { CryptModule } from '@app/clients/internal/crypt';
+import { CryptModule } from '@dofe/infra-clients';
 
 @Module({
   imports: [ConfigModule, RedisModule, FileStorageServiceModule, CryptModule],

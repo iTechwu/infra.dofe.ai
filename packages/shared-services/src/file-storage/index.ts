@@ -19,7 +19,7 @@
  * import {
  *   FileStorageServiceModule,
  *   FileStorageService,
- * } from '@app/shared-services/file-storage';
+ * } from '@dofe/infra-shared-services';
  *
  * // 在 NestJS 模块中使用
  * @Module({
@@ -54,4 +54,4 @@ export * from './types';
 export {
   PardxUploader,
   FileStorageInterface,
-} from '@app/clients/internal/file-storage';
+} from '@dofe/infra-clients';

@@ -12,9 +12,9 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
 import { Signer } from '@volcengine/openapi';
-import { getKeysConfig } from '@/config/configuration';
-import { RiskConfig } from '@/config/validation';
-import environment from '@/utils/environment.util';
+import { getKeysConfig } from '@dofe/infra-common';
+import { RiskConfig } from '@dofe/infra-common';
+import environment from '@dofe/infra-utils';
 
 export interface VolcengineRiskConfig {
   accessKey: string;

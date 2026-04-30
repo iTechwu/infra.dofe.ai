@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import fileUtil from '@/utils/file.util';
+import fileUtil from '@dofe/infra-utils';
 import {
     TRANSCODE_CONSTANTS,
     SUPPORTED_VIDEO_FORMATS,
     SUPPORTED_AUDIO_FORMATS,
     SUPPORTED_IMAGE_FORMATS,
-} from '@/config/constant/config.constants';
+} from '@dofe/infra-common';
 import { FileKeyPartial, FileValidationResult } from '../types/transcode.types';
-import { PardxApp } from '@/libs/config/dto/config.dto';
-import { ZoneConfig } from '@/libs/config/validation';
+import { PardxApp } from '@dofe/infra-common';
+import { ZoneConfig } from '@dofe/infra-common';
 
 @Injectable()
 export class FileValidator {

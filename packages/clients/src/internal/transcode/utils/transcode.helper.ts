@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { VideoResolutionDto } from '@/libs/config/dto/config.dto';
-import { TRANSCODE_CONSTANTS } from '@/config/constant/config.constants';
+import { VideoResolutionDto } from '@dofe/infra-common';
+import { TRANSCODE_CONSTANTS } from '@dofe/infra-common';
 import { VideoInfo, AudioInfo, ImageInfo } from '@prisma/client';
 import {
     FileKeyPartial,

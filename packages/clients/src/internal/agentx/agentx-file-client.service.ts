@@ -13,8 +13,8 @@ import {
   FileUploadResponse,
   FileUploadResponseSchema,
 } from './interfaces/file.interface';
-import { getKeysConfig } from '@/config/configuration';
-import type { AgentXConfig } from '@/config/validation';
+import { getKeysConfig } from '@dofe/infra-common';
+import type { AgentXConfig } from '@dofe/infra-common';
 
 /**
  * AgentX File Client

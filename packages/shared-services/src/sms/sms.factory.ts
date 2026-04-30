@@ -34,7 +34,7 @@ import {
   SmsZxjcClient,
   SmsVolcengineClient,
   SmsProviderConfig,
-} from '@app/clients/internal/sms';
+} from '@dofe/infra-clients';
 
 import {
   SmsVendor,

@@ -1,6 +1,6 @@
 import { BadGatewayException, Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { YamlConfig } from '@/config/validation';
+import { YamlConfig } from '@dofe/infra-common';
 import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -8,12 +8,12 @@ import { firstValueFrom } from 'rxjs';
 import { TosClient } from '@volcengine/tos-sdk';
 import { parseBuffer } from 'music-metadata';
 import { Signer } from '@volcengine/openapi';
-import { getKeysConfig, initKeysConfig } from '@/config/configuration';
-import { StorageCredentialsConfig, TtsConfig } from '@/config/dto/config.dto';
-import { FeatureNotConfiguredError } from '@/config/features';
-import { FileStorageService } from '@app/shared-services/file-storage';
+import { getKeysConfig, initKeysConfig } from '@dofe/infra-common';
+import { StorageCredentialsConfig, TtsConfig } from '@dofe/infra-common';
+import { FeatureNotConfiguredError } from '@dofe/infra-common';
+import { FileStorageService } from '@dofe/infra-shared-services';
 import { TtsRequestDto, TtsResultDto, TtsResponseDto } from './dto/tts.dto';
-import environment from '@/utils/environment.util';
+import environment from '@dofe/infra-utils';
 
 /**
  * Volcengine TTS服务

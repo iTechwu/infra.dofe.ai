@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { WinstonModule } from 'nest-winston';
-import { FileStorageServiceModule } from '@app/shared-services/file-storage';
+import { FileStorageServiceModule } from '@dofe/infra-shared-services';
 import { VolcengineTtsClient } from './volcengine-tts.client';
 
 @Module({

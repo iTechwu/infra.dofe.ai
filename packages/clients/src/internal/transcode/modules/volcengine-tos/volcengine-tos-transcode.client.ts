@@ -11,11 +11,11 @@ import {
     AudioInfo,
     ImageInfo,
 } from '@prisma/client';
-import { getKeysConfig } from '@/config/configuration';
-import { TranscodeConfig, AppConfig } from '@/config/validation';
-import { FileStorageService, PardxUploader } from '@app/services/file-storage';
-import arrayUtil from '@/libs/utils/array.util';
-import fileUtil from '@/libs/utils/file.util';
+import { getKeysConfig } from '@dofe/infra-common';
+import { TranscodeConfig, AppConfig } from '@dofe/infra-common';
+import { FileStorageService, PardxUploader } from '@dofe/infra-shared-services';
+import arrayUtil from '@dofe/infra-utils';
+import fileUtil from '@dofe/infra-utils';
 import { Signer } from '@volcengine/openapi';
 import {
     MediaConvertTaskResult,
@@ -55,7 +55,7 @@ import {
     VolcengineRetrievedJobInfo,
     VolcengineCancelJobRequest,
 } from './volcengine-tos-transcode.dto';
-import enviromentUtil from '@/libs/utils/enviroment.util';
+import enviromentUtil from '@dofe/infra-utils';
 
 @Injectable()
 export class VolcengineTosTranscodeClient {

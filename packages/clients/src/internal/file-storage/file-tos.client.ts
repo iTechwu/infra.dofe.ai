@@ -3,12 +3,12 @@ import { HttpService } from '@nestjs/axios';
 
 import { DoFeUploader } from './dto/file.dto';
 
-import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
+import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
 import { FileS3Client } from './file-s3.client';
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import { TosClient } from '@volcengine/tos-sdk';
-import environmentUtil from '@/utils/environment.util';
-import { TRANSCODE_CONSTANTS } from '@/config/constant/config.constants';
+import environmentUtil from '@dofe/infra-utils';
+import { TRANSCODE_CONSTANTS } from '@dofe/infra-common';
 
 /**
  * Volcengine TOS (Tinder Object Storage) Client

@@ -12,3 +12,5 @@ export {
   isInTransaction,
 } from './transaction-context';
 export { TransactionalServiceBase } from './transactional-service.base';
+export { CountryCodeModule } from './country-code/country-code.module';
+export { CountryCodeService } from './country-code/country-code.service';

@@ -4,7 +4,7 @@ import { Logger } from 'winston';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
 import { RedisService } from '@dofe/infra-redis';
-import { FileStorageService } from '@app/shared-services/file-storage';
+import { FileStorageService } from '@dofe/infra-shared-services';
 import { ConfigService } from '@nestjs/config';
 import { rsaDecrypt } from '@dofe/infra-utils';
 

@@ -24,16 +24,16 @@ import {
 import * as fs from 'node:fs';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3/dist-types/commands/PutObjectCommand';
-import { DoFeApp } from '@/config/dto/config.dto';
-import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
+import { DoFeApp } from '@dofe/infra-common';
+import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
 import { FileStorageInterface } from './file-storage.interface';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CommonErrorCode } from '@dofe/infra-contracts';
-import { apiError } from '@/filter/exception/api.exception';
+import { apiError } from '@dofe/infra-common';
 import { isURL } from 'class-validator';
-import { RedisService } from '@app/redis';
-import environmentUtil from '@/utils/environment.util';
+import { RedisService } from '@dofe/infra-redis';
+import environmentUtil from '@dofe/infra-utils';
 
 /**
  * S3 File Storage Client

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { VerifyClient } from './verify.client';
-import { RedisModule } from '@app/redis';
+import { RedisModule } from '@dofe/infra-redis';
 
 @Module({
   imports: [RedisModule],

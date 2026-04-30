@@ -16,8 +16,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
 import type { AxiosError } from 'axios';
-import { getKeysConfig } from '@/config/configuration';
-import type { OpenAIConfig } from '@/config/validation';
+import { getKeysConfig } from '@dofe/infra-common';
+import type { OpenAIConfig } from '@dofe/infra-common';
 import {
   type ComplexityLevel,
   type ClassifyRequest,

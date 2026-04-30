@@ -19,7 +19,7 @@ import {
   SmsZxjcTemplate,
   SmsVolcengineTemplate,
   VerifyCodeResult,
-} from '@app/clients/internal/sms';
+} from '@dofe/infra-clients';
 import { MobileAuth } from '@prisma/client';
 import { PardxApp } from '@dofe/infra-common';
 
@@ -294,4 +294,4 @@ export {
   SmsZxjcTemplate,
   SmsVolcengineTemplate,
   VerifyCodeResult,
-} from '@app/clients/internal/sms';
+} from '@dofe/infra-clients';

@@ -5,7 +5,7 @@ import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
 import type { AxiosError } from 'axios';
 import { z } from 'zod';
-import { getKeysConfig } from '@/config/configuration';
+import { getKeysConfig } from '@dofe/infra-common';
 import type {
   LLMModelInfo,
   LLMCapabilityTag,

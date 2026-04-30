@@ -16,9 +16,9 @@ import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import { FileBucketVendor } from '@prisma/client';
 
-import { FileStorageService } from '@app/shared-services/file-storage';
-import { CryptClient } from '@app/clients/internal/crypt';
-import * as cryptoUtil from '@/utils/crypto.util';
+import { FileStorageService } from '@dofe/infra-shared-services';
+import { CryptClient } from '@dofe/infra-clients';
+import * as cryptoUtil from '@dofe/infra-utils';
 import {
   DoFeFileCdn,
   CdnUrlResponse,

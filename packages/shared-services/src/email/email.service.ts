@@ -13,14 +13,14 @@ import { Logger } from 'winston';
 import type { UserInfo } from '@prisma/client';
 
 import { RedisService } from '@dofe/infra-redis';
-import { RabbitmqService } from '@app/rabbitmq';
-import { VerifyClient } from '@app/clients/internal/verify';
+import { RabbitmqService } from '@dofe/infra-rabbitmq';
+import { VerifyClient } from '@dofe/infra-clients';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
 import { PardxApp, SendCloudConfig } from '@dofe/infra-common';
 import { getKeysConfig } from '@dofe/infra-common';
 
-import { SendCloudClient, PardxEmailSender } from '@app/clients/internal/email';
+import { SendCloudClient, PardxEmailSender } from '@dofe/infra-clients';
 
 @Injectable()
 export class EmailService implements OnModuleInit {

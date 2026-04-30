@@ -27,7 +27,7 @@ import {
   VolcengineSaucConfig,
   StreamingAsrResult,
   StreamingAsrCallbacks,
-} from '@app/clients/internal/openspeech';
+} from '@dofe/infra-clients';
 import { getKeysConfig } from '@dofe/infra-common';
 import { OpenSpeechConfig, JwtConfig } from '@dofe/infra-common';
 import { RedisService } from '@dofe/infra-redis';

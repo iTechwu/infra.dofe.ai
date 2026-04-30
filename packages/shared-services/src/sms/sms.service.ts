@@ -31,13 +31,13 @@ import { HttpService } from '@nestjs/axios';
 import type { MobileAuth } from '@prisma/client';
 
 import { RedisService } from '@dofe/infra-redis';
-import { RabbitmqService } from '@app/rabbitmq';
-import { VerifyClient } from '@app/clients/internal/verify';
+import { RabbitmqService } from '@dofe/infra-rabbitmq';
+import { VerifyClient } from '@dofe/infra-clients';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
 import { PardxApp } from '@dofe/infra-common';
 import { getKeysConfig } from '@dofe/infra-common';
-import type { AppSmsConfig } from '@app/clients/internal/sms';
+import type { AppSmsConfig } from '@dofe/infra-clients';
 
 import { SmsClientFactory } from './sms.factory';
 import {

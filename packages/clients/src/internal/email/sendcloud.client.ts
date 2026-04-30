@@ -12,7 +12,7 @@ import * as nodemailer from 'nodemailer';
 import smtpPool from 'nodemailer-sendcloud-transport';
 import * as _ from 'lodash';
 import { DoFeEmailSender } from './dto/email.dto';
-import { SendCloudConfig } from '@/config/validation';
+import { SendCloudConfig } from '@dofe/infra-common';
 
 // SendCloud API endpoints
 const SENDCLOUD_API = {

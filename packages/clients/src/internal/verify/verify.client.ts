@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import stringUtil from '@/utils/string.util';
-import { RedisService } from '@app/redis';
+import stringUtil from '@dofe/infra-utils';
+import { RedisService } from '@dofe/infra-redis';
 
 @Injectable()
 export class VerifyClient {
