@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@dofe/infra-contracts": "workspace:*",
+    "@dofe/infra-docker": "workspace:*",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.10",
     "@nestjs/platform-fastify": "^11.1.10",

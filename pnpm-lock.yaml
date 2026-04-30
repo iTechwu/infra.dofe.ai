@@ -11,6 +11,9 @@ importers:
       '@dofe/infra-contracts':
         specifier: workspace:*
         version: link:packages/contracts
+      '@dofe/infra-docker':
+        specifier: workspace:*
+        version: link:packages/docker
       '@nestjs/config':
         specifier: ^4.0.2
         version: 4.0.4(rxjs@7.8.2)

@@ -86,10 +86,10 @@ export class ProviderVerifyClient {
     input: VerifyProviderKeyInput,
   ): Promise<VerifyProviderKeyResponse> {
     const startTime = Date.now();
-    const { vendor, secret, baseUrl, apiType: inputApiType, metadata } = input;
+    const { vendor, apiKey: secret, baseUrl, apiType: inputApiType, extraConfig: metadata } = input;
 
     // Get effective API host
-    let effectiveHost = getEffectiveApiHost(vendor, baseUrl);
+    let effectiveHost = getEffectiveApiHost(vendor as ProviderVendor, baseUrl);
     if (!effectiveHost) {
       return {
         valid: false,
@@ -140,7 +140,7 @@ export class ProviderVerifyClient {
         models,
       };
     } catch (error: any) {
-      return this.handleError(error, vendor, startTime);
+      return this.handleError(error, vendor as ProviderVendor, startTime);
     }
   }
 

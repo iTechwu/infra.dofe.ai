@@ -2,6 +2,7 @@ export * from './email/email.module';
 export * from './email/email.service';
 export * from './file-storage/file-storage.module';
 export * from './file-storage/file-storage.service';
+export { PardxUploader } from './file-storage/index';
 export * from './ip-geo/ip-geo.module';
 export * from './ip-geo/ip-geo.service';
 export * from './ip-info/ip-info.module';

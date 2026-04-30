@@ -20,5 +20,9 @@
       "@dofe/infra-clients/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "src/internal/transcode/**/*",
+    "src/internal/feishu/**/*"
+  ]
 }

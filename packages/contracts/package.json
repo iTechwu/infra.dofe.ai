@@ -8,5 +8,12 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
-  "type": "commonjs"
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "UNLICENSED"
 }

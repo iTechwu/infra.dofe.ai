@@ -102,8 +102,8 @@ export class AIProviderClient {
 
       switch (effectiveApiType) {
         case 'openai':
-        case 'openai_response':
-        case 'new_api':
+        case 'openai-response':
+        case 'new-api':
         case 'ollama':
         case 'gateway':
           models = await this.verifyOpenAICompatible(effectiveBaseUrl, secret);
@@ -114,10 +114,10 @@ export class AIProviderClient {
         case 'gemini':
           models = await this.verifyGemini(effectiveBaseUrl, secret);
           break;
-        case 'azure_openai':
+        case 'azure-openai':
           models = await this.verifyAzureOpenAI(effectiveBaseUrl, secret);
           break;
-        case 'aws_bedrock':
+        case 'aws-bedrock':
           // AWS Bedrock requires AWS credentials in format: access_key_id:secret_access_key:region
           // or just an API key for third-party proxies
           models = await this.verifyBedrock(effectiveBaseUrl, secret);
