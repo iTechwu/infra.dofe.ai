@@ -40,6 +40,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
+import { isDevelopment } from '@/config/env-config.service';
 
 /**
  * Transaction isolation levels
@@ -554,7 +555,7 @@ function logTransactionComplete(
 
   // 回退到 console（仅在 DbMetricsService 不可用时）
   // 生产环境应该配置 DbMetricsService
-  if (process.env.NODE_ENV === 'dev' || !success || duration > 1000) {
+  if (isDevelopment() || !success || duration > 1000) {
     const logData = {
       methodName,
       duration: `${duration}ms`,

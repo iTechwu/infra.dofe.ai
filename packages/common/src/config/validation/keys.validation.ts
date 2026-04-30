@@ -8,11 +8,60 @@
  * Never log or expose the actual values.
  */
 import { z } from 'zod';
-import environment from '@dofe/infra-utils/environment.util';
+import enviroment from '@/utils/enviroment.util';
+import { createContextLogger } from '@/utils/logger-standalone.util';
+
+const logger = createContextLogger('KeysValidation');
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)
 // ============================================================================
+
+// Google Service Account Schema
+export const googleServiceAccountSchema = z.object({
+  type: z.literal('service_account'),
+  project_id: z.string().min(1),
+  private_key_id: z.string().min(1),
+  private_key: z
+    .string()
+    .min(1)
+    .refine((key) => key.includes('-----BEGIN PRIVATE KEY-----'), {
+      message: 'Invalid private key format',
+    }),
+  client_email: z.string().email(),
+  client_id: z.string().min(1),
+  auth_uri: z.string().url(),
+  token_uri: z.string().url(),
+  auth_provider_x509_cert_url: z.string().url(),
+  client_x509_cert_url: z.string().url(),
+  universe_domain: z.string().default('googleapis.com'),
+  // Additional Google API keys
+  gemini_api_key: z.string().optional(),
+  search_api_key: z.string().optional(),
+  search_cx_key: z.string().optional(),
+});
+
+// Jina AI Schema
+export const jinaAiSchema = z.object({
+  embeddingUrl: z.string().url(),
+  rerankUrl: z.string().url(),
+  classifyUrl: z.string().url(),
+  segmentUrl: z.string().url(),
+  readerUrl: z.string().url(),
+  searchUrl: z.string().url(),
+  gRelatedUrl: z.string().url(),
+  deepsearchUrL: z.string().url(),
+  apiKey: z.string().min(1),
+});
+
+// OAuth Provider Schema
+export const oauthProviderSchema = z.object({
+  provider: z.enum(['google', 'discord', 'github', 'wechat', 'apple']),
+  clientId: z.string().min(1),
+  secret: z.string().min(1),
+  callback: z.string().min(1),
+  scope: z.array(z.string()).min(1),
+});
 
 // Email Service (SendCloud) Schema
 export const emailTemplateSchema = z.object({
@@ -70,6 +119,7 @@ export const storageConfigSchema = z.object({
   qiniu: storageCredentialsSchema.optional(),
   oss: storageCredentialsSchema.optional(),
   tos: storageCredentialsSchema.optional(),
+  s3: storageCredentialsSchema.optional(),
 });
 
 // OpenSpeech (Speech Recognition) Schema
@@ -170,6 +220,23 @@ export const openspeechConfigSchema = z.object({
   tos: openspeechVolcengineProviderSchema.optional(),
 });
 
+// Transcode Schema
+export const transcodeProviderSchema = z.object({
+  baseUrl: z.string().url(),
+  templateId: z.string().optional(),
+  action: z.string().optional(),
+  version: z.string().optional(),
+  region: z.string().optional(),
+  accessKey: z.string().optional(),
+  secretKey: z.string().optional(),
+  callbackUri: z.string().optional(),
+});
+
+export const transcodeConfigSchema = z.object({
+  tos: transcodeProviderSchema.optional(),
+  aliyun: transcodeProviderSchema.optional(),
+});
+
 // TTS (Text-to-Speech) Schema
 export const ttsProviderSchema = z.object({
   endpoint: z.string().url(),
@@ -216,6 +283,40 @@ export const imageConfigSchema = z.object({
   aliyun: imageProviderSchema.optional(),
 });
 
+// Vector (Embedding / Vector DB) Provider Schema
+export const vectorProviderSchema = z.object({
+  accessKey: z.string().min(1),
+  secretKey: z.string().min(1),
+  region: z.string().min(1),
+});
+
+export const vectorConfigSchema = z.object({
+  volcengine: vectorProviderSchema.optional(),
+  aliyun: vectorProviderSchema.optional(),
+});
+
+// WeChat MiniProgram Schema
+export const miniprogramSchema = z.object({
+  appId: z.string().min(1),
+  appSecret: z.string().min(1),
+});
+
+// WeChat Official Account Schema (微信公众号)
+export const wechatSchema = z.object({
+  appid: z.string().min(1),
+  secret: z.string().min(1),
+});
+
+// Agent_X Service Schema
+export const agentxSchema = z.object({
+  /** Agent_X 服务 Base URL */
+  baseUrl: z.string().url(),
+  /** 用户名（可选） */
+  user: z.string().optional(),
+  /** 密码（可选） */
+  password: z.string().optional(),
+});
+
 // OpenAI Service Schema
 export const openaiSchema = z.object({
   /** OpenAI API Key */
@@ -224,7 +325,25 @@ export const openaiSchema = z.object({
   baseUrl: z.string().url().optional(),
 });
 
-// ExchangeRate Service Schema
+// Embedding Service Schema
+export const embeddingSchema = z.object({
+  /** Embedding service Base URL (OpenAI-compatible) */
+  baseUrl: z.string().url().optional(),
+  /** Embedding API Key */
+  apiKey: z.string().optional(),
+  /** Embedding model name */
+  model: z.string().optional(),
+  /** Embedding dimensions (optional, provider-dependent) */
+  dimensions: z.number().int().positive().optional(),
+  /** Request timeout in milliseconds */
+  timeoutMs: z.number().int().positive().optional(),
+  /** Query prefix (for bge/m3 style retrieval) */
+  queryPrefix: z.string().optional(),
+  /** Document prefix (for bge/m3 style retrieval) */
+  documentPrefix: z.string().optional(),
+});
+
+// Exchange Rate Service Schema
 export const exchangerateSchema = z.object({
   /** ExchangeRate Host API Key */
   apiKey: z.string().min(1),
@@ -232,58 +351,100 @@ export const exchangerateSchema = z.object({
   baseUrl: z.string().url(),
 });
 
-// IP Info Service Schema
-export const ipInfoKeysSchema = z.object({
-  /** ipinfo.io API URL */
+/**
+ * IP Info Configuration Schema
+ * IP 地理位置信息服务配置
+ */
+export const ipInfoSchema = z.object({
+  /** IP Info API URL */
   url: z.string().url(),
-  /** ipinfo.io API Token */
+  /** IP Info API Token */
   token: z.string().min(1),
 });
 
-// ============================================================================
-// Core Security Key Schemas (从 .env 迁移到 keys/config.json)
-// ============================================================================
+// VikingDB (Vector DB) Schema
+export const vikingdbSchema = z.object({
+  /** Provider selection: custom-http | volcengine */
+  provider: z.enum(['custom-http', 'volcengine']).default('custom-http'),
 
-/** JWT 密钥配置 */
-export const jwtKeysSchema = z.object({
-  secret: z.string().min(8, 'JWT secret must be at least 8 characters'),
-  expireIn: z.number().int().positive().default(3600),
-});
+  /** custom-http mode */
+  baseUrl: z.string().url().optional(),
+  authToken: z.string().optional(),
+  database: z.string().optional(),
+  collection: z.string().optional(),
 
-/** AES 加解密配置（CryptClient 使用） */
-export const cryptoKeysSchema = z.object({
-  key: z.string().min(1),
-  iv: z.string().min(1),
-});
+  /** volcengine mode */
+  volcengine: z
+    .object({
+      ak: z.string().optional(),
+      sk: z.string().optional(),
+      region: z.string().optional(),
+      sessionToken: z.string().optional(),
+      indexName: z.string().optional(),
+      collectionName: z.string().optional(),
+      collectionAlias: z.string().optional(),
+    })
+    .optional(),
 
-/** AES-256 加密密钥（EncryptionService 使用） */
-export const encryptionKeysSchema = z.object({
-  key: z.string().min(32, 'ENCRYPTION_KEY must be at least 32 characters'),
-});
+  /** Field mapping (optional) */
+  fields: z
+    .object({
+      primaryKey: z.string().optional(),
+      text: z.string().optional(),
+      vector: z.string().optional(),
+      summary: z.string().optional(),
+      metadata: z.string().optional(),
+      tags: z.string().optional(),
+      taskType: z.string().optional(),
+      tenantId: z.string().optional(),
+      botId: z.string().optional(),
+      scopeType: z.string().optional(),
+      scopeId: z.string().optional(),
+      sourceType: z.string().optional(),
+      createdById: z.string().optional(),
+      createdAt: z.string().optional(),
+      updatedAt: z.string().optional(),
+    })
+    .optional(),
 
-/** 管理员注册密钥 */
-export const adminKeysSchema = z.object({
-  registerSecret: z.string().min(1),
+  /** HTTP client */
+  timeoutMs: z.number().int().positive().optional(),
+  paths: z
+    .object({
+      vectorSearch: z.string().optional(),
+      bm25Search: z.string().optional(),
+      upsert: z.string().optional(),
+      delete: z.string().optional(),
+      health: z.string().optional(),
+    })
+    .optional(),
+
+  /** Extra headers JSON object */
+  headers: z.record(z.string(), z.string()).optional(),
 });
 
 // Full Keys Configuration Schema
 export const keysConfigSchema = z.object({
-  // 核心安全密钥
-  jwt: jwtKeysSchema.optional(),
-  crypto: cryptoKeysSchema.optional(),
-  encryption: encryptionKeysSchema.optional(),
-  admin: adminKeysSchema.optional(),
-  // 第三方服务凭证
+  google: googleServiceAccountSchema,
+  'jina-ai': jinaAiSchema.optional(),
+  oauth: z.array(oauthProviderSchema).optional(),
   sendcloud: sendcloudSchema.optional(),
   sms: smsConfigSchema.optional(),
   storage: storageConfigSchema.optional(),
   openspeech: openspeechConfigSchema.optional(),
+  transcode: transcodeConfigSchema.optional(),
   tts: ttsConfigSchema.optional(),
   risk: riskConfigSchema.optional(),
   image: imageConfigSchema.optional(),
+  vector: vectorConfigSchema.optional(),
+  vikingdb: vikingdbSchema.optional(),
+  embedding: embeddingSchema.optional(),
+  miniprogram: miniprogramSchema.optional(),
+  wechat: wechatSchema.optional(),
+  agentx: agentxSchema.optional(),
   openai: openaiSchema.optional(),
   exchangerate: exchangerateSchema.optional(),
-  ipinfo: ipInfoKeysSchema.optional(),
+  ipinfo: ipInfoSchema.optional(),
 });
 
 // ============================================================================
@@ -293,17 +454,16 @@ export const keysConfigSchema = z.object({
 /** 完整 Keys 配置类型 */
 export type KeysConfig = z.infer<typeof keysConfigSchema>;
 
-/** JWT 密钥配置类型 */
-export type JwtKeysConfig = z.infer<typeof jwtKeysSchema>;
+/** Google 服务账号配置类型 */
+export type GoogleServiceAccountConfig = z.infer<
+  typeof googleServiceAccountSchema
+>;
 
-/** Crypto 密钥配置类型 */
-export type CryptoKeysConfig = z.infer<typeof cryptoKeysSchema>;
+/** Jina AI 配置类型 */
+export type JinaAiConfig = z.infer<typeof jinaAiSchema>;
 
-/** Encryption 密钥配置类型 */
-export type EncryptionKeysConfig = z.infer<typeof encryptionKeysSchema>;
-
-/** Admin 密钥配置类型 */
-export type AdminKeysConfig = z.infer<typeof adminKeysSchema>;
+/** OAuth 提供商配置类型 */
+export type OAuthProviderConfig = z.infer<typeof oauthProviderSchema>;
 
 /** 邮件模板配置类型 */
 export type EmailTemplateConfig = z.infer<typeof emailTemplateSchema>;
@@ -326,6 +486,9 @@ export type StorageCredentialsConfig = z.infer<typeof storageCredentialsSchema>;
 /** 存储配置类型 */
 export type StorageConfig = z.infer<typeof storageConfigSchema>;
 
+/** OpenSpeech 提供商配置类型（通用，兼容旧配置） */
+export type OpenSpeechProviderConfig = z.infer<typeof openspeechProviderSchema>;
+
 /** 阿里云语音识别配置类型 */
 export type OpenSpeechAliyunProviderConfig = z.infer<
   typeof openspeechAliyunProviderSchema
@@ -338,6 +501,12 @@ export type OpenSpeechVolcengineProviderConfig = z.infer<
 
 /** OpenSpeech 配置类型 */
 export type OpenSpeechConfig = z.infer<typeof openspeechConfigSchema>;
+
+/** 转码提供商配置类型 */
+export type TranscodeProviderConfig = z.infer<typeof transcodeProviderSchema>;
+
+/** 转码配置类型 */
+export type TranscodeConfig = z.infer<typeof transcodeConfigSchema>;
 
 /** TTS 提供商配置类型 */
 export type TtsProviderConfig = z.infer<typeof ttsProviderSchema>;
@@ -357,6 +526,27 @@ export type ImageProviderConfig = z.infer<typeof imageProviderSchema>;
 /** 图像配置类型 */
 export type ImageConfig = z.infer<typeof imageConfigSchema>;
 
+/** 向量服务提供商配置类型 */
+export type VectorProviderConfig = z.infer<typeof vectorProviderSchema>;
+
+/** 向量服务配置类型 */
+export type VectorConfig = z.infer<typeof vectorConfigSchema>;
+
+/** VikingDB 配置类型 */
+export type VikingDbKeysConfig = z.infer<typeof vikingdbSchema>;
+
+/** Embedding 配置类型 */
+export type EmbeddingKeysConfig = z.infer<typeof embeddingSchema>;
+
+/** 小程序配置类型 */
+export type MiniprogramConfig = z.infer<typeof miniprogramSchema>;
+
+/** 微信公众号配置类型 */
+export type WechatConfig = z.infer<typeof wechatSchema>;
+
+/** Agent_X 配置类型 */
+export type AgentXConfig = z.infer<typeof agentxSchema>;
+
 /** OpenAI 配置类型 */
 export type OpenAIConfig = z.infer<typeof openaiSchema>;
 
@@ -364,7 +554,10 @@ export type OpenAIConfig = z.infer<typeof openaiSchema>;
 export type ExchangeRateConfig = z.infer<typeof exchangerateSchema>;
 
 /** IP Info 配置类型 */
-export type IpInfoKeysConfig = z.infer<typeof ipInfoKeysSchema>;
+export type IpInfoConfig = z.infer<typeof ipInfoSchema>;
+
+/** @deprecated 使用 IpInfoConfig */
+export type IpInfoKeysConfig = IpInfoConfig;
 
 /**
  * Validation result type
@@ -387,24 +580,23 @@ export function validateKeysConfig(config: unknown): KeysConfig {
 
   if (!result.success) {
     // Mask sensitive data in error messages
-    // Zod 4 uses issues instead of errors
-    const issues = (result.error as any).issues || [];
-    const errorMessages = issues
-      .map((err: any) => {
+    const errorMessages = result.error.issues
+      .map((err) => {
         const path = err.path.join('.');
         // Don't log actual values for security
         return `  - ${path}: ${err.message}`;
       })
       .join('\n');
 
-    console.error('❌ Keys configuration validation failed:');
-    console.error(errorMessages);
+    logger.error('Keys configuration validation failed', {
+      error: errorMessages,
+    });
 
     throw new Error(`Keys configuration validation failed:\n${errorMessages}`);
   }
 
-  if (environment.isProduction()) {
-    console.log('✅ Keys configuration validated successfully');
+  if (enviroment.isProduction()) {
+    logger.info('Keys configuration validated successfully');
   }
   return result.data;
 }
@@ -435,22 +627,37 @@ export function validateKeysConfigSafe(config: unknown): KeysValidationResult {
 export function isProviderConfigured(
   config: KeysConfig,
   provider:
-    | 'jwt'
-    | 'crypto'
-    | 'encryption'
-    | 'admin'
+    | 'google'
+    | 'jina-ai'
+    | 'oauth'
     | 'sendcloud'
     | 'sms'
     | 'storage'
     | 'openspeech'
+    | 'transcode'
     | 'tts'
     | 'risk'
     | 'image'
-    | 'openai'
-    | 'exchangerate'
-    | 'ipinfo',
+    | 'vector'
+    | 'miniprogram'
+    | 'wechat'
+    | 'agentx'
+    | 'openai',
 ): boolean {
+  if (provider === 'google') {
+    return !!config.google?.project_id;
+  }
   return !!config[provider];
+}
+
+/**
+ * Get configured OAuth providers
+ *
+ * @param config - Keys configuration
+ * @returns Array of configured OAuth provider names
+ */
+export function getConfiguredOAuthProviders(config: KeysConfig): string[] {
+  return config.oauth?.map((p) => p.provider) || [];
 }
 
 /**

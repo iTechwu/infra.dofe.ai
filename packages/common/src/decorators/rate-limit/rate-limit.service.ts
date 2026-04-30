@@ -24,7 +24,7 @@
  *     tenantId: { limit: 2000, window: 60 }
  *     apiKey: { limit: 1000, window: 60 }
  *   redis:
- *     keyPrefix: 'dofe:ratelimit:'
+ *     keyPrefix: 'pardx:ratelimit:'
  *   whitelist:
  *     ips: ['127.0.0.1', '::1']
  *     userIds: []
@@ -36,7 +36,7 @@ import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import { FeatureFlagService } from '../feature-flag/feature-flag.service';
 
 import {
@@ -48,7 +48,7 @@ import {
   RateLimitOptions,
   RateLimitResult,
 } from './dto/rate-limit.dto';
-import environment from '@dofe/infra-utils/environment.util';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // Constants
@@ -64,7 +64,7 @@ const DEFAULT_CONFIG: RateLimitConfig = {
     tenantId: { limit: 2000, window: 60 },
     apiKey: { limit: 1000, window: 60 },
   },
-  redis: { keyPrefix: 'dofe:ratelimit:' },
+  redis: { keyPrefix: 'pardx:ratelimit:' },
   whitelist: { ips: ['127.0.0.1', '::1'], userIds: [], apiKeys: [] },
 };
 
@@ -75,7 +75,7 @@ const DEFAULT_CONFIG: RateLimitConfig = {
 @Injectable()
 export class RateLimitService implements OnModuleInit {
   private config: RateLimitConfig = DEFAULT_CONFIG;
-  private keyPrefix: string = 'dofe:ratelimit:';
+  private keyPrefix: string = 'pardx:ratelimit:';
 
   constructor(
     private readonly configService: ConfigService,
@@ -100,10 +100,10 @@ export class RateLimitService implements OnModuleInit {
           ...config.whitelist,
         },
       };
-      this.keyPrefix = config.redis?.keyPrefix || 'dofe:ratelimit:';
+      this.keyPrefix = config.redis?.keyPrefix || 'pardx:ratelimit:';
     }
 
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info('RateLimitService module initialized', {
         enabled: this.config.enabled,
         keyPrefix: this.keyPrefix,
@@ -367,7 +367,7 @@ export class RateLimitService implements OnModuleInit {
    * 生成 Redis key
    *
    * 格式: {prefix}{dimension}:{identifier}:{normalizedPath}
-   * 例如: dofe:ratelimit:userId:user-123:/api/export
+   * 例如: pardx:ratelimit:userId:user-123:/api/export
    */
   private generateKey(
     context: RateLimitContext,

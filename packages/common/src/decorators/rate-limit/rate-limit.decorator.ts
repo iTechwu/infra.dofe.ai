@@ -24,13 +24,7 @@
 import { SetMetadata, UseInterceptors, applyDecorators } from '@nestjs/common';
 import { RateLimitInterceptor } from '../../interceptor/rate-limit/rate-limit.interceptor';
 import { RateLimitOptions } from './dto/rate-limit.dto';
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-export const RATE_LIMIT_KEY = 'rate_limit';
-export const SKIP_RATE_LIMIT_KEY = 'skip_rate_limit';
+import { RATE_LIMIT_KEY, SKIP_RATE_LIMIT_KEY } from './rate-limit.constants';
 
 // ============================================================================
 // Decorators

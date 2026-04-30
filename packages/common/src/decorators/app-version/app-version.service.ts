@@ -20,7 +20,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import * as fs from 'fs';
 import * as path from 'path';
-import environment from '@dofe/infra-utils/environment.util';
+import enviroment from '@/utils/enviroment.util';
+import { buildConfig, getNodeEnv } from '@/config/env-config.service';
 
 // ============================================================================
 // Types
@@ -91,13 +92,13 @@ export class AppVersionService implements OnModuleInit {
         apiVersion: this.configService.get<string>('app.apiVersion', '1'),
         buildVersion: this.buildHash,
         buildTime: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'dev',
+        environment: getNodeEnv(),
         minClientVersion: this.configService.get<string>(
           'app.minClientVersion',
         ),
       };
 
-      if (environment.isProduction()) {
+      if (enviroment.isProduction()) {
         this.logger.info('App version info module loaded', {
           versionInfo: this.versionInfo,
         });
@@ -115,7 +116,7 @@ export class AppVersionService implements OnModuleInit {
         apiVersion: '1',
         buildVersion: 'unknown',
         buildTime: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'dev',
+        environment: getNodeEnv(),
       };
     }
   }
@@ -125,8 +126,7 @@ export class AppVersionService implements OnModuleInit {
    */
   private generateBuildHash(): string {
     // 优先使用 Git commit hash
-    const gitHash =
-      process.env.GIT_COMMIT_HASH || process.env.VERCEL_GIT_COMMIT_SHA;
+    const gitHash = buildConfig.gitCommitHash;
     if (gitHash) {
       return gitHash.substring(0, 8);
     }

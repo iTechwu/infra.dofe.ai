@@ -18,7 +18,7 @@ import { tap, switchMap } from 'rxjs/operators';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import {
   CACHE_METADATA_KEY,
   CACHE_EVICT_METADATA_KEY,

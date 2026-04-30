@@ -42,19 +42,19 @@ export function TsRestController(
 export function TsRestController(
   prefixOrOptions?: string | string[] | Omit<ControllerOptions, 'version'>,
 ): ClassDecorator {
-  return (target: Function) => {
+  return (target: object) => {
     if (prefixOrOptions === undefined) {
       // @TsRestController()
-      Controller()(target);
+      Controller()(target as never);
     } else if (
       typeof prefixOrOptions === 'string' ||
       Array.isArray(prefixOrOptions)
     ) {
       // @TsRestController('path') 或 @TsRestController(['path1', 'path2'])
-      Controller(prefixOrOptions)(target);
+      Controller(prefixOrOptions)(target as never);
     } else {
       // @TsRestController({ path: 'admin', host: '...' })
-      Controller(prefixOrOptions as ControllerOptions)(target);
+      Controller(prefixOrOptions as ControllerOptions)(target as never);
     }
 
     // 设置 VERSION_NEUTRAL，让 NestJS 放行，由 ts-rest 处理路由

@@ -6,12 +6,12 @@
  */
 
 import { Module, Global } from '@nestjs/common';
-import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { EventInterceptor } from './event.interceptor';
 import { CacheEventHandler } from './handlers/cache-event.handler';
 import { CacheDecoratorModule } from '../cache/cache.module';
-import { RedisModule } from '@app/redis';
+import { RedisModule } from '@dofe/infra-redis';
 
 @Global()
 @Module({
@@ -36,7 +36,6 @@ import { RedisModule } from '@app/redis';
     }),
   ],
   providers: [
-    Reflector,
     {
       provide: APP_INTERCEPTOR,
       useClass: EventInterceptor,

@@ -1,7 +1,7 @@
 import { registerDecorator, ValidationArguments } from 'class-validator';
 import { ApiException } from '../filter/exception/api.exception';
 import { ErrorMessageEnums } from '../enums/error-codes';
-import stringUtil from '@dofe/infra-utils/string.util';
+import stringUtil from '@/utils/string.util';
 
 // 自定义装饰器
 export function LengthValidator(

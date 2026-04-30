@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 // Mock the RedisService before importing the service
-jest.mock('@app/redis', () => ({
+jest.mock('@dofe/infra-redis', () => ({
   RedisService: jest.fn(),
 }));
 
@@ -142,7 +142,7 @@ describe('FeatureFlagService', () => {
       mockRedisService.redis.setex.mockResolvedValue('OK');
 
       // Import the actual RedisService class for proper DI
-      const { RedisService } = await import('@app/redis');
+      const { RedisService } = await import('@dofe/infra-redis');
 
       module = await Test.createTestingModule({
         providers: [

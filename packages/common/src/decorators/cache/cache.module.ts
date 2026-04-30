@@ -6,15 +6,14 @@
  */
 
 import { Module, Global } from '@nestjs/common';
-import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
-import { RedisModule } from '@app/redis';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RedisModule } from '@dofe/infra-redis';
 import { CacheInterceptor } from './cache.interceptor';
 
 @Global()
 @Module({
   imports: [RedisModule],
   providers: [
-    Reflector,
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,

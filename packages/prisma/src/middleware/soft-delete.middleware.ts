@@ -19,12 +19,12 @@
  * ```
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 /**
  * 查询操作列表
  */
-export const QUERY_ACTIONS = [
+const QUERY_ACTIONS = [
   'findFirst',
   'findMany',
   'findUnique',
@@ -36,29 +36,185 @@ export const QUERY_ACTIONS = [
 ];
 
 /**
- * 删除操作列表
+ * 不支持软删除的模型列表（这些模型没有 isDeleted 字段）
+ *
+ * 分类说明：
+ * - 系统/配置表：SystemTaskQueue
+ * - 关联表：BotPlugin, BotSkill, BotModel
+ * - 日志表：BotUsageLog, OperateLog
+ * - 安全令牌表：ProxyToken
  */
-export const DELETE_ACTIONS = ['delete', 'deleteMany'];
+const NON_SOFT_DELETE_MODELS = [
+  // 系统/配置表（无 isDeleted 字段）
+  'SystemTaskQueue',
+  'SystemConfig',
+  'TenantConfig',
+  'SystemSyncTask',
+
+  // 关联表（多对多关系，通过 onDelete: Cascade 级联删除，无 isDeleted 字段）
+  'BotSkill',
+  'BotModel',
+  'BotPlugin',
+  'BotMcpServer',
+  'GatewaySkill',
+  'TenantPlugin',
+  'ModelCapabilityTag',
+  'ModelAvailabilityCapabilityTag',
+  'FallbackChainModel',
+  'ComplexityRoutingModelMapping',
+  'BotSkillSourceSnapshot',
+  'BotKnowledgeBaseSourceSnapshot',
+  'BotKnowledgeLink',
+
+  // 路由/策略配置表（无 isDeleted 字段）
+  'BotModelRouting',
+  'BotRoutingConfig',
+  'ComplexityRoutingConfig',
+  'FallbackChain',
+  'CostStrategy',
+  'AgentModel',
+  'GatewayConfigVersion',
+  'GatewayConfigChangeLog',
+
+  // 技能版本表（只追加，不软删除，无 isDeleted 字段）
+  'SkillVersion',
+  // 技能表（通过 onDelete: Cascade 级联删除，无 isDeleted 字段）
+  'Skill',
+
+  // 模型可用性缓存表（无需软删除，无 isDeleted 字段）
+  'ModelAvailability',
+  'ModelCatalog',
+
+  // 日志表（只追加，不删除，无 isDeleted 字段）
+  'BotUsageLog',
+  'OperateLog',
+  'OpenClawAuditEvent',
+
+  // 安全令牌表（通过 revokedAt 字段标记失效，不使用软删除，无 isDeleted 字段）
+  'ProxyToken',
+
+  // MCP Server（无 isDeleted 字段）
+  'McpServer',
+
+  // Pairing 记录（无 isDeleted 字段）
+  'FeishuPairingRecord',
+  'PlatformPairingRecord',
+
+  // 计费相关表（当前 schema 未包含 isDeleted 字段）
+  'Invoice',
+  'InvoiceItem',
+  'Payment',
+  'Topup',
+
+  // === bot autonomy / trigger / notification ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'ApprovalRequest',
+  'BotTokenUsage',
+  'BotTrigger',
+  'BotTriggerHistory',
+  'Notification',
+
+  // === workspace / session ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'Workspace',
+  'WorkspaceSession',
+
+  // === feedback / optimization ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'BotExecutionFeedback',
+  'BotOptimizationSuggestion',
+
+  // === knowledge ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'KnowledgeBaseBot',
+  'KnowledgeUsage',
+
+  // === bot session / chain ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'BotSessionChain',
+  'BotCrossSessionMessage',
+  'SubAgentMessage',
+  'SubAgentHeartbeatConfig',
+  'SubAgentHeartbeatLog',
+  'SubAgentRelation',
+  'AutonomyPolicy',
+
+  // === bot extensions ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'BotFocusExtension',
+  'BotCronJobMeta',
+  'BotMdFileVersion',
+  'MemoryItem',
+
+  // === organization ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'OrganizationMember',
+  'UserTenantPreference',
+
+  // === template ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'PositionSkill',
+  'PositionKnowledgeBase',
+  'TemplateSkill',
+  'TemplateKnowledgeBase',
+
+  // === general preset ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'GeneralPreset',
+  'GeneralPresetSkill',
+  'GeneralPresetKnowledgeBase',
+
+  // === marketing ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'MarketingLead',
+
+  // === compliance / data lifecycle ===
+  // DeletionRequest 模型无 isDeleted 字段，通过 status 字段管理状态
+  'DeletionRequest',
+
+  // === plaza ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'PlazaLike',
+  'PlazaSubscription',
+
+  // === workflow ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'BotWorkflow',
+  'WorkflowTemplate',
+  'WorkflowExecution',
+  'WorkflowNodeExecution',
+  'WorkflowVersion',
+
+  // === cost intelligence ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'CostAnomaly',
+  'AnomalyRule',
+  'OptimizationSuggestion',
+  'CostPrediction',
+  'BotOptimizationSuggestion',
+
+  // === compliance (Q1 2027 治理合规 1.0) ===
+  // 这些模型当前 schema 未包含 isDeleted 字段
+  'CertificationStatus',
+  'RetentionPolicy',
+  'DeletionRequest',
+  'ComplianceReport',
+] as const;
 
 /**
  * 检查模型是否支持软删除
- *
- * @param modelName - Prisma 模型名称
- * @param nonSoftDeleteModels - 不支持软删除的模型名称列表（从配置中读取，默认为 []）
  */
-export function isSoftDeleteModel(
-  modelName: string | undefined,
-  nonSoftDeleteModels: readonly string[] = [],
-): boolean {
+export function isSoftDeleteModel(modelName: string | undefined): boolean {
   if (!modelName) return false;
-  return !nonSoftDeleteModels.includes(modelName);
+  // 如果模型在不支持软删除的列表中，返回 false
+  return !NON_SOFT_DELETE_MODELS.includes(modelName as any);
 }
 
 /**
  * 检查 where 条件是否已显式指定 isDeleted
  * 支持嵌套的 OR/AND/NOT 条件
  */
-export function hasExplicitIsDeleted(
+function hasExplicitIsDeleted(
   where: Record<string, unknown> | undefined,
 ): boolean {
   if (!where) return false;
@@ -113,9 +269,6 @@ export function hasExplicitIsDeleted(
  * @returns 扩展后的 PrismaClient 实例
  */
 export function setupSoftDeleteMiddleware(prisma: PrismaClient): PrismaClient {
-  // 保存原始 prisma client 的引用，以便在 delete 操作中使用
-  const originalPrisma = prisma;
-
   return prisma.$extends({
     query: {
       $allOperations({ operation, model, args, query }) {

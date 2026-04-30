@@ -9,7 +9,7 @@ import {
 
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { getReqMainInfo } from '@dofe/infra-utils/logger.util';
+import { getReqMainInfo } from '@/utils/logger.util';
 
 @Catch()
 export class ExceptionsFilter implements ExceptionFilter {

@@ -5,7 +5,10 @@
  * Ensures all required application settings are correctly configured.
  */
 import { z } from 'zod';
-import environment from '@dofe/infra-utils/environment.util';
+import enviroment from '@/utils/enviroment.util';
+import { createContextLogger } from '@/utils/logger-standalone.util';
+
+const logger = createContextLogger('YamlValidation');
 
 // ============================================================================
 // Exported Schemas (用于类型推断和外部使用)
@@ -18,7 +21,7 @@ export const microServiceSchema = z.object({
   name: z.string().min(1),
   ChineseName: z.string().optional(),
   version: z.string().optional(),
-  port: z.number().int().positive().max(65535),
+  port: z.number().int().positive().max(65535).optional(),
   logger: z.boolean().default(true),
   transport: z.enum(['TCP', 'UDP', 'HTTP']).default('TCP'),
   host: z.string().optional(),
@@ -43,21 +46,49 @@ export const appConfigSchema = microServiceSchema.extend({
   MaxPageSize: z.number().int().positive().default(500),
   defaultPageSize: z.number().int().positive().default(100),
   defaultMiniPageSize: z.number().int().positive().default(30),
+  canCreateTrail: z.boolean().default(true),
   defaultVendor: z
     .enum(['tos', 'oss', 'us3', 'qiniu', 'gcs', 's3'])
     .default('tos'),
   defaultBucketPublic: z.boolean().default(false),
 
+  // S3 重试配置 (从 .env 迁移)
+  enableRetryMechanism: z.boolean().default(true),
+  enableEnhancedLogging: z.boolean().default(true),
+  maxRetries: z.number().int().positive().default(3),
+  baseRetryDelay: z.number().int().positive().default(1000),
+
   // 日志输出配置 (从 .env 迁移)
   nestLogOutput: z.enum(['console', 'file', 'both']).default('file'),
 
+  // 音频转写状态更新模式配置
+  audioTranscribe: z
+    .object({
+      /** 状态更新模式：webhook（回调）或 polling（轮询） */
+      statusUpdateMode: z.enum(['webhook', 'polling']).default('webhook'),
+      /** 轮询间隔（秒），仅在 polling 模式下有效 */
+      pollingInterval: z.number().int().positive().default(30),
+    })
+    .optional()
+    .default({
+      statusUpdateMode: 'webhook',
+      pollingInterval: 30,
+    }),
+
   admin: microServiceSchema.optional(),
   zones: z.array(zoneSchema).min(1),
-  requiredFeatures: z.array(z.string()).optional(),
+});
+
+/**
+ * Upload configuration schema
+ */
+export const uploadConfigSchema = z.object({
+  chrunkSize: z.number().int().positive().default(8388608), // 8MB
 });
 
 /**
  * IP info configuration schema
+ * Note: ipinfo 配置存储在 keys/config.json，在 initConfig 时合并到 yaml config
  */
 export const ipInfoConfigSchema = z.object({
   url: z.string().url(),
@@ -163,8 +194,8 @@ export const featureFlagProviderSchema = z.enum(['memory', 'redis', 'unleash']);
  * Redis feature flag configuration schema
  */
 export const featureFlagRedisConfigSchema = z.object({
-  /** Redis key prefix (default: 'dofe:feature:') */
-  keyPrefix: z.string().default('dofe:feature:'),
+  /** Redis key prefix (default: 'pardx:feature:') */
+  keyPrefix: z.string().default('pardx:feature:'),
   /** Default TTL in seconds, 0 = never expire (default: 0) */
   defaultTTL: z.number().int().min(0).default(0),
 });
@@ -300,6 +331,55 @@ export const transactionConfigSchema = z.object({
 });
 
 // ============================================================================
+// Model Routing Evasion Configuration Schemas
+// ============================================================================
+
+/**
+ * Model routing evasion duration configuration schema
+ * 模型路由避让时长配置
+ */
+export const evasionDurationsConfigSchema = z.object({
+  /** Rate limit (429) evasion duration in ms (default: 60000 = 60s) */
+  rateLimit: z.number().int().min(-1).default(60000),
+  /** Service unavailable (503) evasion duration in ms (default: 30000 = 30s) */
+  serviceUnavailable: z.number().int().min(-1).default(30000),
+  /** Server error (500/502/504) evasion duration in ms (default: 60000 = 60s) */
+  serverError: z.number().int().min(-1).default(60000),
+  /** Timeout evasion duration in ms (default: 30000 = 30s) */
+  timeout: z.number().int().min(-1).default(30000),
+  /** Auth error (401/403) evasion duration in ms (-1 = permanent, default: -1) */
+  authError: z.number().int().min(-1).default(-1),
+  /** Unknown error evasion duration in ms (default: 30000 = 30s) */
+  unknown: z.number().int().min(-1).default(30000),
+});
+
+/**
+ * Model routing evasion configuration schema
+ * 模型路由避让配置
+ */
+export const evasionConfigSchema = z.object({
+  /** Evasion durations by error type */
+  durations: evasionDurationsConfigSchema.default({
+    rateLimit: 60000,
+    serviceUnavailable: 30000,
+    serverError: 60000,
+    timeout: 30000,
+    authError: -1,
+    unknown: 30000,
+  }),
+  /** Evasion cleanup interval in ms (default: 60000 = 1 minute) */
+  cleanupInterval: z.number().int().positive().default(60000),
+  /** Max inactive time for evasion state in ms (default: 600000 = 10 minutes) */
+  maxInactiveTime: z.number().int().positive().default(600000),
+  /** Priority weight for effective score calculation (default: 0.7) */
+  priorityWeight: z.number().min(0).max(1).default(0.7),
+  /** Health weight for effective score calculation (default: 0.3) */
+  healthWeight: z.number().min(0).max(1).default(0.3),
+  /** Max cross-alias fallback attempts (default: 3) */
+  maxCrossAliasAttempts: z.number().int().positive().default(3),
+});
+
+// ============================================================================
 // Rate Limit Configuration Schemas
 // ============================================================================
 
@@ -340,8 +420,8 @@ export const rateLimitWhitelistSchema = z.object({
  * Rate limit Redis configuration schema
  */
 export const rateLimitRedisConfigSchema = z.object({
-  /** Redis key prefix (default: 'dofe:ratelimit:') */
-  keyPrefix: z.string().default('dofe:ratelimit:'),
+  /** Redis key prefix (default: 'pardx:ratelimit:') */
+  keyPrefix: z.string().default('pardx:ratelimit:'),
 });
 
 /**
@@ -380,33 +460,31 @@ export const rateLimitConfigSchema = z.object({
 });
 
 /**
- * Prisma configuration schema
- */
-export const prismaConfigSchema = z.object({
-  /** 不使用软删除的模型列表 */
-  nonSoftDeleteModels: z.array(z.string()).default([]),
-  /** Prisma 客户端初始化时校验的关键模型列表，用于确认客户端包含必需的 model delegate */
-  criticalModels: z.array(z.string()).default([]),
-});
-
-/**
  * Full YAML configuration schema
  */
 export const yamlConfigSchema = z.object({
   app: appConfigSchema,
+  uploadConfig: uploadConfigSchema.optional(),
+  // ipinfo 从 keys/config.json 合并 (通过 configuration.ts)
   ipinfo: ipInfoConfigSchema.optional(),
   outOfAnonymityPath: pathConfigSchema.optional(),
   outOfUserPath: pathConfigSchema.optional(),
+  // pinecone.apiKey 已移至环境变量 PINECONE_API_KEY
+  pinecone: z.object({ apiKey: z.string() }).optional(),
+  // jwt 配置已移至环境变量 JWT_SECRET, JWT_EXPIRE_IN
   jwt: jwtConfigSchema.optional(),
+  // crypto 配置已移至环境变量 CRYPTO_KEY, CRYPTO_IV
   crypto: cryptoConfigSchema.optional(),
   cdn: cdnConfigSchema.optional(),
   redis: z.array(redisCacheKeySchema).optional(),
   buckets: z.array(bucketConfigSchema).optional(),
   featureFlags: featureFlagsConfigSchema.optional(),
   rateLimit: rateLimitConfigSchema.optional(),
+  // Database monitoring and transaction configuration
   dbMetrics: dbMetricsConfigSchema.optional(),
   transaction: transactionConfigSchema.optional(),
-  prisma: prismaConfigSchema.optional(),
+  // Model routing evasion configuration
+  evasion: evasionConfigSchema.optional(),
 });
 
 // ============================================================================
@@ -424,6 +502,9 @@ export type AppConfig = z.infer<typeof appConfigSchema>;
 
 /** 区域配置类型 */
 export type ZoneConfig = z.infer<typeof zoneSchema>;
+
+/** 上传配置类型 */
+export type UploadConfig = z.infer<typeof uploadConfigSchema>;
 
 /** IP 信息配置类型 */
 export type IpInfoConfig = z.infer<typeof ipInfoConfigSchema>;
@@ -507,8 +588,13 @@ export type TransactionRetryConfig = z.infer<
 /** 事务配置类型 */
 export type TransactionConfig = z.infer<typeof transactionConfigSchema>;
 
-/** Prisma 配置类型 */
-export type PrismaConfig = z.infer<typeof prismaConfigSchema>;
+/** 避让时长配置类型 */
+export type EvasionDurationsConfig = z.infer<
+  typeof evasionDurationsConfigSchema
+>;
+
+/** 避让配置类型 */
+export type EvasionConfig = z.infer<typeof evasionConfigSchema>;
 
 /**
  * Validation result type
@@ -530,20 +616,19 @@ export function validateYamlConfig(config: unknown): YamlConfig {
   const result = yamlConfigSchema.safeParse(config);
 
   if (!result.success) {
-    // Zod 4 uses issues instead of errors
-    const issues = (result.error as any).issues || [];
-    const errorMessages = issues
-      .map((err: any) => `  - ${err.path.join('.')}: ${err.message}`)
+    const errorMessages = result.error.issues
+      .map((err) => `  - ${err.path.join('.')}: ${err.message}`)
       .join('\n');
 
-    console.error('❌ YAML configuration validation failed:');
-    console.error(errorMessages);
+    logger.error('YAML configuration validation failed', {
+      error: errorMessages,
+    });
 
     throw new Error(`YAML configuration validation failed:\n${errorMessages}`);
   }
 
-  if (environment.isProduction()) {
-    console.log('✅ YAML configuration validated successfully');
+  if (enviroment.isProduction()) {
+    logger.info('YAML configuration validated successfully');
   }
   return result.data;
 }

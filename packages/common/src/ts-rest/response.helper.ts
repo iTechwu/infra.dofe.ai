@@ -4,9 +4,9 @@
  *
  * 提供标准化的响应格式：
  * - 成功响应：{ code: 200, msg: 'ok', data: ... }
- * - 错误响应：{ code: xxx, msg: 'xxxx', error?: ... }
+ * - 错误响应：{ code: xxx, msg: 'xxxx', data: { error: ... } }
  *
- * 配合 createApiResponse 定义的 Contract 使用
+ * 配合 ApiResponseSchema 定义的 Contract 使用
  */
 
 import {
@@ -19,19 +19,19 @@ import {
 /**
  * 标准成功响应格式
  */
-interface SuccessBody<T> {
+export interface SuccessBody<T> {
   code: number;
   msg: string;
   data: T;
 }
 
 /**
- * 标准错误响应格式
+ * 标准错误响应格式（用于 ts-rest，使用 data 字段）
  */
-interface ErrorBody {
+export interface ErrorBody<T = unknown> {
   code: number;
   msg: string;
-  error?: unknown;
+  data: T;
 }
 
 /**
@@ -39,7 +39,7 @@ interface ErrorBody {
  */
 export type TsRestResponse<T, S extends number = 200> = {
   status: S;
-  body: SuccessBody<T> | ErrorBody;
+  body: SuccessBody<T>;
 };
 
 /**
@@ -91,7 +91,7 @@ export function paginated<T>(
   total: number,
   page: number,
   limit: number,
-): TsRestResponse<
+): TsRestSuccessResponse<
   { list: T[]; total: number; page: number; limit: number },
   200
 > {
@@ -105,8 +105,8 @@ export function created<T>(data: T): TsRestSuccessResponse<T, 201> {
   return {
     status: 201,
     body: {
-      code: 201,
-      msg: 'created',
+      code: 200,
+      msg: 'ok',
       data: serializeDates(data),
     },
   };
@@ -115,7 +115,7 @@ export function created<T>(data: T): TsRestSuccessResponse<T, 201> {
 /**
  * 创建删除成功响应
  */
-export function deleted(): TsRestSuccessResponse<{ success: boolean }, 200> {
+export function deleted(): TsRestResponse<{ success: boolean }, 200> {
   return {
     status: 200,
     body: {
@@ -126,7 +126,72 @@ export function deleted(): TsRestSuccessResponse<{ success: boolean }, 200> {
   };
 }
 
-export function deletedWithData<T>(data: T): TsRestSuccessResponse<T, 200> {
+// ============================================================================
+// Plain NestJS Controller Helpers (不使用 ts-rest 的控制器)
+// ============================================================================
+
+/**
+ * 创建成功响应体（用于普通 NestJS 控制器，不使用 ts-rest）
+ *
+ * @example
+ * ```typescript
+ * @Get('items')
+ * async getItems() {
+ *   const items = await this.service.findAll();
+ *   return successBody({ list: items });
+ * }
+ * ```
+ */
+export function successBody<T>(data: T): SuccessBody<T> {
+  return {
+    code: 200,
+    msg: 'ok',
+    data: serializeDates(data),
+  };
+}
+
+/**
+ * 创建分页成功响应体（用于普通 NestJS 控制器）
+ */
+export function paginatedBody<T>(
+  list: T[],
+  total: number,
+  page: number,
+  limit: number,
+): SuccessBody<{ list: T[]; total: number; page: number; limit: number }> {
+  return successBody({ list, total, page, limit });
+}
+
+/**
+ * 创建删除成功响应体（用于普通 NestJS 控制器）
+ */
+export function deletedBody(): SuccessBody<{ success: boolean }> {
+  return {
+    code: 200,
+    msg: 'ok',
+    data: { success: true },
+  };
+}
+
+/**
+ * 创建错误响应体（用于普通 NestJS 控制器）
+ */
+export function errorBody<T = unknown>(
+  errorCode: ApiErrorCode,
+  errorData?: T,
+): ErrorBody<T> {
+  const errorType = getErrorType(errorCode) || 'unknown';
+  const numericCode = Number(errorCode);
+  const msg = getErrorMessage(errorType);
+
+  return {
+    code: numericCode,
+    msg,
+    data: errorData as T,
+  };
+}
+
+export function deletedWithData<T>(data: T): TsRestResponse<T, 200> {
   return {
     status: 200,
     body: {
@@ -137,33 +202,178 @@ export function deletedWithData<T>(data: T): TsRestSuccessResponse<T, 200> {
   };
 }
 
+// ============================================================================
+// ts-rest Error Response Helpers (类型安全的错误响应)
+// ============================================================================
+
 /**
- * 从错误码创建错误响应
+ * HTTP Status 字面量类型
+ */
+type HttpStatus =
+  | 200
+  | 201
+  | 204
+  | 400
+  | 401
+  | 403
+  | 404
+  | 409
+  | 410
+  | 429
+  | 500;
+
+/**
+ * 创建 ts-rest 错误响应（使用 data 字段，符合 ApiResponseSchema）
+ *
+ * 注意：此函数返回 status: 200 类型以兼容 ts-rest 类型推断。
+ * 实际 HTTP 状态码由 errorCode 决定。
  *
  * @example
  * ```typescript
  * if (!item) {
- *   return error(CommonErrorCode.NotFound);
+ *   return error(CommonErrorCode.NotFound, { error: 'Item not found' });
  * }
  * ```
  */
-export function error(
+export function error<T = { error: string }>(
   errorCode: ApiErrorCode,
-  errorData?: unknown,
-): TsRestResponse<never> {
+  errorData?: T,
+): { status: HttpStatus; body: SuccessBody<T> } {
   const errorType = getErrorType(errorCode) || 'unknown';
   const httpStatus = getHttpStatus(errorCode);
   const numericCode = Number(errorCode);
   const msg = getErrorMessage(errorType);
 
   return {
-    status: httpStatus as 200,
+    status: httpStatus as HttpStatus,
     body: {
       code: numericCode,
       msg,
-      error: errorData,
+      data: errorData as T,
     },
   };
+}
+
+/**
+ * 404 Not Found 错误响应（类型安全）
+ *
+ * @example
+ * ```typescript
+ * if (!item) {
+ *   return notFound('Item not found');
+ * }
+ * ```
+ */
+export function notFound<T = { error: string }>(
+  errorData?: T,
+): { status: 404; body: SuccessBody<T> } {
+  return {
+    status: 404,
+    body: {
+      code: 905404,
+      msg: getErrorMessage('notFound'),
+      data: errorData as T,
+    },
+  };
+}
+
+/**
+ * 400 Bad Request 错误响应（类型安全）
+ */
+export function badRequest<T = { error: string }>(
+  errorData?: T,
+): { status: 400; body: SuccessBody<T> } {
+  return {
+    status: 400,
+    body: {
+      code: 900400,
+      msg: getErrorMessage('badRequest'),
+      data: errorData as T,
+    },
+  };
+}
+
+/**
+ * 401 Unauthorized 错误响应（类型安全）
+ */
+export function unauthorized<T = { error: string }>(
+  errorData?: T,
+): { status: 401; body: SuccessBody<T> } {
+  return {
+    status: 401,
+    body: {
+      code: 923402,
+      msg: getErrorMessage('unAuthorized'),
+      data: errorData as T,
+    },
+  };
+}
+
+/**
+ * 403 Forbidden 错误响应（类型安全）
+ */
+export function forbidden<T = { error: string }>(
+  errorData?: T,
+): { status: 403; body: SuccessBody<T> } {
+  return {
+    status: 403,
+    body: {
+      code: 924403,
+      msg: getErrorMessage('unauthorizedByKey'),
+      data: errorData as T,
+    },
+  };
+}
+
+/**
+ * 409 Conflict 错误响应（类型安全）
+ */
+export function conflict<T = { error: string }>(
+  errorData?: T,
+): { status: 409; body: SuccessBody<T> } {
+  return {
+    status: 409,
+    body: {
+      code: 900403,
+      msg: getErrorMessage('featureAlreadyExists'),
+      data: errorData as T,
+    },
+  };
+}
+
+/**
+ * 500 Internal Server Error 响应（类型安全）
+ */
+export function internalError<T = { error: string }>(
+  errorData?: T,
+): { status: 500; body: SuccessBody<T> } {
+  return {
+    status: 500,
+    body: {
+      code: 900500,
+      msg: getErrorMessage('innerError'),
+      data: errorData as T,
+    },
+  };
+}
+
+/**
+ * 从错误码创建符合 Contract 标准的错误响应
+ *
+ * 与 error() 相同，提供更好的语义化命名。
+ *
+ * @example
+ * ```typescript
+ * if (!item) {
+ *   return errorResponse(CommonErrorCode.NotFound, { error: 'Item not found' });
+ * }
+ * ```
+ */
+export function errorResponse<T = { error: string }>(
+  errorCode: ApiErrorCode,
+  errorData?: T,
+): { status: HttpStatus; body: SuccessBody<T> } {
+  return error(errorCode, errorData);
 }
 
 /**
@@ -174,20 +384,20 @@ export function error(
  * return errorFromType('userNotFound', 200401, 404);
  * ```
  */
-export function errorFromType(
+export function errorFromType<T = unknown>(
   errorType: string,
   errorCode: number,
-  httpStatus: number = 400,
-  errorData?: unknown,
-): TsRestResponse<never> {
+  httpStatus: HttpStatus = 400,
+  errorData?: T,
+): { status: HttpStatus; body: SuccessBody<T> } {
   const msg = getErrorMessage(errorType);
 
   return {
-    status: httpStatus as 200,
+    status: httpStatus,
     body: {
       code: errorCode,
       msg,
-      error: errorData,
+      data: errorData as T,
     },
   };
 }
@@ -198,13 +408,14 @@ export function errorFromType(
 export function errorSimple(
   code: number,
   msg: string,
-  httpStatus: number = 400,
-): TsRestResponse<never> {
+  httpStatus: HttpStatus = 400,
+): { status: HttpStatus; body: SuccessBody<unknown> } {
   return {
-    status: httpStatus as 200,
+    status: httpStatus,
     body: {
       code,
       msg,
+      data: undefined,
     },
   };
 }
@@ -241,66 +452,4 @@ export function serializeDates<T>(obj: T): any {
   }
 
   return obj;
-}
-
-// ============================================================================
-// 404 Not Found Helpers
-// ============================================================================
-
-/**
- * 创建 404 Not Found 响应
- *
- * @param resourceName - 资源名称（可选），用于错误消息
- * @returns 404 响应对象
- *
- * @example
- * ```typescript
- * const item = await this.service.findById(params.id);
- * if (!item) return notFound('Provider key');
- * return success(item);
- * ```
- */
-export function notFound(resourceName?: string): {
-  status: 404;
-  body: { error: string };
-} {
-  const msg = resourceName ? `${resourceName} not found` : 'Resource not found';
-  return {
-    status: 404,
-    body: {
-      error: msg,
-    },
-  };
-}
-
-/**
- * 工具函数：安全获取资源，如果不存在则返回 404
- *
- * @param fetcher - 获取资源的异步函数
- * @param resourceName - 资源名称（可选）
- * @returns 资源或 null（表示需要返回 404）
- *
- * @example
- * ```typescript
- * @TsRestHandler(c.providerKeys.get)
- * async getById() {
- *   return tsRestHandler(c.providerKeys.get, async ({ params }) => {
- *     const result = await fetchOrNotFound(
- *       () => this.service.findById(params.id),
- *       'Provider key'
- *     );
- *     if (result === null) return notFound('Provider key');
- *     return success(result);
- *   });
- * }
- * ```
- */
-export async function fetchOrNull<T>(
-  fetcher: () => Promise<T | null | undefined>,
-): Promise<T | null> {
-  const result = await fetcher();
-  if (result === null || result === undefined) {
-    return null;
-  }
-  return result;
 }

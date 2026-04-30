@@ -25,6 +25,10 @@ export {
 } from './env.validation';
 export type { EnvConfig, EnvValidationResult } from './env.validation';
 
+// Note: env-config.service.ts functions are NOT re-exported here to avoid
+// circular dependency with configuration.ts. Import directly from:
+// import { getEnv, getEnvWithDefault, ... } from '@/common/config/env-config.service';
+
 // ============================================================================
 // YAML Configuration Validation
 // ============================================================================
@@ -35,6 +39,7 @@ export {
   microServiceSchema,
   appConfigSchema,
   zoneSchema,
+  uploadConfigSchema,
   ipInfoConfigSchema,
   videoQualitySchema,
   jwtConfigSchema,
@@ -63,8 +68,9 @@ export {
   // Transaction Schemas
   transactionRetryConfigSchema,
   transactionConfigSchema,
-  // Prisma Schemas
-  prismaConfigSchema,
+  // Evasion Schemas
+  evasionDurationsConfigSchema,
+  evasionConfigSchema,
   // Functions
   validateYamlConfig,
   validateYamlConfigSafe,
@@ -78,6 +84,7 @@ export type {
   MicroServiceConfig,
   AppConfig,
   ZoneConfig,
+  UploadConfig,
   IpInfoConfig,
   JwtConfig,
   CryptoConfig,
@@ -106,8 +113,9 @@ export type {
   // Transaction Types
   TransactionRetryConfig,
   TransactionConfig,
-  // Prisma Types
-  PrismaConfig,
+  // Evasion Types
+  EvasionDurationsConfig,
+  EvasionConfig,
 } from './yaml.validation';
 
 // ============================================================================
@@ -117,10 +125,9 @@ export type {
 export {
   // Schemas
   keysConfigSchema,
-  jwtKeysSchema,
-  cryptoKeysSchema,
-  encryptionKeysSchema,
-  adminKeysSchema,
+  googleServiceAccountSchema,
+  jinaAiSchema,
+  oauthProviderSchema,
   emailTemplateSchema,
   sendcloudSchema,
   smsTemplateBaseSchema,
@@ -132,18 +139,29 @@ export {
   openspeechAliyunProviderSchema,
   openspeechVolcengineProviderSchema,
   openspeechConfigSchema,
+  transcodeProviderSchema,
+  transcodeConfigSchema,
   ttsProviderSchema,
   ttsConfigSchema,
   riskProviderSchema,
   riskConfigSchema,
   imageProviderSchema,
   imageConfigSchema,
+  vectorProviderSchema,
+  vectorConfigSchema,
+  vikingdbSchema,
+  embeddingSchema,
+  miniprogramSchema,
+  wechatSchema,
+  agentxSchema,
   openaiSchema,
-  ipInfoKeysSchema,
+  exchangerateSchema,
+  // ipInfoSchema - 使用 yaml.validation 的 ipInfoConfigSchema (合并自 keys/config.json)
   // Functions
   validateKeysConfig,
   validateKeysConfigSafe,
   isProviderConfigured,
+  getConfiguredOAuthProviders,
   getConfiguredSmsProviders,
   getConfiguredStorageProviders,
 } from './keys.validation';
@@ -152,12 +170,10 @@ export type {
   // Main type
   KeysConfig,
   KeysValidationResult,
-  // Core security key types
-  JwtKeysConfig,
-  CryptoKeysConfig,
-  EncryptionKeysConfig,
-  AdminKeysConfig,
   // Inferred types
+  GoogleServiceAccountConfig,
+  JinaAiConfig,
+  OAuthProviderConfig,
   EmailTemplateConfig,
   SendCloudConfig,
   SmsTemplateBaseConfig,
@@ -165,15 +181,25 @@ export type {
   SmsConfig,
   StorageCredentialsConfig,
   StorageConfig,
+  OpenSpeechProviderConfig,
   OpenSpeechAliyunProviderConfig,
   OpenSpeechVolcengineProviderConfig,
   OpenSpeechConfig,
+  TranscodeProviderConfig,
+  TranscodeConfig,
   TtsProviderConfig,
   TtsConfig,
   RiskProviderConfig,
   RiskConfig,
   ImageProviderConfig,
   ImageConfig,
+  VikingDbKeysConfig,
+  EmbeddingKeysConfig,
+  VectorProviderConfig,
+  VectorConfig,
+  MiniprogramConfig,
+  WechatConfig,
+  AgentXConfig,
   OpenAIConfig,
   ExchangeRateConfig,
   IpInfoKeysConfig,

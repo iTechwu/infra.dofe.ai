@@ -1,6 +1,6 @@
 import { Type, applyDecorators } from '@nestjs/common';
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
-import { Response } from '@dofe/infra-utils/response';
+import { Response } from '@/utils/response';
 
 const baseTypeNames = ['String', 'Number', 'Boolean'];
 

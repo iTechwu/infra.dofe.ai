@@ -30,7 +30,7 @@ import { RateLimitException } from '../../decorators/rate-limit/rate-limit.excep
 import {
   RATE_LIMIT_KEY,
   SKIP_RATE_LIMIT_KEY,
-} from '../../decorators/rate-limit/rate-limit.decorator';
+} from '../../decorators/rate-limit/rate-limit.constants';
 import {
   RateLimitContext,
   RateLimitOptions,

@@ -166,3 +166,22 @@ export function apiError(
 ): ApiException {
   return ApiException.fromCode(errorCode, data);
 }
+
+/**
+ * 获取适合写入日志的短错误信息（单行，避免堆栈刷屏）
+ * ApiException 的 message 为空，需用 errorCode/errorType 或 getErrorMessageWithoutI18n()
+ */
+export function getLoggableErrorMessage(error: unknown): string {
+  if (error instanceof ApiException) {
+    const msg = error.getErrorMessageWithoutI18n();
+    return msg
+      ? `${error.errorCode}: ${msg}`
+      : `${error.errorCode}: ${error.errorType}`;
+  }
+  if (error instanceof Error) {
+    return (
+      error.message || error.stack?.split('\n')[0]?.trim() || 'Unknown error'
+    );
+  }
+  return String(error ?? 'Unknown error');
+}

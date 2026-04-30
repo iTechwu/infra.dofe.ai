@@ -8,68 +8,13 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { I18nContext } from 'nestjs-i18n';
-import { ApiException } from './api.exception';
+import { ApiException } from '@/filter/exception/api.exception';
 
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-
-/**
- * 格式化的验证错误项
- */
-interface FormattedValidationError {
-  path: (string | number)[];
-  message: string;
-  code?: string;
-}
-
-/**
- * ts-rest 验证错误中各部分的类型
- * 兼容 ZodError（旧版）和 StandardSchemaError（新版）
- */
-interface TsRestValidationPart {
-  issues: Array<{
-    path?: readonly (string | number)[] | readonly PropertyKey[];
-    message: string;
-    code?: string;
-  }>;
-}
-
-/**
- * 检查是否为 ts-rest RequestValidationError / TsRestRequestValidationError
- * 两者都有 pathParams, headers, query, body 属性，且都继承 BadRequestException
- */
-function isTsRestValidationError(
-  exception: unknown,
-): exception is BadRequestException & {
-  pathParams: TsRestValidationPart | null;
-  headers: TsRestValidationPart | null;
-  query: TsRestValidationPart | null;
-  body: TsRestValidationPart | null;
-} {
-  if (!(exception instanceof BadRequestException)) {
-    return false;
-  }
-  const exc = exception as unknown as Record<string, unknown>;
-  return (
-    'pathParams' in exc && 'headers' in exc && 'query' in exc && 'body' in exc
-  );
-}
-
-/**
- * 格式化验证错误（兼容 ZodError 和 StandardSchemaError）
- */
-function formatValidationIssues(
-  error: TsRestValidationPart,
-): FormattedValidationError[] {
-  return error.issues.map((issue) => ({
-    path: (issue.path ?? []).filter(
-      (p): p is string | number =>
-        typeof p === 'string' || typeof p === 'number',
-    ),
-    message: issue.message,
-    code: issue.code,
-  }));
-}
+// import { errorFromType } from '@/ts-rest/response.helper';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// errorFromType is re-exported but not used in this file
 
 @Catch(HttpException, ApiException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -92,11 +37,48 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
 
       // 特殊处理参数校验失败
-      let validationErrors = null;
+      let validationErrors: string[] | null = null;
 
       if (exception instanceof BadRequestException) {
         const exceptionResponse = exception.getResponse() as any;
-        if (exceptionResponse && exceptionResponse.message) {
+
+        // 处理 ts-rest 校验错误（TsRestRequestValidationError / RequestValidationError）
+        // exceptionResponse 格式: { paramsResult, headersResult, queryResult, bodyResult }
+        if (
+          exceptionResponse &&
+          typeof exceptionResponse === 'object' &&
+          !Array.isArray(exceptionResponse)
+        ) {
+          const tsRestErrors: string[] = [];
+          const parts: Array<[string, any]> = [
+            ['params', exceptionResponse.paramsResult],
+            ['headers', exceptionResponse.headersResult],
+            ['query', exceptionResponse.queryResult],
+            ['body', exceptionResponse.bodyResult],
+          ];
+          for (const [location, zodError] of parts) {
+            if (zodError && zodError.issues && Array.isArray(zodError.issues)) {
+              for (const issue of zodError.issues) {
+                const path =
+                  issue.path && issue.path.length > 0
+                    ? issue.path.join('.')
+                    : '';
+                const fieldDesc = path ? `${location}.${path}` : location;
+                tsRestErrors.push(`[${fieldDesc}] ${issue.message}`);
+              }
+            }
+          }
+          if (tsRestErrors.length > 0) {
+            validationErrors = tsRestErrors;
+          }
+        }
+
+        // 处理标准 NestJS 参数校验失败（class-validator）
+        if (
+          !validationErrors &&
+          exceptionResponse &&
+          exceptionResponse.message
+        ) {
           if (Array.isArray(exceptionResponse.message)) {
             validationErrors = exceptionResponse.message;
           } else {
@@ -173,59 +155,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (isApiException) {
       responseBody.error = data;
     }
-
-    // 特殊处理 ts-rest 验证错误
-    if (isTsRestValidationError(exception)) {
-      const tsRestErrors: Record<string, FormattedValidationError[]> = {};
-      const errorMessages: string[] = [];
-
-      if (exception.pathParams) {
-        tsRestErrors.pathParams = formatValidationIssues(exception.pathParams);
-        errorMessages.push(
-          `Path params: ${tsRestErrors.pathParams.map((e) => `${e.path.join('.')} (${e.message})`).join(', ')}`,
-        );
-      }
-      if (exception.headers) {
-        tsRestErrors.headers = formatValidationIssues(exception.headers);
-        errorMessages.push(
-          `Headers: ${tsRestErrors.headers.map((e) => `${e.path.join('.')} (${e.message})`).join(', ')}`,
-        );
-      }
-      if (exception.query) {
-        tsRestErrors.query = formatValidationIssues(exception.query);
-        errorMessages.push(
-          `Query: ${tsRestErrors.query.map((e) => `${e.path.join('.')} (${e.message})`).join(', ')}`,
-        );
-      }
-      if (exception.body) {
-        tsRestErrors.body = formatValidationIssues(exception.body);
-        errorMessages.push(
-          `Body: ${tsRestErrors.body.map((e) => `${e.path.join('.')} (${e.message})`).join(', ')}`,
-        );
-      }
-
-      // 记录详细日志
-      this.logger.warn('ts-rest request validation failed', {
-        url: request.url,
-        method: request.method,
-        errors: tsRestErrors,
-        traceId,
-      });
-
-      responseBody.msg = 'Request validation failed';
-      responseBody.error = {
-        message:
-          errorMessages.length > 0
-            ? errorMessages.join('; ')
-            : 'Validation failed',
-        details: tsRestErrors,
-      };
-      return responseBody;
-    }
-
     // 如果是参数校验失败，添加详细的错误信息
     if (validationErrors && validationErrors.length > 0) {
-      responseBody.error = { errorData: validationErrors };
+      if (
+        !responseBody.error ||
+        typeof responseBody.error !== 'object' ||
+        Array.isArray(responseBody.error)
+      ) {
+        responseBody.error = {
+          originalError: responseBody.error,
+        };
+      }
+      responseBody.error.errorData = validationErrors;
     }
 
     return responseBody;

@@ -12,6 +12,7 @@ import {
   API_VERSION_DEFAULT,
   API_GENERATION,
 } from '@repo/constants';
+import { buildConfig } from '@/config/env-config.service';
 
 /**
  * Version Header Interceptor
@@ -39,7 +40,7 @@ export class VersionHeaderInterceptor implements NestInterceptor {
   constructor() {
     // 从环境变量获取后端构建版本
     // 格式: YYYY.MM.DD-<hash>-g<generation>
-    this.serverBuild = process.env.SERVER_BUILD || this.generateDevBuild();
+    this.serverBuild = buildConfig.serverBuild || this.generateDevBuild();
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {

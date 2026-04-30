@@ -26,9 +26,10 @@ export {
   RateLimitLow,
   RateLimitSensitive,
   RateLimitStrict,
-  RATE_LIMIT_KEY,
-  SKIP_RATE_LIMIT_KEY,
 } from './rate-limit.decorator';
+
+// Constants
+export { RATE_LIMIT_KEY, SKIP_RATE_LIMIT_KEY } from './rate-limit.constants';
 
 // Service
 export { RateLimitService } from './rate-limit.service';

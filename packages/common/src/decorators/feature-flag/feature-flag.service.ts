@@ -12,7 +12,7 @@
  *   provider: 'redis'  # 'memory' | 'redis' | 'unleash'
  *   unleash:
  *     url: 'http://localhost:4242/api'
- *     appName: 'dofe-api'
+ *     appName: 'pardx-api'
  *     instanceId: 'instance-1'
  *   defaultFlags:
  *     new-feature: true
@@ -24,7 +24,7 @@ import { Injectable, Inject, OnModuleInit, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { RedisService } from '@app/redis';
+import { RedisService } from '@dofe/infra-redis';
 import * as crypto from 'crypto';
 
 import {
@@ -32,7 +32,7 @@ import {
   FeatureFlagOptions,
   FeatureFlagStrategy,
 } from './feature-flag.decorator';
-import environment from '@dofe/infra-utils/environment.util';
+import enviroment from '@/utils/enviroment.util';
 
 // ============================================================================
 // Types
@@ -67,7 +67,7 @@ export class FeatureFlagService implements OnModuleInit {
   private provider: FeatureFlagProvider = 'memory';
   private memoryFlags: Map<string, boolean> = new Map();
   private unleashClient: any = null;
-  private redisKeyPrefix = 'dofe:feature:';
+  private redisKeyPrefix = 'pardx:feature:';
   private redisDefaultTTL = 0; // 0 = never expire
 
   constructor(
@@ -92,7 +92,7 @@ export class FeatureFlagService implements OnModuleInit {
 
       // 加载 Redis 配置
       if (config.redis) {
-        this.redisKeyPrefix = config.redis.keyPrefix || 'dofe:feature:';
+        this.redisKeyPrefix = config.redis.keyPrefix || 'pardx:feature:';
         this.redisDefaultTTL = config.redis.defaultTTL || 0;
       }
 
@@ -109,7 +109,7 @@ export class FeatureFlagService implements OnModuleInit {
       }
     }
 
-    if (environment.isProduction()) {
+    if (enviroment.isProduction()) {
       this.logger.info('Feature flag service module initialized', {
         provider: this.provider,
         redisKeyPrefix: this.redisKeyPrefix,

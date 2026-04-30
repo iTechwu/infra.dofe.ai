@@ -1,4 +1,4 @@
-import { TransformInterceptor } from '@dofe/infra-common';
+import { TransformInterceptor } from '@/interceptor/transform/transform.interceptor';
 
 describe('TransformInterceptor', () => {
   it('should be defined', () => {
