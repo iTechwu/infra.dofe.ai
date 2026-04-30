@@ -35,7 +35,7 @@ export class RabbitmqEventsService implements OnModuleDestroy {
     }
 
     try {
-      this.channel = await this.rabbitmqConnection.connection.createChannel();
+      this.channel = await (this.rabbitmqConnection.connection as any).createChannel();
       this.isInitialized = true;
 
       this.logger.info('[Events] RabbitMQ Events channel initialized');

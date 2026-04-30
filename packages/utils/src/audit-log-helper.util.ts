@@ -16,11 +16,15 @@ import {
 import { maskSensitiveData } from './sensitive-data-masker.util';
 import { auditConfig } from '@/config/env-config.service';
 
+/** Audit log create data — uses loose typing since the Prisma schema may evolve */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AuditLogData = Record<string, any>;
+
 /**
  * 从 Prisma 创建输入中提取签名载荷
  */
 function extractSignaturePayload(
-  data: Prisma.OperateLogCreateInput,
+  data: AuditLogData,
 ): AuditSignaturePayload {
   return {
     userId: extractUserId(data),
@@ -37,7 +41,7 @@ function extractSignaturePayload(
 /**
  * 从 Prisma 关联数据中提取用户 ID
  */
-function extractUserId(data: Prisma.OperateLogCreateInput): string {
+function extractUserId(data: AuditLogData): string {
   if (data.user?.connect?.id) {
     return data.user.connect.id;
   }
@@ -47,14 +51,14 @@ function extractUserId(data: Prisma.OperateLogCreateInput): string {
 /**
  * 从 Prisma 关联数据中提取目标 ID
  */
-function extractTargetId(data: Prisma.OperateLogCreateInput): string | null {
+function extractTargetId(data: AuditLogData): string | null {
   return (data as any).targetId ?? null;
 }
 
 /**
  * 从 Prisma 关联数据中提取租户 ID
  */
-function extractTenantId(data: Prisma.OperateLogCreateInput): string | null {
+function extractTenantId(data: AuditLogData): string | null {
   if (data.tenant?.connect?.id) {
     return data.tenant.connect.id;
   }
@@ -101,10 +105,11 @@ function maskDetailFields(
  * await operateLogService.create(data);
  * ```
  */
-export function prepareAuditLogWithSignature(
-  data: Prisma.OperateLogCreateInput,
-): Prisma.OperateLogCreateInput {
-  const payload = extractSignaturePayload(data);
+export function prepareAuditLogWithSignature<T extends AuditLogData>(
+  data: T,
+): T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = extractSignaturePayload(data as any);
   const signature = generateAuditSignature(payload);
 
   // 脱敏 detail 字段中的敏感数据
@@ -124,10 +129,13 @@ export function prepareAuditLogWithSignature(
  * @returns 验证是否通过
  */
 export function verifyAuditLogSignature(
-  log: Pick<
-    Prisma.OperateLogCreateInput,
-    'operateType' | 'target' | 'targetId' | 'targetName' | 'tenant' | 'result'
-  > & {
+  log: {
+    operateType?: unknown;
+    target?: unknown;
+    targetId?: unknown;
+    targetName?: unknown;
+    tenant?: any;
+    result?: unknown;
     userId: string;
     signature?: string | null;
     createdAt: Date | string;
@@ -141,11 +149,11 @@ export function verifyAuditLogSignature(
     userId: log.userId,
     operateType: log.operateType as string,
     target: log.target as string,
-    targetId: log.targetId ?? null,
-    targetName: log.targetName ?? null,
+    targetId: (log.targetId as string) ?? null,
+    targetName: (log.targetName as string) ?? null,
     createdAt: log.createdAt,
     tenantId: log.tenant?.connect?.id ?? null,
-    result: log.result ?? 'success',
+    result: (log.result as string) ?? 'success',
   };
 
   const { verifyAuditSignature: verify } = require('./audit-signature.util');

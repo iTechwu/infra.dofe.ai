@@ -51,7 +51,6 @@ export class ApiException extends HttpException {
 
     const errorCode = entry[0] as ApiErrorCode;
     const httpStatus = getHttpStatus(errorCode);
-    const message = getErrorMessage(errorType);
 
     super('', httpStatus);
 

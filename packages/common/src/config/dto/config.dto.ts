@@ -7,7 +7,6 @@
  * - 保持向后兼容的类型别名
  */
 import type {
-  SystemTaskQueue,
   FileEnvType,
   FileBucketVendor,
 } from '@prisma/client';
@@ -106,6 +105,27 @@ import type {
   MiniprogramConfig as MiniprogramConfigType,
   ExchangeRateConfig as ExchangeRateConfigType,
 } from '../validation';
+
+// ============================================================================
+// Local type definitions (not yet in active Prisma schema)
+// ============================================================================
+
+interface SystemTaskQueue {
+  id: string;
+  taskType: string;
+  status: string;
+  recipient: string;
+  templateCode?: string | null;
+  templateData?: unknown;
+  content?: string | null;
+  subject?: string | null;
+  retryCount: number;
+  processedAt: Date;
+  errorMessage?: string | null;
+  metadata?: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // ============================================================================
 // DoFeApp Namespace (new name, for shared infra compatibility)

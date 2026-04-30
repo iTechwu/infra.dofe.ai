@@ -10,37 +10,39 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
+    "@dofe/infra-redis": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/event-emitter": "^3.0.0",
     "@nestjs/platform-fastify": "^11.0.0",
+    "@repo/constants": "workspace:*",
+    "@repo/contracts": "workspace:*",
+    "@repo/utils": "workspace:*",
     "@ts-rest/core": "^3.53.0-rc.1",
     "@ts-rest/nest": "^3.53.0-rc.1",
-    "@dofe/infra-redis": "workspace:*",
-    "@repo/contracts": "workspace:*",
-    "@repo/constants": "workspace:*",
-    "@repo/utils": "workspace:*",
-    "fastify": "^5.2.0",
-    "ioredis": "^5.0.0",
-    "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0",
-    "nest-winston": "^1.9.7",
-    "winston": "^3.13.0",
+    "accept-language-parser": "^1.5.0",
     "class-validator": "^0.14.1",
-    "zod": "^4.3.6",
-    "uuid": "^11.1.0",
     "cls-hooked": "^4.2.2",
     "crypto-js": "^4.2.0",
+    "fastify": "^5.2.0",
+    "ioredis": "^5.0.0",
     "js-yaml": "^4.1.0",
+    "nest-winston": "^1.9.7",
     "nestjs-i18n": "^10.4.5",
-    "accept-language-parser": "^1.5.0"
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0",
+    "uuid": "^11.1.0",
+    "winston": "^3.13.0",
+    "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-utils": "workspace:*",
-    "@dofe/infra-i18n": "workspace:*"
+    "@dofe/infra-i18n": "workspace:*",
+    "@dofe/infra-utils": "workspace:*"
   },
   "devDependencies": {
+    "@types/accept-language-parser": "^1.5.8",
+    "@types/cls-hooked": "^4.3.9",
     "typescript": "^5.4.5"
   },
   "type": "commonjs"

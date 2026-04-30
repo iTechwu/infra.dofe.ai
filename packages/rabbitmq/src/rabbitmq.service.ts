@@ -44,7 +44,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
   private readonly reconnectDelay = 5000;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private isShuttingDown = false;
-  private boundConnection: amqplib.Connection | null = null;
+  private boundConnection: amqplib.ChannelModel | null = null;
 
   constructor(
     @Inject(RABBITMQ_CONNECTION)
@@ -94,7 +94,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     try {
       const conn = await this.rabbitmqConnection.connect();
 
-      if (conn.connection?.closed) {
+      if ((conn.connection as any)?.closed) {
         throw new Error('RabbitMQ connection is closed');
       }
 
@@ -131,7 +131,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private setupConnectionEventListeners(conn: amqplib.Connection): void {
+  private setupConnectionEventListeners(conn: amqplib.ChannelModel): void {
     if (this.boundConnection === conn) {
       return;
     }
@@ -162,8 +162,8 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async createChannel(conn: amqplib.Connection): Promise<void> {
-    if (conn.connection?.closed) {
+  private async createChannel(conn: amqplib.ChannelModel): Promise<void> {
+    if ((conn.connection as any)?.closed) {
       throw new Error('Cannot create channel: RabbitMQ connection is closed');
     }
 
@@ -259,7 +259,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       !this.isConnected ||
       !this.channel ||
       !conn ||
-      conn.connection?.closed
+      (conn.connection as any)?.closed
     ) {
       const connected = await this.initializeConnection();
       if (!connected && !this.channel) {
@@ -435,7 +435,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
     return {
       isConnected:
-        !!connection && !connection.connection?.closed && this.isConnected,
+        !!connection && !(connection.connection as any)?.closed && this.isConnected,
       channelReady: !!this.channel,
     };
   }

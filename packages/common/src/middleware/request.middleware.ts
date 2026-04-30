@@ -4,7 +4,7 @@ import {
   NestMiddleware,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } from '@nestjs/common';
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest } from 'fastify';
 import { IncomingMessage, ServerResponse } from 'http';
 import { v4 as uuidv4 } from 'uuid';
 import { createNamespace } from 'cls-hooked';
@@ -68,8 +68,8 @@ export default class RequestMiddleware implements NestMiddleware<
   ) {}
 
   async use(req: IncomingMessage, res: ServerResponse, next: () => void) {
-    clsNamespace.bind(req);
-    clsNamespace.bind(res);
+    clsNamespace.bind(req as any);
+    clsNamespace.bind(res as any);
 
     // 获取或生成 Trace ID (支持分布式追踪)
     const traceId = getOrCreateTraceId(req);

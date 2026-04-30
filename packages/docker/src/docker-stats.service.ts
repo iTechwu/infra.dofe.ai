@@ -6,7 +6,7 @@
  */
 
 import Docker from 'dockerode';
-import type { ContainerStats } from '@repo/contracts';
+import type { ContainerStats } from './types';
 
 export interface ContainerInfo {
   id: string;

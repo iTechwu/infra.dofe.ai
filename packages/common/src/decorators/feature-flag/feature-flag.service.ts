@@ -30,7 +30,6 @@ import * as crypto from 'crypto';
 import {
   FeatureFlagContext,
   FeatureFlagOptions,
-  FeatureFlagStrategy,
 } from './feature-flag.decorator';
 import enviroment from '@/utils/enviroment.util';
 
@@ -123,7 +122,7 @@ export class FeatureFlagService implements OnModuleInit {
    * 初始化 Unleash 客户端
    */
   private async initUnleash(
-    config: FeatureFlagConfig['unleash'],
+    config: NonNullable<FeatureFlagConfig['unleash']>,
   ): Promise<void> {
     try {
       // 动态导入 unleash-client

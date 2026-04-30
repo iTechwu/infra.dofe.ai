@@ -120,7 +120,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     exception: HttpException,
     request: FastifyRequest,
     status: number,
-    i18n: I18nContext,
+    i18n: I18nContext | undefined,
     validationErrors?: string[] | null,
   ): any {
     const isApiException = exception instanceof ApiException;
@@ -137,7 +137,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Get error message
     const message = isApiException
-      ? exception.getErrorMessage(i18n)
+      ? exception.getErrorMessage(i18n!)
       : exception.message || exception.getResponse();
 
     // Get error data

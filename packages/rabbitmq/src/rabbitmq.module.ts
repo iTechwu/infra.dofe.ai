@@ -13,17 +13,17 @@ const CONNECT_TIMEOUT_MS = 5000;
       provide: RABBITMQ_CONNECTION,
       useFactory: async (): Promise<RabbitmqConnection> => {
         const rabbitmqUrl = process.env.RABBITMQ_URL;
-        let connection: Rabbitmq.Connection | null = null;
-        let connectPromise: Promise<Rabbitmq.Connection> | null = null;
+        let connection: Rabbitmq.ChannelModel | null = null;
+        let connectPromise: Promise<Rabbitmq.ChannelModel> | null = null;
         logger.info(`init RabbitmqModule rabbitmqUrl=${rabbitmqUrl}`);
 
-        const connect = async (): Promise<Rabbitmq.Connection> => {
+        const connect = async (): Promise<Rabbitmq.ChannelModel> => {
           logger.info(`connect RabbitmqModule rabbitmqUrl=${rabbitmqUrl}`);
           if (!rabbitmqUrl) {
             throw new Error('RABBITMQ_URL environment variable is not set');
           }
 
-          if (connection && !connection.connection?.closed) {
+          if (connection && !(connection.connection as any)?.closed) {
             return connection;
           }
 

@@ -195,7 +195,7 @@ export class BucketResolver {
     buckets = arrayUtil.filter(buckets, { locale: locale }, zone);
 
     // 查找默认存储桶
-    const bucketConfig = arrayUtil.findOne(buckets, { isDefault: true }, false);
+    const bucketConfig: any = arrayUtil.findOne(buckets, { isDefault: true }, false);
 
     if (bucketConfig?.bucket) {
       return bucketConfig.bucket;

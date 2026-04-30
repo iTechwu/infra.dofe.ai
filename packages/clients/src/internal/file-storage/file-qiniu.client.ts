@@ -1,34 +1,21 @@
 import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Inject,
-} from '@nestjs/common';
-import { Logger } from 'winston';
-import {
-  GetObjectOptions,
-  PresignedPutUrlObject,
-  PutObjectOptions,
-  GetObjectsResult,
-  FetchObjectResult,
   BatchOpsResult,
   DoFeUploader,
 } from './dto/file.dto';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as qiniu from 'qiniu';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { Logger } from 'winston';
 import qiniuHostConfig from './config/file.config';
 import urlencodeUtil from '@/utils/urlencode.util';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@/filter/exception/api.exception';
+import { apiError } from '@/filter/exception/api.exception';
 import { DoFeApp } from '@/config/dto/config.dto';
 import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileStorageInterface } from './file-storage.interface';
 import folderUtil from '@/utils/folder.util';
 import { RedisService } from '@app/redis';
 import environmentUtil from '@/utils/environment.util';
-import { ReadStream } from 'fs';
 
 /**
  * Qiniu File Storage Client
@@ -68,6 +55,7 @@ export class FileQiniuClient implements FileStorageInterface {
     this.appConfig = appConfig;
     this.redis = redis;
     this.httpService = httpService;
+    this.logger = logger;
     // 创建凭证对象
     this.mac = new qiniu.auth.digest.Mac(
       this.storageConfig.accessKey,

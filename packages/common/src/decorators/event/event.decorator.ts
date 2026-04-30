@@ -20,7 +20,7 @@
  * ```
  */
 
-import { SetMetadata, applyDecorators } from '@nestjs/common';
+import { SetMetadata } from '@nestjs/common';
 
 // ============================================================================
 // Metadata Keys

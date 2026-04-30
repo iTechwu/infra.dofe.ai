@@ -8,7 +8,7 @@
 import Docker from 'dockerode';
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { OrphanReport, CleanupReport } from '@repo/contracts';
+import type { OrphanReport, CleanupReport } from './types';
 
 /**
  * Sandbox 孤儿信息

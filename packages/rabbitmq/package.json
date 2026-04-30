@@ -15,11 +15,11 @@
     "@nestjs/core": "^11.0.0",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^0.10.0",
+    "class-validator": "^0.14.1",
+    "nest-winston": "^1.9.7",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
-    "nest-winston": "^1.9.7",
-    "winston": "^3.13.0",
-    "class-validator": "^0.14.1"
+    "winston": "^3.13.0"
   },
   "dependencies": {
     "@dofe/infra-common": "workspace:*",
@@ -27,6 +27,7 @@
     "@dofe/infra-redis": "workspace:*"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "typescript": "^5.4.5"
   },
   "type": "commonjs"

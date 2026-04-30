@@ -67,7 +67,7 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
             });
 
             return {
-              connection,
+              connection: connection as any,
               close: async () => {
                 try {
                   await connection.close();

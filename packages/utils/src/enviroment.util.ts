@@ -1,6 +1,11 @@
 import { FastifyRequest } from 'fastify';
 import { FileEnvType } from '@prisma/client';
-import { convertToDockerHost } from '@app/docker/docker.utils';
+
+function convertToDockerHost(url: string): string {
+  return url
+    .replace(/127\.0\.0\.1/g, 'host.docker.internal')
+    .replace(/localhost/g, 'host.docker.internal');
+}
 
 export default {
   getBaseZone() {

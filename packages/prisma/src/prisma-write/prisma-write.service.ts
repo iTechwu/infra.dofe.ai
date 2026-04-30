@@ -12,7 +12,6 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import bigintUtil from '@/utils/bigint.util';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
-import enviroment from '@/utils/enviroment.util';
 import {
   DbMetricsService,
   QueryContext,
@@ -86,69 +85,16 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
     // 2. 应用监控扩展
     return withSoftDelete.$extends({
       query: {
-        $allOperations({ operation, model, args, query }) {
+        async $allOperations({ operation, model, args, query }) {
           // Start tracking
           const ctx: QueryContext = dbMetrics?.recordQueryStart() ?? {
             startTime: Date.now(),
             traceId: 'unknown',
           };
 
-          // 执行查询并处理结果
-          const result = query(args);
-
-          // 处理 Promise 结果
-          if (result instanceof Promise) {
-            return result
-              .then((res) => {
-                const serialized = bigintUtil.serialize(res);
-                if (dbMetrics) {
-                  dbMetrics.recordQueryEnd(
-                    ctx,
-                    {
-                      model: model || 'unknown',
-                      action: operation,
-                      dbType: 'write',
-                    },
-                    'success',
-                    args,
-                  );
-                } else {
-                  fallbackLog(
-                    ctx.startTime,
-                    { model, action: operation, args },
-                    'success',
-                  );
-                }
-                return serialized;
-              })
-              .catch((error) => {
-                // Record error
-                if (dbMetrics) {
-                  dbMetrics.recordQueryEnd(
-                    ctx,
-                    {
-                      model: model || 'unknown',
-                      action: operation,
-                      dbType: 'write',
-                    },
-                    'error',
-                    args,
-                    error as Error,
-                  );
-                } else {
-                  fallbackLog(
-                    ctx.startTime,
-                    { model, action: operation, args },
-                    'error',
-                    error as Error,
-                  );
-                }
-                throw error;
-              });
-          }
-
-          // 同步结果处理
           try {
+            // 执行查询并处理结果
+            const result = await query(args);
             const serialized = bigintUtil.serialize(result);
             if (dbMetrics) {
               dbMetrics.recordQueryEnd(
@@ -295,7 +241,7 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
         this.logger.warn('Error closing database pool', { error });
       }
     }
-    if (enviroment.isProduction()) {
+    if (process.env.NODE_ENV?.startsWith('prod')) {
       this.logger.info('PrismaWriteService disconnected from database');
     }
     // this.logger.info('PrismaWriteService disconnected from database');

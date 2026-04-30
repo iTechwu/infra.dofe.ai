@@ -7,7 +7,7 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import type { BotType } from '@repo/contracts';
+import type { BotType } from './types';
 import { dockerConfig } from '@/config/env-config.service';
 import { getDockerConnectionOptions } from './docker.utils';
 

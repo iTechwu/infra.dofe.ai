@@ -9,4 +9,5 @@ export type {
   SandboxOrphanInfo,
   SandboxCleanupReport,
 } from './docker-orphan-cleaner.service';
+export * from './types';
 export * from './docker.utils';

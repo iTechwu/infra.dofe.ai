@@ -9,14 +9,14 @@ import {
   rm as _rm,
   stat as _stat,
 } from 'node:fs/promises';
-import { PROVIDER_CONFIGS, getOpenclawNativeProvider } from '@repo/contracts';
+import { PROVIDER_CONFIGS, getOpenclawNativeProvider } from './types';
 import type {
   ContainerStats,
   OrphanReport,
   CleanupReport,
   ProviderVendor,
   BotType,
-} from '@repo/contracts';
+} from './types';
 import { normalizeModelName } from '@/utils/model-normalizer';
 import { DockerImageService } from './docker-image.service';
 import { dockerConfig } from '@/common/config/env-config.service';
@@ -434,7 +434,7 @@ export class DockerService implements OnModuleInit {
     const nativeProviderConfig = getOpenclawNativeProvider(originalProvider);
     const isOpenclawNative = nativeProviderConfig !== null;
 
-    if (isOpenclawNative) {
+    if (nativeProviderConfig !== null) {
       this.logger.info(
         `Provider "${originalProvider}" is natively supported by OpenClaw (providerId: ${nativeProviderConfig.openclawProviderId}), skipping -compatible mapping`,
       );
@@ -450,7 +450,7 @@ export class DockerService implements OnModuleInit {
     ) {
       // 保留原始 apiHost 作为 apiBaseUrl 的 fallback
       if (!options.apiBaseUrl && originalProviderConfig?.apiHost) {
-        options.apiBaseUrl = originalProviderConfig.apiHost;
+        options.apiBaseUrl = originalProviderConfig.apiHost as string;
       }
       const dockerProvider = `${options.apiType}-compatible`;
       this.logger.info(

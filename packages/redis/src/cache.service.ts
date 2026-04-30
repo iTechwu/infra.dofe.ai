@@ -1,38 +1,14 @@
-import { Injectable, OnModuleDestroy, Inject, Optional } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
-
-/**
- * Check if running in production environment
- */
-function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production';
-}
-
-/**
- * Simple console logger fallback when Winston is not available
- */
-const consoleLogger = {
-  error: (message: string, meta?: any) => console.error(message, meta),
-  warn: (message: string, meta?: any) => console.warn(message, meta),
-  info: (message: string, meta?: any) => console.info(message, meta),
-  debug: (message: string, meta?: any) => {
-    if (!isProduction()) console.debug(message, meta);
-  },
-};
-
-type LoggerLike = typeof consoleLogger;
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
   private readonly redis: Redis;
-  private readonly logger: LoggerLike;
 
   constructor(
     private readonly configService: ConfigService,
-    @Optional() @Inject('WINSTON_LOGGER') winstonLogger?: LoggerLike,
   ) {
-    this.logger = winstonLogger ?? consoleLogger;
     const redisUrl = this.configService.get<string>('REDIS_URL', 'redis://localhost:6379');
     this.redis = new Redis(redisUrl);
   }
