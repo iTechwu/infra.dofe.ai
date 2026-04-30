@@ -172,7 +172,7 @@ export class AuthGuard implements CanActivate {
     if (
       request.method.toLowerCase() === 'post' &&
       process.env?.PREVIEW_MODE === 'true' &&
-      enviromentUtil.isWeChatMiniProgram(request as any) &&
+      enviromentUtil.isWeChatMiniProgram(request) &&
       isMpTest &&
       process.env?.PREVIEW_USER_ID
     ) {
