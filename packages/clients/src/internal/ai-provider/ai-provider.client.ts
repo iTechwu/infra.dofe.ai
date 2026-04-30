@@ -10,12 +10,12 @@ import {
   getProviderDefaultApiHost,
   isProviderVendor,
   isProviderApiType,
-} from '@repo/contracts';
+} from '@dofe/infra-contracts';
 import type {
   ProviderVendor,
   ProviderApiType,
   ProviderConfig,
-} from '@repo/contracts';
+} from '@dofe/infra-contracts';
 
 /**
  * Timeout configuration for different API operations (in milliseconds)

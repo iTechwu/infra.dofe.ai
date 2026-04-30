@@ -4,7 +4,7 @@
  * 用于记录 HTTP 客户端请求和响应的拦截器
  */
 import { Logger } from 'winston';
-import { maskUtil } from '@repo/utils';
+import { maskUtil } from '@dofe/infra-utils';
 
 export interface HttpLogContext {
   clientName: string;

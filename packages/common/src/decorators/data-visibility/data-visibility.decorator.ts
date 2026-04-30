@@ -5,8 +5,8 @@ import {
   applyDecorators,
   UseGuards,
 } from '@nestjs/common';
-import type { ResourceType, DataScope } from '@repo/types';
-import { Permission, REQUIRE_PERMISSIONS_KEY } from '@repo/constants';
+import type { ResourceType, DataScope, Permission } from '@dofe/infra-contracts';
+import { REQUIRE_PERMISSIONS_KEY } from '@dofe/infra-contracts';
 import { AuthGuard } from '@/common/guards';
 import { TenantContextGuard } from '@/common/guards/tenant-context.guard';
 import { PermissionGuard } from '@/common/guards/permission.guard';

@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { Logger } from 'winston';
 import qiniuHostConfig from './config/file.config';
 import urlencodeUtil from '@/utils/urlencode.util';
-import { CommonErrorCode } from '@repo/contracts/errors';
+import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@/filter/exception/api.exception';
 import { DoFeApp } from '@/config/dto/config.dto';
 import { StorageCredentialsConfig, AppConfig } from '@/config/validation';

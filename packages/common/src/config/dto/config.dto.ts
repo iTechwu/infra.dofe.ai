@@ -10,7 +10,7 @@ import type {
   FileEnvType,
   FileBucketVendor,
 } from '@prisma/client';
-import { ExtendedPaginatedResponse, PaginatedResponse } from '@repo/contracts';
+import { ExtendedPaginatedResponse, PaginatedResponse } from '@dofe/infra-contracts';
 
 // ============================================================================
 // Re-export Zod-inferred Configuration Types (单一真相来源)

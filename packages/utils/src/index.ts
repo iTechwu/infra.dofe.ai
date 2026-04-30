@@ -18,6 +18,7 @@ export * from './ip.util';
 // Crypto & Security utilities
 export * from './crypto.util';
 export * from './sensitive-data-masker.util';
+export { default as maskUtil } from './mask.util';
 
 // SSRF Protection
 export * from './ssrf-protection.util';

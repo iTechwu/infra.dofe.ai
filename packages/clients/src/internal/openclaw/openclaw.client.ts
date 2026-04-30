@@ -14,7 +14,7 @@ import { firstValueFrom, timeout, catchError } from 'rxjs';
 import WsClient from 'ws';
 import { randomUUID } from 'crypto';
 import * as path from 'path';
-import type { ContainerSkillItem } from '@repo/contracts';
+import type { ContainerSkillItem } from '@dofe/infra-contracts';
 import { getEnvWithDefault } from '@/common/config/env-config.service';
 import { DockerExecService } from './docker-exec.service';
 

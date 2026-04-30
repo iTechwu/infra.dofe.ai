@@ -17,7 +17,7 @@ import {
   REQUIRE_PERMISSIONS_KEY,
   PUBLIC_ENDPOINT_KEY,
   Permission,
-} from '@repo/constants';
+} from '@dofe/infra-contracts';
 import { JwtConfig } from '@/config/validation';
 
 @Injectable()

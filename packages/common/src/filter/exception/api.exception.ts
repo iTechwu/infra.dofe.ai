@@ -10,7 +10,7 @@ import {
   getErrorType,
   getHttpStatus,
   getErrorMessage,
-} from '@repo/contracts/errors';
+} from '@dofe/infra-contracts';
 
 // Domain mapping for i18n namespace
 const ERROR_DOMAIN_MAP: Record<string, string> = {

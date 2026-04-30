@@ -15,7 +15,7 @@ import type { UserInfo } from '@prisma/client';
 import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@app/rabbitmq';
 import { VerifyClient } from '@app/clients/internal/verify';
-import { CommonErrorCode } from '@repo/contracts/errors';
+import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@/filter/exception/api.exception';
 import { PardxApp, SendCloudConfig } from '@/config/dto/config.dto';
 import { getKeysConfig } from '@/config/configuration';

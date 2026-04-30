@@ -11,7 +11,7 @@ import {
   SERVER_BUILD_HEADER,
   API_VERSION_DEFAULT,
   API_GENERATION,
-} from '@repo/constants';
+} from '@dofe/infra-contracts';
 import { buildConfig } from '@/config/env-config.service';
 
 /**

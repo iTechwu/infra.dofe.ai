@@ -28,7 +28,7 @@ import {
 import { RedisService } from '@dofe/infra-redis';
 import { getKeysConfig } from '@/config/configuration';
 import { AppConfig, StorageCredentialsConfig } from '@/config/validation';
-import { CommonErrorCode } from '@repo/contracts/errors';
+import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@/filter/exception/api.exception';
 import {
   StorageClientKey,

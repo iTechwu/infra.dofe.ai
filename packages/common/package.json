@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
   "scripts": {
-    "build": "echo skip",
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
@@ -16,9 +15,7 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/event-emitter": "^3.0.0",
     "@nestjs/platform-fastify": "^11.0.0",
-    "@repo/constants": "workspace:*",
-    "@repo/contracts": "workspace:*",
-    "@repo/utils": "workspace:*",
+    "@dofe/infra-contracts": "workspace:*",
     "@ts-rest/core": "^3.53.0-rc.1",
     "@ts-rest/nest": "^3.53.0-rc.1",
     "accept-language-parser": "^1.5.0",
@@ -43,6 +40,7 @@
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",
     "@types/cls-hooked": "^4.3.9",
+    "rimraf": "^5.0.0",
     "typescript": "^5.4.5"
   },
   "type": "commonjs"

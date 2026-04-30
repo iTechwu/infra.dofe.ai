@@ -8,8 +8,8 @@ import type {
   VerifyProviderKeyResponse,
   ProviderModel,
   ProviderVendor,
-} from '@repo/contracts';
-import { PROVIDER_CONFIGS, getEffectiveApiHost } from '@repo/contracts';
+} from '@dofe/infra-contracts';
+import { PROVIDER_CONFIGS, getEffectiveApiHost } from '@dofe/infra-contracts';
 
 /**
  * DMXAPI 等第三方聚合平台的域名特征

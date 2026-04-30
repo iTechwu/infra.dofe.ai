@@ -19,7 +19,7 @@ import {
   CURRENT_CONTRACT,
   type ApiContract,
   type Platform,
-} from '@repo/constants';
+} from '@dofe/infra-contracts';
 
 /**
  * 跳过版本检查的装饰器 key

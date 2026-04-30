@@ -14,7 +14,7 @@ import {
   getErrorType,
   getHttpStatus,
   getErrorMessage,
-} from '@repo/contracts/errors';
+} from '@dofe/infra-contracts';
 
 /**
  * 标准成功响应格式
@@ -452,4 +452,35 @@ export function serializeDates<T>(obj: T): any {
   }
 
   return obj;
+}
+
+/**
+ * 安全获取数据 - 如果查询抛出 NotFoundException 则返回 null
+ * 用于配合 notFound() 辅助函数，简化类型安全的错误处理
+ *
+ * @example
+ * ```typescript
+ * const result = await fetchOrNull(() =>
+ *   this.service.findById(params.id),
+ * );
+ * if (result === null) return notFound({ error: 'Item not found' });
+ * return success(result);
+ * ```
+ */
+export async function fetchOrNull<T>(
+  fn: () => Promise<T>,
+): Promise<T | null> {
+  try {
+    return await fn();
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'name' in error &&
+      (error as { name: string }).name === 'NotFoundException'
+    ) {
+      return null;
+    }
+    throw error;
+  }
 }

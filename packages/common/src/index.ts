@@ -1,3 +1,5 @@
+export * from './common.module';
+export * from './encryption.service';
 export * from './config/env-config.service';
 
 export * from './decorators/api-key/api-key.decorator';

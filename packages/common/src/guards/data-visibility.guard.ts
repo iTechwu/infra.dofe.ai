@@ -10,7 +10,7 @@ import { Logger } from 'winston';
 import { FastifyRequest } from 'fastify';
 import { OrganizationPermissionService } from '@app/tenant-management/organization-permission';
 import { DATA_VISIBILITY_KEY } from '@/common/decorators/data-visibility';
-import type { ResourceType, DataScope } from '@repo/types';
+import type { ResourceType, DataScope } from '@dofe/infra-contracts';
 
 /**
  * 数据可见性 Guard

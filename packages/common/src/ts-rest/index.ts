@@ -51,6 +51,8 @@ export {
   internalError,
   errorFromType,
   errorSimple,
+  // 工具函数
+  fetchOrNull,
   // 普通 NestJS 控制器
   successBody,
   paginatedBody,

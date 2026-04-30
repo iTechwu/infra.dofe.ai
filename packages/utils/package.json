@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
   "scripts": {
-    "build": "echo skip",
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
@@ -59,17 +58,20 @@
   "peerDependencies": {
     "@nestjs/swagger": "^11.0.0",
     "@prisma/client": "*",
-    "@repo/contracts": "workspace:*",
-    "@repo/utils": "workspace:*",
+    "@dofe/infra-contracts": "workspace:*",
+    "bcrypt": "^5.1.0",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.0.0",
     "dotenv-expand": "^12.0.0",
     "fastify": "^5.0.0",
     "lodash": "^4.17.0",
+    "moment-timezone": "^0.5.0",
+    "pinyin-pro": "^3.0.0",
     "winston": "^3.0.0",
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "rimraf": "^5.0.0",
     "typescript": "^5.4.5"
   },
   "type": "commonjs"

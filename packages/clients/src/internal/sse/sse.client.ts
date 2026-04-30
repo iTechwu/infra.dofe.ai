@@ -12,7 +12,7 @@ import {
   of,
   switchMap,
 } from 'rxjs';
-import type { MeetingSSEEvent } from '@repo/contracts/schemas/sse.schema';
+import type { MeetingSSEEvent } from '@dofe/infra-contracts';
 
 @Injectable()
 export class SseClient {

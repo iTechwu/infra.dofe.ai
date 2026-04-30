@@ -15,7 +15,7 @@ import {
   TENANT_SCOPE_KEY,
   PUBLIC_ENDPOINT_KEY,
   DEFAULT_TENANT_ID,
-} from '@repo/constants';
+} from '@dofe/infra-contracts';
 
 @Injectable()
 export class TenantContextGuard implements CanActivate {

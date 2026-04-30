@@ -8,7 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { maskUtil } from '@repo/utils';
+import { maskUtil } from '@dofe/infra-utils';
 
 /**
  * 脱敏配置元数据 Key

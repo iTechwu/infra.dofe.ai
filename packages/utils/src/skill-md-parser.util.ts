@@ -8,7 +8,7 @@ import {
   SkillEligibility,
   SkillFrontmatter,
   SkillInvocationMode,
-} from '@repo/contracts';
+} from '@dofe/infra-contracts';
 
 /**
  * 解析后的 SKILL.md 内容

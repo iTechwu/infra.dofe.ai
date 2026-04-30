@@ -29,7 +29,7 @@ import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileStorageInterface } from './file-storage.interface';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { CommonErrorCode } from '@repo/contracts/errors';
+import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@/filter/exception/api.exception';
 import { isURL } from 'class-validator';
 import { RedisService } from '@app/redis';

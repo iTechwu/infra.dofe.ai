@@ -12,7 +12,7 @@
  */
 
 import { Prisma } from '@prisma/client';
-import { ApiErrorCode, CommonErrorCode } from '@repo/contracts/errors';
+import { ApiErrorCode, CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@/filter/exception/api.exception';
 
 /**

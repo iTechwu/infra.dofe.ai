@@ -10,7 +10,7 @@ import {
   TENANT_SCOPE_KEY,
   REQUIRE_PERMISSIONS_KEY,
   Permission,
-} from '@repo/constants';
+} from '@dofe/infra-contracts';
 import { AuthGuard } from '@/common/guards';
 import { TenantContextGuard } from '@/common/guards/tenant-context.guard';
 import { PermissionGuard } from '@/common/guards/permission.guard';
@@ -91,3 +91,41 @@ export const CurrentTenantMember = createParamDecorator(
     return request.tenantMember;
   },
 );
+
+/**
+ * 团队上下文信息
+ */
+export interface TeamContext {
+  /** 当前租户/团队 ID */
+  tenantId: string;
+}
+
+/**
+ * 当前团队参数装饰器 - 从请求中提取团队上下文
+ * 别名装饰器，与 @CurrentTenant() 提供相同的租户上下文，但语义更偏向"团队"
+ *
+ * @example
+ * ```typescript
+ * async list(@TeamInfo() teamInfo: TeamContext) { ... }
+ * ```
+ */
+export const TeamInfo = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext): TeamContext => {
+    const request = ctx.switchToHttp().getRequest();
+    return {
+      tenantId: request.tenantId,
+    };
+  },
+);
+
+/**
+ * 从请求中提取团队 ID
+ *
+ * @example
+ * ```typescript
+ * const teamId = getTeamId(req);
+ * ```
+ */
+export function getTeamId(request: { tenantId?: string }): string {
+  return (request as any).tenantId;
+}

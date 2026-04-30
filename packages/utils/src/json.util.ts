@@ -1,3 +1,9 @@
-// Re-export from shared package
-export { default } from '@repo/utils/json';
-export * from '@repo/utils/json';
+export default {
+  parse(data: string, defaultValue: any): any {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return defaultValue;
+    }
+  },
+};

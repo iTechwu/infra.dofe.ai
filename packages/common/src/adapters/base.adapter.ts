@@ -1,4 +1,4 @@
-import { type ApiContract } from '@repo/constants';
+import { type ApiContract } from '@dofe/infra-contracts';
 
 /**
  * Contract Adapter 基础接口

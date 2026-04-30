@@ -16,7 +16,7 @@ import { firstValueFrom, timeout, catchError } from 'rxjs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { SKILL_LIMITS } from '@repo/constants';
+import { SKILL_LIMITS } from '@dofe/infra-contracts';
 
 /**
  * _meta.json 版本信息

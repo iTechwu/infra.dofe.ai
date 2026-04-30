@@ -6,11 +6,11 @@
  * backward-compatible ErrorMessageEnums for existing code.
  *
  * Migration Guide:
- * - New code: import { UserErrorCode } from '@repo/contracts/errors';
+ * - New code: import { UserErrorCode } from '@dofe/infra-contracts';
  * - New code: import { apiError } from '@/filter/exception/api.exception';
  */
 
-// Re-export all error codes from @repo/contracts
+// Re-export all error codes from @dofe/infra-contracts
 export {
   ApiErrorCode,
   UserErrorCode,
@@ -19,9 +19,9 @@ export {
   AllErrorHttpStatus,
   getErrorType,
   getHttpStatus,
-} from '@repo/contracts/errors';
+} from '@dofe/infra-contracts';
 
-import { AllErrorTypes, AllErrorHttpStatus } from '@repo/contracts/errors';
+import { AllErrorTypes, AllErrorHttpStatus } from '@dofe/infra-contracts';
 
 /**
  * Error Message Definition Type

@@ -64,6 +64,8 @@
       "@app/i18n/*": ["packages/i18n/src/*"],
       "@dofe/infra-common": ["packages/common/src"],
       "@dofe/infra-common/*": ["packages/common/src/*"],
+      "@dofe/infra-contracts": ["packages/contracts/src"],
+      "@dofe/infra-contracts/*": ["packages/contracts/src/*"],
       "@dofe/infra-clients": ["packages/clients/src"],
       "@dofe/infra-clients/*": ["packages/clients/src/*"],
       "@dofe/infra-prisma": ["packages/prisma/src"],

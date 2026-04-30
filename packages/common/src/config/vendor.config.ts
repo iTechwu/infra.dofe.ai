@@ -9,7 +9,7 @@ import {
   PROVIDER_CONFIGS,
   type ProviderVendor,
   type ProviderApiType,
-} from '@repo/contracts';
+} from '@dofe/infra-contracts';
 
 export interface VendorConfig {
   /** API 主机名 */
