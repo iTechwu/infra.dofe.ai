@@ -270,7 +270,7 @@ export class BucketResolver {
   filterBuckets(filter: Partial<PardxUploader.Config>): PardxUploader.Config[] {
     return this.bucketConfigs.filter((config) => {
       for (const [key, value] of Object.entries(filter)) {
-        if (config[key] !== value) {
+        if ((config as Record<string, unknown>)[key] !== value) {
           return false;
         }
       }

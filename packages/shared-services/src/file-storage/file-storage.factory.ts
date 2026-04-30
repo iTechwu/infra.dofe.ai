@@ -142,7 +142,7 @@ export class FileStorageClientFactory {
    * @param {Logger} logger - Winston 日志记录器
    */
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly redis: RedisService,
     private readonly httpService: HttpService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -205,7 +205,7 @@ export class FileStorageClientFactory {
       throw apiError(CommonErrorCode.FileServiceUnsupportedVendor);
     }
 
-    const storageConfig = this.storageCredentials[vendor];
+    const storageConfig = (this.storageCredentials as Record<FileBucketVendor, StorageCredentialsConfig | undefined>)[vendor];
     const client = new ClientClass(
       config,
       storageConfig,

@@ -130,30 +130,20 @@ export class FileCdnClient {
   private readonly cdnConfig: DoFeFileCdn.Configs;
 
   /**
-   * 默认存储供应商
-   * @private
-   */
-  private readonly defaultVendor: FileBucketVendor;
-
-  /**
    * 构造函数
    *
    * @param {ConfigService} config - NestJS 配置服务
-   * @param {RedisService} redis - Redis 服务
    * @param {FileStorageService} fileApi - 文件存储服务
    * @param {CryptClient} crypt - 加密服务
    * @param {Logger} logger - Winston 日志记录器
    */
   constructor(
-    private readonly config: ConfigService,
-    private readonly redis: RedisService,
+    config: ConfigService,
     private readonly fileApi: FileStorageService,
     private readonly crypt: CryptClient,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     this.cdnConfig = config.getOrThrow<DoFeFileCdn.Configs>('cdn');
-    this.defaultVendor =
-      config.getOrThrow<FileBucketVendor>('app.defaultVendor');
   }
 
   // =========================================================================

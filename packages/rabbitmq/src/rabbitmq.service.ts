@@ -138,7 +138,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
     this.boundConnection = conn;
 
-    conn.on('error', (error) => {
+    conn.on('error', (error: Error) => {
       this.logger.error('RabbitMQ connection error', {
         error: error instanceof Error ? error.message : String(error),
       });
@@ -179,7 +179,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
       this.channel = await conn.createChannel();
 
-      this.channel.on('error', (error) => {
+      this.channel.on('error', (error: Error) => {
         this.logger.error('RabbitMQ channel error', {
           error: error instanceof Error ? error.message : String(error),
         });
@@ -355,7 +355,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
       const { consumerTag } = await channel.consume(
         queue,
-        (msg) => this.handleIncomingMessage(msg, handleMessage, channel),
+        (msg: amqplib.ConsumeMessage | null) => this.handleIncomingMessage(msg, handleMessage, channel),
         { noAck: false },
       );
 

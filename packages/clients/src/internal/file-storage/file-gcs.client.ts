@@ -3,7 +3,6 @@ import { HttpService } from '@nestjs/axios';
 
 import { DoFeUploader } from './dto/file.dto';
 
-import { DoFeApp } from '@/config/dto/config.dto';
 import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { isURL } from 'class-validator';
 import { FileS3Client } from './file-s3.client';
@@ -126,7 +125,7 @@ export class FileGcsClient extends FileS3Client {
       action: action,
       expires: Date.now() + expire * 1000, // 链接过期时间
     };
-    if (this.config.domain != '' && isURL(this.config.domain)) {
+    if (this.config.domain && this.config.domain != '' && isURL(this.config.domain)) {
       options = {
         ...options,
         cname: this.config.domain,

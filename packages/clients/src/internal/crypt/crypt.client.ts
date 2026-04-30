@@ -1,6 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { Logger } from 'winston';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cryptoUtil from '@/utils/crypto.util';
 import urlencodeUtil from '@/utils/urlencode.util';
@@ -11,7 +9,6 @@ export class CryptClient {
   private readonly iv: string;
   constructor(
     private readonly configService: ConfigService,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     this.key = configService.getOrThrow<string>('CRYPTO_KEY');
     this.iv = configService.getOrThrow<string>('CRYPTO_IV');

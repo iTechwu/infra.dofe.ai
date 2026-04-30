@@ -2,7 +2,6 @@ import { FileBucketVendor, FileSource } from '@prisma/client';
 import stringUtil from './string.util';
 import timerUtil from './timer.util';
 import environmentUtil from './environment.util';
-const transcodeExtension = [];
 
 const imageExtensions = [
   'jpg',
@@ -166,7 +165,7 @@ export default {
     };
 
     const extension = ext.toLowerCase().replace('.', '');
-    return mimeTypes[extension] || 'application/octet-stream';
+    return (mimeTypes as Record<string, string>)[extension] || 'application/octet-stream';
   },
   /**
    * 判断给定的文件名是否为图片文件
@@ -294,7 +293,7 @@ export default {
     return { vendor: arr[0] as FileBucketVendor, bucket: arr[1], key };
   },
 
-  getVideoWidthAndHeight(videoInfo) {
+  getVideoWidthAndHeight(videoInfo: { width?: string; height?: string; sar?: string }) {
     let actualWidth: number | undefined;
     let actualHeight: number | undefined;
 
@@ -411,7 +410,7 @@ export default {
     } else if (stringUtil.isUUID(key)) {
       return `${fileKey.bucket}/${nodeEnv}/files/${fileKey.key}${ext}`;
     }
-    return fileKey.key;
+    return fileKey.key ?? '';
   },
 
   getS3Uri(bucket: string, key: string, region: string = 'cn-sh2') {

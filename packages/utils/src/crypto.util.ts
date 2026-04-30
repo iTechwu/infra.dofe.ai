@@ -51,7 +51,7 @@ export function rsaEncrypt(val: string): string {
  * @param {string} iv - Initialization vector (string)
  * @returns {string} - Decrypted data (original text)
  */
-export function aesCbcDecrypt(val, secretKey, iv) {
+export function aesCbcDecrypt(val: string, secretKey: string, iv: string) {
   try {
     const ivBuffer = CryptoJS.enc.Utf8.parse(iv);
 
@@ -80,7 +80,7 @@ export function aesCbcDecrypt(val, secretKey, iv) {
  * @param {string} iv - Initialization vector (string or Buffer)
  * @returns {string} - Encrypted data (Base64 encoded string)
  */
-export function aesCbcEncrypt(plainText, secretKey, iv) {
+export function aesCbcEncrypt(plainText: string, secretKey: string, iv: string) {
   const ivBuffer = CryptoJS.enc.Utf8.parse(iv);
 
   const ciphered = CryptoJS.AES.encrypt(
@@ -142,19 +142,19 @@ export function encrypt(dataStr: string, key: string, iv: string): string {
   }
 }
 
-export function WXBizDataCrypt(appId, sessionKey, encryptedData, iv) {
+export function WXBizDataCrypt(appId: string, sessionKey: string, encryptedData: string, iv: string) {
   // base64 decode
-  sessionKey = Buffer.from(sessionKey, 'base64');
-  encryptedData = Buffer.from(encryptedData, 'base64');
-  iv = Buffer.from(iv, 'base64');
+  const sessionKeyBuffer = Buffer.from(sessionKey, 'base64');
+  const encryptedDataBuffer = Buffer.from(encryptedData, 'base64');
+  const ivBuffer = Buffer.from(iv, 'base64');
 
   let decoded;
   try {
     // 解密
-    const decipher = crypto.createDecipheriv('aes-128-cbc', sessionKey, iv);
+    const decipher = crypto.createDecipheriv('aes-128-cbc', sessionKeyBuffer, ivBuffer);
     // 设置自动 padding 为 true，删除填充补位
     decipher.setAutoPadding(true);
-    decoded = decipher.update(encryptedData, 'binary', 'utf8');
+    decoded = decipher.update(encryptedDataBuffer, undefined, 'utf8');
     decoded += decipher.final('utf8');
     decoded = JSON.parse(decoded);
   } catch (err) {
@@ -173,7 +173,7 @@ export function WXBizDataCrypt(appId, sessionKey, encryptedData, iv) {
  * @param {any} content
  *  @return {string}
  */
-export const signEncrypt = (algorithm, content) => {
+export const signEncrypt = (algorithm: string, content: string) => {
   const hash = crypto.createHash(algorithm);
   hash.update(content);
   return hash.digest('hex');
@@ -183,14 +183,13 @@ export const signEncrypt = (algorithm, content) => {
  * @param {any} content
  *  @return {string}
  */
-export const sha1 = (content) => signEncrypt('sha1', content);
+export const sha1 = (content: string) => signEncrypt('sha1', content);
 
 export const signUrl = (uri: string, key: string): string => {
   // 使用CryptoJS计算HMAC_SHA1
   const hash = CryptoJS.HmacSHA1(uri, key);
 
   const wordArray = hash.words;
-  const sigBytes = hash.sigBytes;
   const buffer = Buffer.from(wordArray.map((word) => (word >>> 0) & 0xff));
   // 使用Base64 URL安全的编码
   const hash_encoded = buffer

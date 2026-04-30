@@ -110,7 +110,7 @@ export class IpGeoService {
    */
   async getIpCountry(ip: string): Promise<string> {
     const ipInfo = await this.getIpInfo(ip);
-    return ipInfo.country;
+    return ipInfo.country ?? '';
   }
 
   /**
@@ -129,6 +129,6 @@ export class IpGeoService {
    */
   async getTimeZone(ip: string): Promise<string> {
     const ipInfo = await this.getIpInfo(ip);
-    return ipInfo.timezone;
+    return ipInfo.timezone ?? '';
   }
 }

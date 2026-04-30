@@ -153,7 +153,7 @@ export class FileQiniuClient implements FileStorageInterface {
     const formUploader = new qiniu.form_up.FormUploader(this.qiniuConfig);
     const putExtra = new qiniu.form_up.PutExtra();
     const uploadToken = await this.uploadToken(finalBucket);
-    const { data, resp } = await formUploader.put(
+    const { resp } = await formUploader.put(
       uploadToken,
       key,
       buffer,
@@ -328,7 +328,7 @@ export class FileQiniuClient implements FileStorageInterface {
 
   async deleteFile(fileKey: string, bucket?: string): Promise<boolean> {
     const finalBucket = this.getBucketString(bucket);
-    const { data, resp } = await this.bucketManager.delete(
+    const { resp } = await this.bucketManager.delete(
       finalBucket,
       fileKey,
     );
@@ -621,7 +621,7 @@ export class FileQiniuClient implements FileStorageInterface {
       putExtra,
     );
     if (resp.statusCode == 200) {
-      const { key } = data;
+      const { key: dataKey } = data;
       // 执行压缩 ，设置压缩资源的在OSS上的保存路径
       const zipKey = urlencodeUtil.urlsafeBase64Encode(
         `${finalBucket}:temp_package/${Date.now()}/${zipName}.zip`,

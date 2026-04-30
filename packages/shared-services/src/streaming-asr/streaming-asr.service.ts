@@ -608,8 +608,9 @@ export class StreamingAsrService implements OnModuleDestroy {
 
     // ⚠️ P2: 如果内存中没有会话，尝试从 Redis 恢复
     if (!sessionInfo) {
-      sessionInfo = await this.restoreSessionFromRedis(sessionId);
-      if (sessionInfo) {
+      const restoredSession = await this.restoreSessionFromRedis(sessionId);
+      if (restoredSession) {
+        sessionInfo = restoredSession;
         // 恢复会话到内存
         this.sessions.set(sessionId, sessionInfo);
         this.connectionToSession.set(sessionInfo.connectionId, sessionId);

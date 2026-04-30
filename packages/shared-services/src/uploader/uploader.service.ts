@@ -45,12 +45,12 @@ export interface TokenRequest {
 export class UploaderService {
   private appConfig: AppConfig;
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly redis: RedisService,
     private readonly fileApi: FileStorageService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
-    this.appConfig = configService.get<AppConfig>('app');
+    this.appConfig = configService.getOrThrow<AppConfig>('app');
   }
   /**
    * 校验验证信息并返回签名数据
@@ -67,7 +67,7 @@ export class UploaderService {
   ): SignatureData {
     let signatureData: SignatureData = {};
     try {
-      const jsonString = rsaDecrypt(cmd.signature);
+      const jsonString = rsaDecrypt(cmd.signature ?? '');
       if (!jsonString || jsonString.trim() === '') {
         this.logger.error(
           '[Signature Validation] Decryption failed: empty result',
@@ -103,14 +103,15 @@ export class UploaderService {
     }
     //时间戳距离当前时间超过15秒，则无效
     const now = new Date().getTime();
+    const timestamp = signatureData.timestamp ?? 0;
     if (
       enviromentUtil.isProduction() &&
-      now - signatureData.timestamp > 15 * 1000
+      now - timestamp > 15 * 1000
     ) {
       this.logger.error('[Signature Validation] Timestamp expired:', {
         now,
-        signatureTimestamp: signatureData.timestamp,
-        diff: now - signatureData.timestamp,
+        signatureTimestamp: timestamp,
+        diff: now - timestamp,
       });
       throw apiError(CommonErrorCode.InvalidParameters, {
         field: 'signature',
@@ -210,17 +211,17 @@ export class UploaderService {
       bucket,
       ip,
     );
-    const ext = fileUtil.getFileExtension(cmd.filename);
+    const ext = fileUtil.getFileExtension(cmd.filename ?? '');
     const fileKey = await this.fileApi.formatNewKeyString(
       `public`,
-      ext,
+      ext ?? '',
       bucket,
     );
     const token = await this.fileApi.uploadToken(vendor, bucket, {
       saveKey: fileKey,
       forceSaveKey: true,
     });
-    const domain = fileApiConfig.domain;
+    const domain = fileApiConfig.domain ?? '';
     return {
       token,
       fileKey,
@@ -255,13 +256,13 @@ export class UploaderService {
       bucket,
       ip,
     );
-    const ext = fileUtil.getFileExtension(cmd.filename);
-    const key = await this.fileApi.formatNewKeyString(`thumbimg`, ext, bucket);
+    const ext = fileUtil.getFileExtension(cmd.filename ?? '');
+    const key = await this.fileApi.formatNewKeyString(`thumbimg`, ext ?? '', bucket);
     const token = await this.fileApi.uploadToken(undefined, bucket, {
       saveKey: key,
       forceSaveKey: true,
     });
-    const domain = fileApiConfig.domain;
+    const domain = fileApiConfig.domain ?? '';
 
     return {
       token,
