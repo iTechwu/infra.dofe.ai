@@ -13,18 +13,25 @@
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
-        "@repo/*": "*"
+        "@dofe/*": "*"
       },
       "missingPeersAllowed": {
-        "@repo/contracts": true,
-        "@repo/constants": true,
-        "@repo/utils": true,
-        "@repo/validators": true
+        "@dofe/infra-contracts": true,
+        "@dofe/infra-common": true,
+        "@dofe/infra-utils": true,
+        "@dofe/infra-redis": true,
+        "@dofe/infra-prisma": true,
+        "@dofe/infra-jwt": true,
+        "@dofe/infra-i18n": true,
+        "@dofe/infra-clients": true,
+        "@dofe/infra-rabbitmq": true,
+        "@dofe/infra-shared-db": true,
+        "@dofe/infra-shared-services": true
       }
     }
   },
   "devDependencies": {
-    "@nestjs/common": "^11.1.10",
+    "@dofe/infra-contracts": "workspace:*",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.10",
     "@nestjs/platform-fastify": "^11.1.10",
