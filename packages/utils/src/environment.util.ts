@@ -5,6 +5,12 @@ interface MinimalRequest {
   headers: Record<string, string | string[] | undefined>;
 }
 
+function convertToDockerHost(url: string): string {
+  return url
+    .replace(/127\.0\.0\.1/g, 'host.docker.internal')
+    .replace(/localhost/g, 'host.docker.internal');
+}
+
 export default {
   getBaseZone() {
     return process.env?.BASE_ZONE || 'cn';
@@ -131,5 +137,10 @@ export default {
     }
     const short = `${web}s/`;
     return { web, api, internalApi, short, corsDomains };
+  },
+
+  getContainerAccessibleInternalApiUrl(): string {
+    const internalApi = this.generateEnvironmentUrls().internalApi;
+    return convertToDockerHost(internalApi);
   },
 };

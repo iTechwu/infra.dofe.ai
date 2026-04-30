@@ -6,6 +6,7 @@ export * from './decorators/app-version/app-version.module';
 export * from './decorators/app-version/app-version.service';
 export * from './decorators/audit-log.decorator';
 export * from './decorators/cache/cache.decorator';
+export * from './decorators/data-visibility';
 export * from './decorators/cache/cache.interceptor';
 export * from './decorators/cache/cache.module';
 export * from './decorators/event/event.decorator';
