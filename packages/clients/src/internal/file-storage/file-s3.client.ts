@@ -1,17 +1,9 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Inject,
-} from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Injectable } from '@nestjs/common';
 import { Logger } from 'winston';
 
 import {
   DoFeUploader,
   GetObjectOptions,
-  PresignedPutUrlObject,
-  PutObjectOptions,
 } from './dto/file.dto';
 import {
   DeleteObjectCommand,
@@ -20,20 +12,16 @@ import {
   CreateMultipartUploadCommand,
   UploadPartCommand,
   CompleteMultipartUploadCommand,
-  AbortMultipartUploadCommand,
   ListBucketsCommand,
   S3Client,
   DeleteObjectsCommand,
   HeadObjectCommand,
-  HeadObjectCommandOutput,
   ListObjectsV2Command,
-  CreateMultipartUploadCommandInput,
   S3ClientConfig,
   CopyObjectCommand,
   CopyObjectCommandInput,
   waitUntilObjectExists,
 } from '@aws-sdk/client-s3';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as fs from 'node:fs';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommandInput } from '@aws-sdk/client-s3/dist-types/commands/PutObjectCommand';
@@ -43,11 +31,10 @@ import { FileStorageInterface } from './file-storage.interface';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { CommonErrorCode } from '@repo/contracts/errors';
-import { ApiException, apiError } from '@/filter/exception/api.exception';
+import { apiError } from '@/filter/exception/api.exception';
 import { isURL } from 'class-validator';
 import { RedisService } from '@app/redis';
 import environmentUtil from '@/utils/environment.util';
-import environment from '@/utils/environment.util';
 
 /**
  * S3 File Storage Client
