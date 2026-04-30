@@ -561,7 +561,9 @@ export class FileQiniuClient implements FileStorageInterface {
   }
   async listBuckets() {}
 
-  async fileDownloader(source: DoFeApp.FileBase) {}
+  async fileDownloader(source: DoFeApp.FileBase): Promise<Buffer> {
+    throw new Error('Not implemented');
+  }
 
   async fileUploader(buffer: Buffer, destination: DoFeApp.FileBase) {}
 

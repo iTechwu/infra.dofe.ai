@@ -56,6 +56,7 @@ export interface VersionContext {
 declare module 'fastify' {
   interface FastifyRequest {
     versionContext?: VersionContext;
+    traceId?: string;
   }
 }
 

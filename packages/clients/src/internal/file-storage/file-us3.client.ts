@@ -1,21 +1,8 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Inject,
-} from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 
-import {
-  DoFeUploader,
-  GetObjectOptions,
-  PresignedPutUrlObject,
-  PutObjectOptions,
-} from './dto/file.dto';
+import { DoFeUploader } from './dto/file.dto';
 
-import { DoFeApp } from '@/config/dto/config.dto';
 import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileS3Client } from './file-s3.client';
 import { RedisService } from '@app/redis';

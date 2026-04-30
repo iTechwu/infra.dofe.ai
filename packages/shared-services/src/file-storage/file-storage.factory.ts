@@ -206,6 +206,9 @@ export class FileStorageClientFactory {
     }
 
     const storageConfig = (this.storageCredentials as Record<FileBucketVendor, StorageCredentialsConfig | undefined>)[vendor];
+    if (!storageConfig) {
+      throw apiError(CommonErrorCode.FileServiceUnsupportedVendor);
+    }
     const client = new ClientClass(
       config,
       storageConfig,

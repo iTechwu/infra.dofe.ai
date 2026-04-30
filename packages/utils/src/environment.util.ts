@@ -1,5 +1,9 @@
-import { FastifyRequest } from 'fastify';
 import { FileEnvType } from '@prisma/client';
+
+/** Minimal request shape for isWeChatMiniProgram — avoids FastifyRequest version conflicts across workspaces */
+interface MinimalRequest {
+  headers: Record<string, string | string[] | undefined>;
+}
 
 export default {
   getBaseZone() {
@@ -71,8 +75,9 @@ export default {
     return ['dev', 'test', 'prod'].indexOf(this.getEnv()) !== -1;
   },
 
-  isWeChatMiniProgram(req: FastifyRequest) {
-    const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+  isWeChatMiniProgram(req: MinimalRequest) {
+    const raw = req.headers['user-agent'];
+    const userAgent = (Array.isArray(raw) ? raw[0] : raw || '').toLowerCase();
     return (
       userAgent.includes('micromessenger') &&
       (userAgent.includes('miniprogram') ||

@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleDestroy, Request } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import stringUtil from '@/utils/string.util';
 import { RedisService } from '@app/redis';
 

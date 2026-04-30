@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Logger } from 'winston';
 
 import {
@@ -59,9 +58,9 @@ export class FileS3Client implements FileStorageInterface {
     process.env.S3_ENABLE_RETRY === 'true' || true; // 默认启用
   private readonly enableEnhancedLogging =
     process.env.S3_ENHANCED_LOGGING === 'true' || true; // 默认启用
-  private readonly maxRetries = parseInt(process.env.S3_MAX_RETRIES) || 3;
+  private readonly maxRetries = parseInt(process.env.S3_MAX_RETRIES || '3') || 3;
   private readonly baseRetryDelay =
-    parseInt(process.env.S3_RETRY_DELAY) || 1000;
+    parseInt(process.env.S3_RETRY_DELAY || '1000') || 1000;
   /**
    * 构造函数，用于创建AppFile类的实例
    *
@@ -84,7 +83,7 @@ export class FileS3Client implements FileStorageInterface {
     this.setClient();
 
     if (this.enableRetryMechanism || this.enableEnhancedLogging) {
-      if (environment.isProduction()) {
+      if (environmentUtil.isProduction()) {
         this.logger.info('S3 Service optimizations enabled', {
           retryMechanism: this.enableRetryMechanism,
           enhancedLogging: this.enableEnhancedLogging,
@@ -283,7 +282,7 @@ export class FileS3Client implements FileStorageInterface {
       } else {
         this.internalClient = this.externalClient;
 
-        if (environment.isProduction()) {
+        if (environmentUtil.isProduction()) {
           this.logger.info('S3 client initialized (single endpoint)', {
             endpoint: this.config.endpoint,
             bucket: this.config.bucket,
@@ -382,6 +381,9 @@ export class FileS3Client implements FileStorageInterface {
         );
 
         // 使用 transformToByteArray 转换流数据
+        if (!data.Body) {
+          throw new Error('No body in response');
+        }
         const buffer = Buffer.from(await data.Body.transformToByteArray());
 
         const duration = Date.now() - startTime;
@@ -656,29 +658,6 @@ export class FileS3Client implements FileStorageInterface {
 
     return executeWithRetry();
   }
-  /**
-   * 获取内部签名URL
-   *
-   * @param bucket 存储桶名称
-   * @param key 对象键名
-   * @returns 签名URL的Promise对象
-   */
-  private async getInternalSignedUrl(
-    bucket: string,
-    key: string,
-  ): Promise<string> {
-    try {
-      const cmd = new GetObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      });
-      return await getSignedUrl(this.internalClient, cmd, {
-        expiresIn: 3600,
-      });
-    } catch (e) {
-      throw apiError(CommonErrorCode.S3NoSuchKey);
-    }
-  }
 
   /**
    * 生成带签名的GET对象URL
@@ -745,7 +724,7 @@ export class FileS3Client implements FileStorageInterface {
       const command = new PutObjectCommand({
         ...options,
         Bucket: finalBucket,
-        Key: options.saveKey,
+        Key: options?.saveKey,
       });
 
       const url = await getSignedUrl(this.externalClient, command, {
@@ -773,7 +752,7 @@ export class FileS3Client implements FileStorageInterface {
       const command = new PutObjectCommand({
         ...options,
         Bucket: finalBucket,
-        Key: options.saveKey,
+        Key: options?.saveKey,
       });
 
       const url = await getSignedUrl(this.externalClient, command, {
@@ -833,7 +812,7 @@ export class FileS3Client implements FileStorageInterface {
         Delimiter: delimiter,
       });
       const response = await this.internalClient.send(command);
-      const files = response.Contents?.map((item) => item.Key) || [];
+      const files = (response.Contents?.map((item) => item.Key) || []).filter((key): key is string => key !== undefined);
       return files;
     } catch (e) {
       // throw new ApiException('s3NoSuchKey')
@@ -877,7 +856,7 @@ export class FileS3Client implements FileStorageInterface {
             Key: fileKey,
           });
 
-          const data = await this.internalClient.send(deleteCommand);
+          await this.internalClient.send(deleteCommand);
 
           const duration = Date.now() - startTime;
           this.logOperationResult(

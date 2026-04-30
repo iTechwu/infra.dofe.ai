@@ -307,7 +307,7 @@ export function getSecretConfigByKey(key: string) {
     );
   }
 
-  return keysConfig[key];
+  return (keysConfig as Record<string, unknown>)[key] as KeysConfig[keyof KeysConfig];
 }
 
 /**
@@ -342,6 +342,10 @@ export async function initAllConfig(): Promise<{
   const keys = initKeysConfig();
 
   logger.info('All configuration initialized successfully');
+
+  if (!config) {
+    throw new Error('YAML config failed to initialize');
+  }
 
   return {
     env,

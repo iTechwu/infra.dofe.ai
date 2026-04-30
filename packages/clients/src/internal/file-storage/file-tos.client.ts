@@ -1,28 +1,14 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Inject,
-} from '@nestjs/common';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 
-import {
-  DoFeUploader,
-  GetObjectOptions,
-  PresignedPutUrlObject,
-  PutObjectOptions,
-} from './dto/file.dto';
+import { DoFeUploader } from './dto/file.dto';
 
-import { DoFeApp } from '@/config/dto/config.dto';
 import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
 import { FileS3Client } from './file-s3.client';
 import { RedisService } from '@app/redis';
 import { TosClient } from '@volcengine/tos-sdk';
 import environmentUtil from '@/utils/environment.util';
 import { TRANSCODE_CONSTANTS } from '@/config/constant/config.constants';
-import environment from '@/utils/environment.util';
 
 /**
  * Volcengine TOS (Tinder Object Storage) Client
@@ -73,7 +59,7 @@ export class FileTosClient extends FileS3Client {
           accessKeyId: this.storageConfig.accessKey,
           accessKeySecret: this.storageConfig.secretKey,
           region: this.config.region,
-          endpoint: extractEndpoint(this.config.tosInternalEndpoint),
+          endpoint: extractEndpoint(this.config.tosInternalEndpoint || ''),
         });
 
         this.logger.info('TOS clients initialized with internal endpoint', {
@@ -85,7 +71,7 @@ export class FileTosClient extends FileS3Client {
       } else {
         this.tosInternalClient = this.tosClient;
 
-        if (environment.isProduction()) {
+        if (environmentUtil.isProduction()) {
           this.logger.info('TOS client initialized (single endpoint)', {
             endpoint: this.config.tosEndpoint,
             bucket: this.config.bucket,

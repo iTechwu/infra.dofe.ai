@@ -5,7 +5,7 @@
 
 import Docker from 'dockerode';
 import { createContextLogger } from '@/utils/logger-standalone.util';
-import { PROVIDER_CONFIGS, type ProviderVendor } from '@repo/contracts';
+import { PROVIDER_CONFIGS, type ProviderVendor } from './types';
 
 const logger = createContextLogger('DockerUtils');
 

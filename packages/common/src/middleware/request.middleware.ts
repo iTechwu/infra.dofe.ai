@@ -19,15 +19,6 @@ import enviroment from '@/utils/enviroment.util';
 // Trace ID 请求头名称
 export const TRACE_ID_HEADER = 'x-trace-id';
 
-// 扩展 FastifyRequest 类型
-declare module 'fastify' {
-  interface FastifyRequest {
-    traceId: string;
-    locale: string;
-    realIp: string;
-  }
-}
-
 export const clsNamespace = createNamespace('app');
 
 /**

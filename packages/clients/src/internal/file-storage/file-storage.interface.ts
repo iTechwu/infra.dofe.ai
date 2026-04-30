@@ -3,16 +3,9 @@
  *
  * 定义所有文件存储客户端需要实现的接口
  */
-import { StreamingBlobPayloadInputTypes } from '@smithy/types';
-import {
-  DoFeUploader,
-  GetObjectOptions,
-  PresignedPutUrlObject,
-  PutObjectOptions,
-} from './dto/file.dto';
+import { DoFeUploader } from './dto/file.dto';
 import { DoFeApp } from '@/config/dto/config.dto';
 import { StorageCredentialsConfig, AppConfig } from '@/config/validation';
-import { ReadStream } from 'fs';
 
 export interface FileStorageInterface {
   // ...
@@ -108,7 +101,7 @@ export interface FileStorageInterface {
     bucket?: string,
   ): Promise<void>;
 
-  fileDownloader(source: DoFeApp.FileBase);
+  fileDownloader(source: DoFeApp.FileBase): Promise<Buffer>;
 
   fileUploader(buffer: Buffer, destination: DoFeApp.FileBase): Promise<void>;
 }
