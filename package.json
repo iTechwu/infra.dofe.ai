@@ -8,7 +8,8 @@
     "build:legacy": "pnpm -r --stream run build",
     "clean": "pnpm -r --stream run clean",
     "lint": "eslint 'packages/*/src/**/*.ts' --fix",
-    "typecheck": "pnpm -r --stream run typecheck"
+    "typecheck": "pnpm -r --stream run typecheck",
+    "publish:all": "bash scripts/publish-all.sh"
   },
   "pnpm": {
     "peerDependencyRules": {
