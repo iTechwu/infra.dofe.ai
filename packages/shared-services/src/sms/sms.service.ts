@@ -34,9 +34,9 @@ import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@app/rabbitmq';
 import { VerifyClient } from '@app/clients/internal/verify';
 import { CommonErrorCode } from '@dofe/infra-contracts';
-import { apiError } from '@/filter/exception/api.exception';
-import { PardxApp } from '@/config/dto/config.dto';
-import { getKeysConfig } from '@/config/configuration';
+import { apiError } from '@dofe/infra-common';
+import { PardxApp } from '@dofe/infra-common';
+import { getKeysConfig } from '@dofe/infra-common';
 import type { AppSmsConfig } from '@app/clients/internal/sms';
 
 import { SmsClientFactory } from './sms.factory';
@@ -49,7 +49,7 @@ import {
   DEFAULT_SEND_FREQUENCY,
   DEFAULT_CODE_EXPIRE,
 } from './types';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // SMS Service

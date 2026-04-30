@@ -8,7 +8,7 @@
 import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { ConfigModule } from '@nestjs/config';
-import environment from '@/utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 import { RabbitmqEventsService } from './rabbitmq-events.service';
 import {
   RABBITMQ_EVENTS_CONNECTION,

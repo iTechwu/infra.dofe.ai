@@ -5,7 +5,7 @@
  * Ensures all required configuration is present before the application starts.
  */
 import { z } from 'zod';
-import { createContextLogger } from '@/utils/logger-standalone.util';
+import { createContextLogger } from '@dofe/infra-utils';
 
 const logger = createContextLogger('EnvValidation');
 

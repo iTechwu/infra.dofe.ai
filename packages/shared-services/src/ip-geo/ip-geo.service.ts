@@ -15,10 +15,10 @@ import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { RedisService } from '@dofe/infra-redis';
-import ipUtil, { MinimalIpRequest } from '@/utils/ip.util';
-import validateUtil from '@/utils/validate.util';
-import { PardxApp } from '@/config/dto/config.dto';
-import enviromentUtil from '@/utils/enviroment.util';
+import ipUtil, { MinimalIpRequest } from '@dofe/infra-utils/ip.util';
+import validateUtil from '@dofe/infra-utils/validate.util';
+import { PardxApp } from '@dofe/infra-common';
+import enviromentUtil from '@dofe/infra-utils/environment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
 import { IpInfoClient, IpInfoResponse } from '@app/clients/internal/ip-info';
 

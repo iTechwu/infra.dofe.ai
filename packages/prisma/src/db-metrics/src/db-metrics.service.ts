@@ -4,8 +4,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Counter, Histogram, Gauge } from 'prom-client';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { clsNamespace } from '@/middleware/request.middleware';
-import enviroment from '@/utils/enviroment.util';
+import { clsNamespace } from '@dofe/infra-common';
+import enviroment from '@dofe/infra-utils/environment.util';
 
 /**
  * Slow query threshold levels

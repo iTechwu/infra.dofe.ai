@@ -41,10 +41,6 @@
       "types": "./dist/json.util.d.ts",
       "default": "./dist/json.util.js"
     },
-    "./prisma-error.util": {
-      "types": "./dist/prisma-error.util.d.ts",
-      "default": "./dist/prisma-error.util.js"
-    },
     "./file.util": {
       "types": "./dist/file.util.d.ts",
       "default": "./dist/file.util.js"
@@ -52,6 +48,14 @@
     "./response": {
       "types": "./dist/response.d.ts",
       "default": "./dist/response.js"
+    },
+    "./bigint.util": {
+      "types": "./dist/bigint.util.d.ts",
+      "default": "./dist/bigint.util.js"
+    },
+    "./array.util": {
+      "types": "./dist/array.util.d.ts",
+      "default": "./dist/array.util.js"
     }
   },
   "dependencies": {},

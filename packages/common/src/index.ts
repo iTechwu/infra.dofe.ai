@@ -1,6 +1,15 @@
 export * from './common.module';
 export * from './encryption.service';
 export * from './config/env-config.service';
+export { getKeysConfig, initKeysConfig, getEnvConfig, getConfig } from './config/configuration';
+export type { KeysConfig, YamlConfig, EnvConfig } from './config/validation';
+export type { JwtConfig, EmbeddingKeysConfig, VikingDbKeysConfig } from './config/validation';
+export * from './filter/exception/api.exception';
+
+// Prisma utilities (moved from @dofe/infra-utils)
+export * from './utils/prisma-error.util';
+export * from './utils/audit-signature.util';
+export * from './utils/audit-log-helper.util';
 
 export * from './decorators/api-key/api-key.decorator';
 export * from './decorators/app-version/app-version.interceptor';
@@ -37,6 +46,7 @@ export * from './guards/permission.guard';
 export * from './guards/tenant-context.guard';
 export * from './guards/version.guard';
 
+export * from './middleware/request.middleware';
 export * from './interceptor/audit/audit-log.interceptor';
 export * from './interceptor/mask/mask.interceptor';
 export * from './interceptor/rate-limit/no-rate-limit.interceptor';

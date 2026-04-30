@@ -33,9 +33,9 @@ import {
   FileStorageInterface,
   PardxUploader,
 } from '@app/clients/internal/file-storage';
-import { PardxApp } from '@/config/dto/config.dto';
+import { PardxApp } from '@dofe/infra-common';
 import { CommonErrorCode } from '@dofe/infra-contracts';
-import { apiError } from '@/filter/exception/api.exception';
+import { apiError } from '@dofe/infra-common';
 
 import { FileStorageClientFactory } from './file-storage.factory';
 import { BucketResolver } from './bucket-resolver';

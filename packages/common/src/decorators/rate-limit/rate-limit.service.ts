@@ -48,7 +48,7 @@ import {
   RateLimitOptions,
   RateLimitResult,
 } from './dto/rate-limit.dto';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // Constants

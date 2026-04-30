@@ -21,7 +21,7 @@ import {
   VerifyCodeResult,
 } from '@app/clients/internal/sms';
 import { MobileAuth } from '@prisma/client';
-import { PardxApp } from '@/config/dto/config.dto';
+import { PardxApp } from '@dofe/infra-common';
 
 // ============================================================================
 // SMS 供应商类型

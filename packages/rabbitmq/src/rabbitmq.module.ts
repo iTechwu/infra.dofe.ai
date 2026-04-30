@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import * as Rabbitmq from 'amqplib';
 import { RABBITMQ_CONNECTION, RabbitmqConnection } from './dto/rabbitmq.dto';
 import { RabbitmqService } from './rabbitmq.service';
-import { createContextLogger } from '@/utils/logger-standalone.util';
+import { createContextLogger } from '@dofe/infra-utils';
 
 const logger = createContextLogger('RabbitmqModule');
 const CONNECT_TIMEOUT_MS = 5000;

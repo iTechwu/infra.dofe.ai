@@ -1,6 +1,6 @@
 import { Get } from '@nestjs/common';
 import { SystemHealthService } from './system-health.service';
-import { TsRestController } from '@/decorators/ts-rest-controller.decorator';
+import { TsRestController } from '@dofe/infra-common';
 
 /**
  * Health Check Controller

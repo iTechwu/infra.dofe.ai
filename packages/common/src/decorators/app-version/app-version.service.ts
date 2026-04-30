@@ -20,7 +20,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import * as fs from 'fs';
 import * as path from 'path';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@dofe/infra-utils/environment.util';
 import { buildConfig, getNodeEnv } from '@/config/env-config.service';
 
 // ============================================================================

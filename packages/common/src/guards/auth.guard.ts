@@ -15,8 +15,8 @@ import { MPTRAIL_HEADER, PUBLIC_ENDPOINT_KEY } from '@dofe/infra-contracts';
 import { RedisService } from '@dofe/infra-redis';
 import { UserInfoService } from '@app/db';
 import { JwtConfig } from '@/config/validation';
-import stringUtil from '@/utils/string.util';
-import enviromentUtil from '@/utils/enviroment.util';
+import stringUtil from '@dofe/infra-utils/string.util';
+import enviromentUtil from '@dofe/infra-utils/environment.util';
 import { featureConfig, isProduction } from '@/config/env-config.service';
 import { apiError } from '@/filter/exception/api.exception';
 

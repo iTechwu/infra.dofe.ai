@@ -17,9 +17,9 @@ import { FileBucketVendor } from '@prisma/client';
 
 import { PardxUploader } from '@app/clients/internal/file-storage';
 import { IpGeoService } from '@app/shared-services/ip-geo';
-import { AppConfig } from '@/config/validation';
-import arrayUtil from '@/utils/array.util';
-import enviromentUtil from '@/utils/enviroment.util';
+import { AppConfig } from '@dofe/infra-common';
+import arrayUtil from '@dofe/infra-utils/array.util';
+import enviromentUtil from '@dofe/infra-utils/environment.util';
 import { BucketLookupOptions } from './types';
 
 /**

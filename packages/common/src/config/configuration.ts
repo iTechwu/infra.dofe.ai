@@ -14,8 +14,8 @@ import {
   type YamlConfig,
   type KeysConfig,
 } from './validation';
-import enviroment from '@/utils/enviroment.util';
-import { createContextLogger } from '@/utils/logger-standalone.util';
+import enviroment from '@dofe/infra-utils/environment.util';
+import { createContextLogger } from '@dofe/infra-utils';
 
 // Note: AgentXConfigHelper is exported directly from './agentx.config'
 // to avoid circular dependency. Import from '@/config/agentx.config' instead.

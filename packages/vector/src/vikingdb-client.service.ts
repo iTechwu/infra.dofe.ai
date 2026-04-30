@@ -8,8 +8,8 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom, timeout, retry } from 'rxjs';
-import { getKeysConfig } from '@/config/configuration';
-import type { VikingDbKeysConfig } from '@/config/validation';
+import { getKeysConfig } from '@dofe/infra-common';
+import type { VikingDbKeysConfig } from '@dofe/infra-common';
 import type {
   VikingDbConfig,
   MemoryDocument,

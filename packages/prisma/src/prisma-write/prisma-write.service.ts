@@ -10,7 +10,7 @@ import { Logger } from 'winston';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import bigintUtil from '@/utils/bigint.util';
+import bigintUtil from '@dofe/infra-utils/bigint.util';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
 import {
   DbMetricsService,

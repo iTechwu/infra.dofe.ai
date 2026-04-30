@@ -13,7 +13,7 @@ import {
   generateAuditSignature,
   type AuditSignaturePayload,
 } from './audit-signature.util';
-import { maskSensitiveData } from './sensitive-data-masker.util';
+import { maskSensitiveData } from '@dofe/infra-utils';
 import { auditConfig } from '@/config/env-config.service';
 
 /** Audit log create data — uses loose typing since the Prisma schema may evolve */

@@ -1,8 +1,5 @@
 // Server-only utilities for infra layer
 
-// Prisma utilities
-export * from './prisma-error.util';
-
 // Model utilities
 export * from './model-normalizer';
 export * from './model-catalog-data.util';

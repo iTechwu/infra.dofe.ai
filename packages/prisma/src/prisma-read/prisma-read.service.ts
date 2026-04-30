@@ -8,7 +8,7 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import bigintUtil from '@/utils/bigint.util';
+import bigintUtil from '@dofe/infra-utils/bigint.util';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import {

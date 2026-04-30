@@ -8,8 +8,8 @@
  * Never log or expose the actual values.
  */
 import { z } from 'zod';
-import enviroment from '@/utils/enviroment.util';
-import { createContextLogger } from '@/utils/logger-standalone.util';
+import enviroment from '@dofe/infra-utils/environment.util';
+import { createContextLogger } from '@dofe/infra-utils';
 
 const logger = createContextLogger('KeysValidation');
 

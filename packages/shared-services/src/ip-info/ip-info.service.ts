@@ -18,11 +18,11 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '@dofe/infra-redis';
-import ipUtil, { MinimalIpRequest } from '@/utils/ip.util';
-import validateUtil from '@/utils/validate.util';
-import { PardxApp } from '@/config/dto/config.dto';
-import { IpInfoConfig } from '@/config/validation';
-import enviromentUtil from '@/utils/enviroment.util';
+import ipUtil, { MinimalIpRequest } from '@dofe/infra-utils/ip.util';
+import validateUtil from '@dofe/infra-utils/validate.util';
+import { PardxApp } from '@dofe/infra-common';
+import { IpInfoConfig } from '@dofe/infra-common';
+import enviromentUtil from '@dofe/infra-utils/environment.util';
 import { CountryCodeService } from '@app/db';
 import { IpInfoClient } from './ip-info.client';
 

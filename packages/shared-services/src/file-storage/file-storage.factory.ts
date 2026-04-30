@@ -26,16 +26,16 @@ import {
   PardxUploader,
 } from '@app/clients/internal/file-storage';
 import { RedisService } from '@dofe/infra-redis';
-import { getKeysConfig } from '@/config/configuration';
-import { AppConfig, StorageCredentialsConfig } from '@/config/validation';
+import { getKeysConfig } from '@dofe/infra-common';
+import { AppConfig, StorageCredentialsConfig } from '@dofe/infra-common';
 import { CommonErrorCode } from '@dofe/infra-contracts';
-import { apiError } from '@/filter/exception/api.exception';
+import { apiError } from '@dofe/infra-common';
 import {
   StorageClientKey,
   buildStorageClientKey,
   StorageCredentialsMap,
 } from './types';
-import enviromentUtil from '@/utils/enviroment.util';
+import enviromentUtil from '@dofe/infra-utils/environment.util';
 
 /**
  * 存储客户端类类型

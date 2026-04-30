@@ -50,7 +50,7 @@ import {
   VerifyCodeCheckResult,
   SmsVolcengineTemplate,
 } from './types';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // SMS Client Factory

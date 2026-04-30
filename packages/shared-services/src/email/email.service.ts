@@ -16,9 +16,9 @@ import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@app/rabbitmq';
 import { VerifyClient } from '@app/clients/internal/verify';
 import { CommonErrorCode } from '@dofe/infra-contracts';
-import { apiError } from '@/filter/exception/api.exception';
-import { PardxApp, SendCloudConfig } from '@/config/dto/config.dto';
-import { getKeysConfig } from '@/config/configuration';
+import { apiError } from '@dofe/infra-common';
+import { PardxApp, SendCloudConfig } from '@dofe/infra-common';
+import { getKeysConfig } from '@dofe/infra-common';
 
 import { SendCloudClient, PardxEmailSender } from '@app/clients/internal/email';
 

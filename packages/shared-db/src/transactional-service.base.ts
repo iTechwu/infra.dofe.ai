@@ -18,7 +18,7 @@ import {
   getTransactionClient as getAsyncTransactionClient,
   isInTransaction as isInAsyncTransaction,
 } from './transaction-context';
-import { getTransactionClient as getSymbolTransactionClient } from '@/decorators/transaction/transactional.decorator';
+import { getTransactionClient as getSymbolTransactionClient } from '@dofe/infra-common';
 
 /**
  * Base class for transactional services

@@ -15,7 +15,10 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/prisma/*": ["./src/prisma/*"],
+      "@/prisma-read/*": ["./src/prisma-read/*"],
+      "@/prisma-write/*": ["./src/prisma-write/*"]
     }
   },
   "include": ["src/**/*"]

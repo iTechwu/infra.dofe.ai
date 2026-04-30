@@ -31,7 +31,7 @@ import {
   FeatureFlagContext,
   FeatureFlagOptions,
 } from './feature-flag.decorator';
-import enviroment from '@/utils/enviroment.util';
+import enviroment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // Types
