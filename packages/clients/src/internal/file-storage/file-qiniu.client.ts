@@ -174,12 +174,14 @@ export class FileQiniuClient implements FileStorageInterface {
     // 如果未传入deadline，则默认为当前时间1小时后过期
     expire = expire || 15;
     // 如果提供了 bucket，需要获取对应 bucket 的配置
-    const finalBucket = bucket || this.config.bucket;
     const finalConfig =
       bucket && bucket !== this.config.bucket
         ? await this.getBucketConfig(bucket)
         : this.config;
     const privateBucketDomain = finalConfig.domain;
+    if (!privateBucketDomain) {
+      throw new Error('Bucket domain is not configured');
+    }
     // 可以通过配置config对象来自定义一些请求选项，例如zone等
     // const bucketManager = new qiniu.rs.BucketManager(this.mac, this.qiniuConfig);
     const expireAt = Date.now() + expire * 1000;
@@ -222,7 +224,6 @@ export class FileQiniuClient implements FileStorageInterface {
     key: string,
     bucket?: string,
   ): Promise<void> {
-    const finalBucket = this.getBucketString(bucket);
     const formUploader = new qiniu.form_up.FormUploader(this.qiniuConfig);
     const putExtra = new qiniu.form_up.PutExtra();
     const uploadToken = await this.uploadToken(bucket);
@@ -304,7 +305,7 @@ export class FileQiniuClient implements FileStorageInterface {
       fileKey,
       newBucket,
       destKey || fileKey,
-      options,
+      options ?? null,
     );
   }
 
@@ -322,7 +323,7 @@ export class FileQiniuClient implements FileStorageInterface {
       fileKey,
       newBucket,
       destKey || fileKey,
-      options,
+      options ?? null,
     );
   }
 
@@ -333,10 +334,10 @@ export class FileQiniuClient implements FileStorageInterface {
       fileKey,
     );
     if (!resp || resp.statusCode !== 200) {
-      this.logger.warn('deleteFile fail', fileKey, bucket, data);
+      this.logger.warn('deleteFile fail', { fileKey, bucket });
       return false;
     }
-    this.logger.warn('deleteFile success', resp);
+    this.logger.warn('deleteFile success', { resp });
     return true;
   }
 
@@ -360,10 +361,10 @@ export class FileQiniuClient implements FileStorageInterface {
   ): Promise<string[]> {
     const finalBucket = this.getBucketString(bucket);
     options = options || {};
-    prefix = folderUtil.ensurePrefixEndsWithSlash(prefix);
+    const safePrefix = folderUtil.ensurePrefixEndsWithSlash(prefix || '');
     options = {
       ...options,
-      prefix,
+      prefix: safePrefix,
       delimiter,
       limit: limit || 1000,
     };
@@ -548,7 +549,7 @@ export class FileQiniuClient implements FileStorageInterface {
   }
 
   getQiniuZone(): any {
-    const qiniuZones = {
+    const qiniuZones: Record<string, any> = {
       z0: qiniu.zone.Zone_z0,
       cn_east_2: qiniu.zone.Zone_cn_east_2,
       z1: qiniu.zone.Zone_z1,
@@ -556,7 +557,7 @@ export class FileQiniuClient implements FileStorageInterface {
       na0: qiniu.zone.Zone_na0,
       as0: qiniu.zone.Zone_as0,
     };
-    return qiniuZones[this.config.region];
+    return qiniuZones[this.config.region] || qiniu.zone.Zone_z0;
   }
   async listBuckets() {}
 
@@ -595,7 +596,7 @@ export class FileQiniuClient implements FileStorageInterface {
       .map(async (file) => {
         // 拼接原始url
         // 链接加密并进行Base64编码，别名去除前缀目录。
-        const { name, key, ext } = file.fileKey;
+        const { name, key } = file.fileKey;
 
         names.push(name);
         const url = await this.getPrivateDownloadUrl(
@@ -635,7 +636,7 @@ export class FileQiniuClient implements FileStorageInterface {
       // 下行。不知用处
       const options = { force: false };
       const persistentId = await this.pfopFops(
-        key,
+        dataKey,
         fops,
         pipeline,
         options,
@@ -660,14 +661,14 @@ export class FileQiniuClient implements FileStorageInterface {
    * @throws 如果执行过程中出现错误，则抛出异常
    */
   async pfopFops(
-    key,
-    fops,
-    pipeline,
-    options,
+    key: string,
+    fops: string,
+    pipeline: string,
+    options: any,
     bucket?: string,
   ): Promise<string> {
     const finalBucket = this.getBucketString(bucket);
-    return new Promise((res) => {
+    return new Promise((res, rej) => {
       this.operManager.pfop(
         finalBucket,
         key,
@@ -676,13 +677,15 @@ export class FileQiniuClient implements FileStorageInterface {
         options,
         (err, data, resp) => {
           if (err) {
-            throw err;
+            rej(err);
+            return;
           }
-          if (resp.statusCode == 200) {
+          if (resp.statusCode == 200 && data) {
             // 这里只返回任务id，转由客户端发请求查询
             res(data.persistentId);
           } else {
             this.logger.error('Qiniu pfop failed', { statusCode: resp.statusCode, data });
+            rej(new Error('Qiniu pfop failed'));
           }
         },
       );
@@ -695,19 +698,21 @@ export class FileQiniuClient implements FileStorageInterface {
    * @returns
    */
   async queryFopStatus(persistentId: string): Promise<any> {
-    return new Promise((res) => {
+    return new Promise((res, rej) => {
       this.operManager.prefop(persistentId, (err, data, resp) => {
         if (err) {
           this.logger.error('Qiniu queryFopStatus error', err);
-          throw apiError(CommonErrorCode.QiniuQueryFopStatusError);
+          rej(apiError(CommonErrorCode.QiniuQueryFopStatusError));
+          return;
         }
-        if (resp.statusCode == 200) {
+        if (resp.statusCode == 200 && data && data.items && data.items.length > 0) {
           const item = data.items[0];
           // const { code, key } = item
           // res({ code, key })
           res(item);
         } else {
           this.logger.error('Qiniu queryFopStatus failed', { statusCode: resp.statusCode, data });
+          rej(new Error('Qiniu queryFopStatus failed'));
         }
       });
     });

@@ -16,7 +16,6 @@ import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import { FileBucketVendor } from '@prisma/client';
 
-import { RedisService } from '@app/redis';
 import { FileStorageService } from '@app/shared-services/file-storage';
 import { CryptClient } from '@app/clients/internal/crypt';
 import * as cryptoUtil from '@/utils/crypto.util';

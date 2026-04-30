@@ -8,7 +8,7 @@ export class CryptClient {
   private readonly key: string;
   private readonly iv: string;
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
   ) {
     this.key = configService.getOrThrow<string>('CRYPTO_KEY');
     this.iv = configService.getOrThrow<string>('CRYPTO_IV');
