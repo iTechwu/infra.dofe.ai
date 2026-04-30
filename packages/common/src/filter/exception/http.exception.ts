@@ -117,7 +117,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 
   private buildResponseBody(
-    exception: HttpException,
+    exception: HttpException | ApiException,
     request: FastifyRequest,
     status: number,
     i18n: I18nContext | undefined,

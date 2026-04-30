@@ -29,7 +29,7 @@ export const AUTH_SERVICE_TOKEN = 'AUTH_SERVICE';
  * Auth Service Interface - 用于解耦 infra 和 domain
  */
 export interface IAuthService {
-  extractTokenFromHeader(request: FastifyRequest): string | undefined;
+  extractTokenFromHeader(request: { headers: Record<string, string | string[] | undefined> }): string | undefined;
 }
 
 /**
