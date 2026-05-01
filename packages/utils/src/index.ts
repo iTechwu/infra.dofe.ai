@@ -2,7 +2,6 @@
 
 // Model utilities
 export * from './model-normalizer';
-export * from './model-catalog-data.util';
 
 // Logger utilities
 export * from './logger.util';
