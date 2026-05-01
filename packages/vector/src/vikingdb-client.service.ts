@@ -8,6 +8,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom, timeout, retry } from 'rxjs';
+import type { AxiosResponse } from 'axios';
 import { getKeysConfig } from '@dofe/infra-common';
 import type { VikingDbKeysConfig } from '@dofe/infra-common';
 import type {
@@ -1074,7 +1075,7 @@ export class VikingDbClientService implements OnModuleInit {
           ? this.httpService.get<T>(url, { headers })
           : this.httpService.post<T>(url, body, { headers });
 
-      const response = await firstValueFrom(
+      const response = (await firstValueFrom(
         observable$.pipe(
           timeout(this.config.timeoutMs),
           retry({
@@ -1082,7 +1083,7 @@ export class VikingDbClientService implements OnModuleInit {
             delay: 1000,
           }),
         ),
-      );
+      )) as AxiosResponse<T>;
 
       return response.data;
     } catch (error) {

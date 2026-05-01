@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
+import type { AxiosResponse } from 'axios';
 
 import { RabbitmqService } from '@dofe/infra-rabbitmq';
 
@@ -48,13 +49,13 @@ export class NotificationService {
   private async sendWebhook(options: NotificationSendOptions): Promise<void> {
     const results = await Promise.allSettled(
       options.recipients.map(async (url) => {
-        const response = await firstValueFrom(
+        const response = (await firstValueFrom(
           this.httpService.post(url, {
             content: options.content,
             priority: options.priority ?? 'normal',
             metadata: options.metadata,
           }),
-        );
+        )) as AxiosResponse;
         return { url, status: response.status };
       }),
     );

@@ -8,6 +8,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom, timeout, retry } from 'rxjs';
+import type { AxiosResponse } from 'axios';
 import { getKeysConfig } from '@dofe/infra-common';
 import type { EmbeddingKeysConfig } from '@dofe/infra-common';
 import type { EmbeddingConfig } from './vikingdb.types';
@@ -109,7 +110,7 @@ export class EmbeddingService implements OnModuleInit {
     }
 
     try {
-      const response = await firstValueFrom(
+      const response = (await firstValueFrom(
         this.httpService
           .post<{
             data?: Array<{ embedding?: number[]; index?: number }>;
@@ -131,7 +132,9 @@ export class EmbeddingService implements OnModuleInit {
               delay: 500,
             }),
           ),
-      );
+      )) as AxiosResponse<{
+        data?: Array<{ embedding?: number[]; index?: number }>;
+      }>;
 
       const data = response.data?.data ?? [];
 

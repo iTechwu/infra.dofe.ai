@@ -10,6 +10,7 @@ import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
+import type { AxiosResponse } from 'axios';
 
 /**
  * ipinfo.io API 返回的原始数据结构
@@ -53,11 +54,11 @@ export class IpInfoClient {
     try {
       this.logger.debug('[IpInfoClient] Fetching IP info', { ip, url });
 
-      const response = await firstValueFrom(
+      const response = (await firstValueFrom(
         this.httpService.get<IpInfoApiResponse>(url, {
           timeout: this.API_TIMEOUT,
         }),
-      );
+      )) as AxiosResponse<IpInfoApiResponse>;
 
       this.logger.debug('[IpInfoClient] IP info fetched successfully', {
         ip,
