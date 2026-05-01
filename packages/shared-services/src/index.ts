@@ -1,5 +1,6 @@
 export * from './email/email.module';
 export * from './email/email.service';
+export * from './notification';
 export * from './file-storage/file-storage.module';
 export * from './file-storage/file-storage.service';
 export { PardxUploader } from './file-storage/index';
