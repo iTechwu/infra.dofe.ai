@@ -16,7 +16,7 @@ import { Logger } from 'winston';
 import { FileBucketVendor } from '@prisma/client';
 
 import { PardxUploader } from '@dofe/infra-clients';
-import { IpGeoService } from '@dofe/infra-shared-services';
+import { IpGeoService } from '../ip-geo/ip-geo.service';
 import { AppConfig } from '@dofe/infra-common';
 import arrayUtil from '@dofe/infra-utils/array.util';
 import enviromentUtil from '@dofe/infra-utils/environment.util';

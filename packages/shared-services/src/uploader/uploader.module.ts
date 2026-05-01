@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { FileStorageServiceModule } from '@dofe/infra-shared-services';
+import { FileStorageServiceModule } from '../file-storage/file-storage.module';
 import { UploaderService } from './uploader.service';
 import { RedisModule } from '@dofe/infra-redis';
 @Module({
