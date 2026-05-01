@@ -1,3 +1,60 @@
+## [0.1.2] - 2026-05-01
+- feat(prisma): 添加 Prisma 适配器和客户端的类型声明文件
+- feat(notification): implement notification module and service
+- feat: 添加发布所有基础设施包的脚本
+- feat: 添加 @dofe/infra-docker 依赖并更新相关配置；调整多个包的发布配置和类型
+- feat: add core types and utility for sensitive data masking
+- fix: 修复类型推断和参数转换问题
+- fix: infra build 脚本改为 no-op（源码直引模式）
+- fix: 源码直引模式 - package.json main/types 指向 src/
+- fix: resolve self-imports, complete barrel exports, add docs
+- fix: use correct ts-rest rc version range
+- fix: use workspace:* for @repo/* peerDependencies
+- refactor: 更新依赖项导入方式，统一使用命名导入格式；更新 tsconfig.json 以支持新的路径映射
+- refactor: update import paths to use new infra packages
+- refactor: remove prisma-error utility and integrate its functionality into common utils
+- chore: 移除不再使用的模型目录数据文件
+- chore: clean up empty code change sections in the changes log
+- chore: bump all packages to 0.1.1
+- Add TypeScript declaration maps for validation and exception handling
+- 更新 db-metrics 的 package.json，修正主入口和类型定义路径；在 redis 中添加 redis-version-check 模块以验证 Redis 版本；新增 db-metrics 的索引文件以导出 src 内容。
+- 移除不必要的依赖项：从 package.json 中删除 @dofe/infra-shared-services 和 @dofe/infra-clients
+- 删除 data-visibility 装饰器并更新环境工具的导出方式
+- Enhance type safety in HttpExceptionFilter and AuthService interface
+- Fix type assertion in AuthGuard for WeChat Mini Program detection
+- Implement fileDownloader method in FileQiniuClient and enhance error handling in FileS3Client
+- Refactor S3 File Storage Client for improved code organization and readability
+- Refactor client implementations for improved readability and error handling
+- Refactor client implementations and enhance type safety across various modules
+- Refactor logging in DbMetricsService and BucketResolver for improved clarity
+- Enhance module dependencies and update TypeScript configurations for improved maintainability
+- Remove data visibility decorators and related index file to streamline the codebase. This cleanup enhances maintainability by eliminating unused components and ensuring a more focused module structure.
+- Refactor client and service exports for enhanced clarity and maintainability
+- Remove deprecated CommonModule and EncryptionService along with related exports to streamline the codebase. This cleanup enhances maintainability by eliminating unused components and ensuring a more focused module structure.
+- Refactor shared services and client exports for improved clarity and consistency
+- Refactor Docker services and enhance TypeScript configuration for improved functionality
+- Enhance Docker and Utils module exports, and improve VikingDbClientService configuration handling
+- Update TypeScript configuration and refactor client exports for improved clarity
+- Update TypeScript configuration and enhance DTOs for backward compatibility
+- Refactor Prisma and Redis services to enhance logging and configuration handling
+- Enhance module exports and update utility functions for improved functionality
+- Rename ExchangeRateModule to ExchangeRateClientModule for clarity and consistency in module naming.
+- Enhance README and module exports for improved functionality and clarity
+- Update README and client exports for enhanced documentation and functionality
+- Refactor IP Info and Volcengine TTS clients to enhance configuration handling
+- Refactor PrismaRead and PrismaWrite services to use connection configuration objects
+- Enhance module imports by adding Reflector to multiple decorators
+- Refactor import paths for consistency and clarity
+- Refactor Crypt and IP Info clients to use updated configuration handling
+- Refactor Prisma client imports and clean up RabbitMQ module exports
+- Refactor environment variable imports and update tsconfig paths
+- Remove @dofe/infra-clients dep from utils (breaks cycle), clean dead deps
+- Clean up build artifacts and switch to source-referencing mode
+- Update package configurations and add Zod dependency
+- Clean up duplicate util files and fix index exports
+- Fix source-referencing mode for scaffold.dofe.ai webpack build
+- Add ai-provider and exchange-rate clients, fix jwt module import
+
 # Changelog
 
 ## [0.1.0] - 2026-04-26
