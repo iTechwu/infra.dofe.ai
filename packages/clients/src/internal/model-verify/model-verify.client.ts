@@ -6,7 +6,6 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom, timeout, catchError, of } from 'rxjs';
-import type { ModelType } from '@prisma/client';
 
 /**
  * DMXAPI 等第三方聚合平台的域名特征

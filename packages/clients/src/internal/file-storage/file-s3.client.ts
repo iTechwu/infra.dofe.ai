@@ -1019,7 +1019,7 @@ export class FileS3Client implements FileStorageInterface {
 
     // 设置 ContentLength（如果可用）
     if (contentLength) {
-      uploadParams.ContentLength = parseInt(contentLength, 10);
+      uploadParams.ContentLength = parseInt(String(contentLength), 10);
     }
 
     const command = new PutObjectCommand(uploadParams);

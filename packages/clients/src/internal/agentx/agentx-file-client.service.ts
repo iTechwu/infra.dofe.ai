@@ -84,8 +84,9 @@ export class AgentXFileClient implements OnModuleInit {
 
         // 如果没有扩展名，尝试从 Content-Type 推断
         if (!filename.includes('.')) {
-          const contentType = response.headers['content-type'];
-          if (contentType) {
+          const rawContentType = response.headers['content-type'];
+          if (rawContentType) {
+            const contentType = String(rawContentType);
             if (contentType.includes('jpeg') || contentType.includes('jpg')) {
               ext = 'jpg';
             } else if (contentType.includes('png')) {

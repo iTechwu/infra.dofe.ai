@@ -8,7 +8,7 @@ export default {
     if (objectUtil.getType(str) !== 'string') {
       return false;
     }
-    return uuidValidate(str);
+    return uuidValidate(str as string);
   },
 
   stringGen(len = 6): string {

@@ -41,7 +41,6 @@ export interface ModelCatalogReferenceData {
   supportsVision?: boolean;
   supportsFunctionCalling?: boolean;
   supportsStreaming?: boolean;
-  modelType?: 'llm' | 'vlm' | 'image' | 'video' | 'audio' | 'embedding' | '3d';
   recommendedScenarios?: string[];
 }
 
