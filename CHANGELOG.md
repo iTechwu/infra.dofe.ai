@@ -1,3 +1,6 @@
+## [0.1.3] - 2026-05-01
+- fix(shared-services): 修复循环自引用导入，改用相对路径导入同级模块
+
 ## [0.1.2] - 2026-05-01
 - feat(prisma): 添加 Prisma 适配器和客户端的类型声明文件
 - feat(notification): implement notification module and service
