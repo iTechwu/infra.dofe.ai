@@ -16,6 +16,7 @@ import {
   QueryContext,
 } from '../db-metrics/src/db-metrics.service';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
+import { getConfig } from '@dofe/infra-common';
 
 /**
  * Prisma Read Service
@@ -84,7 +85,11 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
     const fallbackLog = this.fallbackLog.bind(this);
 
     // 1. 先应用软删除扩展
-    const withSoftDelete = setupSoftDeleteMiddleware(basePrisma);
+    const prismaConfig = getConfig()?.prisma;
+    const withSoftDelete = setupSoftDeleteMiddleware(
+      basePrisma,
+      prismaConfig?.nonSoftDeleteModels,
+    );
 
     // 2. 应用监控扩展
     return withSoftDelete.$extends({

@@ -12,6 +12,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import bigintUtil from '@dofe/infra-utils/bigint.util';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
+import { getConfig } from '@dofe/infra-common';
 import {
   DbMetricsService,
   QueryContext,
@@ -80,7 +81,11 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
     const fallbackLog = this.fallbackLog.bind(this);
 
     // 1. 先应用软删除扩展
-    const withSoftDelete = setupSoftDeleteMiddleware(basePrisma);
+    const prismaConfig = getConfig()?.prisma;
+    const withSoftDelete = setupSoftDeleteMiddleware(
+      basePrisma,
+      prismaConfig?.nonSoftDeleteModels,
+    );
 
     // 2. 应用监控扩展
     return withSoftDelete.$extends({

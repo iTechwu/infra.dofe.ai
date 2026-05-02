@@ -460,6 +460,30 @@ export const rateLimitConfigSchema = z.object({
 });
 
 /**
+ * Prisma configuration schema
+ *
+ * Controls Prisma client behavior at the infra level.
+ * Consuming projects configure this under the `prisma` key in config.local.yaml.
+ *
+ * @example
+ * ```yaml
+ * prisma:
+ *   nonSoftDeleteModels:
+ *     - MyCustomModel
+ *     - AnotherModel
+ *   criticalModels:
+ *     - UserInfo
+ *     - Tenant
+ * ```
+ */
+export const prismaConfigSchema = z.object({
+  /** Additional model names that lack an isDeleted field, extending the infra default list */
+  nonSoftDeleteModels: z.array(z.string()).optional(),
+  /** Critical models for startup validation — checked for delegate & findMany at bootstrap */
+  criticalModels: z.array(z.string()).optional(),
+});
+
+/**
  * Full YAML configuration schema
  */
 export const yamlConfigSchema = z.object({
@@ -485,6 +509,8 @@ export const yamlConfigSchema = z.object({
   transaction: transactionConfigSchema.optional(),
   // Model routing evasion configuration
   evasion: evasionConfigSchema.optional(),
+  // Prisma client behavior configuration
+  prisma: prismaConfigSchema.optional(),
 });
 
 // ============================================================================
@@ -595,6 +621,9 @@ export type EvasionDurationsConfig = z.infer<
 
 /** 避让配置类型 */
 export type EvasionConfig = z.infer<typeof evasionConfigSchema>;
+
+/** Prisma 配置类型 */
+export type PrismaConfig = z.infer<typeof prismaConfigSchema>;
 
 /**
  * Validation result type

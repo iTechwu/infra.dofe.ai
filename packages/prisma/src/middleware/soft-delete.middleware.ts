@@ -266,14 +266,28 @@ function hasExplicitIsDeleted(
  * 当前实现仅处理查询操作的软删除过滤
  *
  * @param prisma - Prisma 客户端实例
+ * @param nonSoftDeleteModels - 额外的无 isDeleted 字段模型列表，从项目 YAML 配置 (prisma.nonSoftDeleteModels) 传入
  * @returns 扩展后的 PrismaClient 实例
  */
-export function setupSoftDeleteMiddleware(prisma: PrismaClient): PrismaClient {
+export function setupSoftDeleteMiddleware(
+  prisma: PrismaClient,
+  nonSoftDeleteModels?: readonly string[],
+): PrismaClient {
+  // Build the effective non-soft-delete model list: defaults + config overrides
+  const effectiveNonSoftDeleteModels = nonSoftDeleteModels?.length
+    ? [...NON_SOFT_DELETE_MODELS, ...nonSoftDeleteModels]
+    : NON_SOFT_DELETE_MODELS;
+
+  function isModelSoftDeletable(modelName: string | undefined): boolean {
+    if (!modelName) return false;
+    return !effectiveNonSoftDeleteModels.includes(modelName as any);
+  }
+
   return prisma.$extends({
     query: {
       $allOperations({ operation, model, args, query }) {
         // 检查是否为软删除模型
-        if (!isSoftDeleteModel(model)) {
+        if (!isModelSoftDeletable(model)) {
           return query(args);
         }
 

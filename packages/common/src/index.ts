@@ -6,7 +6,7 @@ export type { KeysConfig, YamlConfig, EnvConfig } from './config/validation';
 export type { JwtConfig, EmbeddingKeysConfig, VikingDbKeysConfig } from './config/validation';
 export type { AppConfig, SendCloudConfig, StorageCredentialsConfig, IpInfoConfig, OpenSpeechConfig } from './config/validation';
 export type { TranscodeConfig, TtsConfig } from './config/validation';
-export type { RiskConfig, OpenAIConfig, ExchangeRateConfig, ImageConfig, VectorConfig, AgentXConfig } from './config/validation';
+export type { RiskConfig, OpenAIConfig, ExchangeRateConfig, ImageConfig, VectorConfig, AgentXConfig, PrismaConfig } from './config/validation';
 export type { ZoneConfig, VideoQuality } from './config/validation';
 export type { IpInfoKeysConfig } from './config/validation';
 export { PardxApp, DoFeApp, Locale, LocaleString, VideoResolutionDto } from './config/dto/config.dto';

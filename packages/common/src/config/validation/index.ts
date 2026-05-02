@@ -71,6 +71,8 @@ export {
   // Evasion Schemas
   evasionDurationsConfigSchema,
   evasionConfigSchema,
+  // Prisma Schemas
+  prismaConfigSchema,
   // Functions
   validateYamlConfig,
   validateYamlConfigSafe,
@@ -116,6 +118,8 @@ export type {
   // Evasion Types
   EvasionDurationsConfig,
   EvasionConfig,
+  // Prisma Types
+  PrismaConfig,
 } from './yaml.validation';
 
 // ============================================================================
