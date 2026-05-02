@@ -1,3 +1,6 @@
+## [0.1.8] - 2026-05-02
+- feat: add AgentX file client for file uploads and task management
+
 ## [0.1.7] - 2026-05-02
 - feat(ip-info): 添加 IP 信息客户端模块及相关 DTO
 
