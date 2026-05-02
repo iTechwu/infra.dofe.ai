@@ -12,7 +12,7 @@ import {
   API_VERSION_DEFAULT,
   API_GENERATION,
 } from '@dofe/infra-contracts';
-import { buildConfig } from '@/config/env-config.service';
+import { buildConfig } from '../../config/env-config.service';
 
 /**
  * Version Header Interceptor

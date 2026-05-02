@@ -11,7 +11,7 @@ import { HttpService } from '@nestjs/axios';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { firstValueFrom } from 'rxjs';
-import { getEnv } from '@dofe/infra-common';
+import { getEnv } from '@dofe/infra-common/dist/config/env-config.service';
 
 export interface MlflowProxyLog {
   botId: string;

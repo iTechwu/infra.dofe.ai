@@ -7,10 +7,10 @@ import {
 } from '@nestjs/common';
 import type { ResourceType, DataScope, Permission } from '@dofe/infra-contracts';
 import { REQUIRE_PERMISSIONS_KEY } from '@dofe/infra-contracts';
-import { AuthGuard } from '@/common/guards';
-import { TenantContextGuard } from '@/common/guards/tenant-context.guard';
-import { PermissionGuard } from '@/common/guards/permission.guard';
-import { DataVisibilityGuard } from '@/common/guards/data-visibility.guard';
+import { AuthGuard } from '../../guards';
+import { TenantContextGuard } from '../../guards/tenant-context.guard';
+import { PermissionGuard } from '../../guards/permission.guard';
+import { DataVisibilityGuard } from '../../guards/data-visibility.guard';
 
 /**
  * 数据可见性元数据键

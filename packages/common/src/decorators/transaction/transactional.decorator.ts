@@ -40,7 +40,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
-import { isDevelopment } from '@/config/env-config.service';
+import { isDevelopment } from '../../config/env-config.service';
 
 /**
  * Transaction isolation levels

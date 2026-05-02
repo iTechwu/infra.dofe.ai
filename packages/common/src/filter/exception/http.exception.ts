@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { I18nContext } from 'nestjs-i18n';
-import { ApiException } from '@/filter/exception/api.exception';
+import { ApiException } from './api.exception';
 
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';

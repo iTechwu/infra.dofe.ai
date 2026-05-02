@@ -11,7 +11,7 @@
  * 2. 验证日志时调用 verifyAuditSignature() 验证完整性
  */
 import * as crypto from 'crypto';
-import { auditConfig, isProduction } from '@/config/env-config.service';
+import { auditConfig, isProduction } from '../config/env-config.service';
 
 /** 默认签名密钥（仅开发环境使用） */
 const DEFAULT_SECRET = 'dev-audit-signature-secret-change-in-production';

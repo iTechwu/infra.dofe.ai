@@ -11,9 +11,9 @@ import {
   REQUIRE_PERMISSIONS_KEY,
   Permission,
 } from '@dofe/infra-contracts';
-import { AuthGuard } from '@/common/guards';
-import { TenantContextGuard } from '@/common/guards/tenant-context.guard';
-import { PermissionGuard } from '@/common/guards/permission.guard';
+import { AuthGuard } from '../../guards';
+import { TenantContextGuard } from '../../guards/tenant-context.guard';
+import { PermissionGuard } from '../../guards/permission.guard';
 
 /**
  * 公共端点装饰器 - 标记不需要认证的端点

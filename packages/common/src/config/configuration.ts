@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as process from 'process';
-import { ApiException } from '@/filter/exception/api.exception';
+import { ApiException } from '../filter/exception/api.exception';
 import {
   validateEnv,
   validateEnvSafe,
