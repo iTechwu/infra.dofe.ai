@@ -1,3 +1,5 @@
+export * from './verify';
+export * from './agentx';
 export * from './email/email.module';
 export * from './email/email.service';
 export * from './notification';

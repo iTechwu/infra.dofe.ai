@@ -32,7 +32,7 @@ import type { MobileAuth } from '@prisma/client';
 
 import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@dofe/infra-rabbitmq';
-import { VerifyClient } from '@dofe/infra-clients';
+import { VerifyClient } from '../verify';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
 import { PardxApp } from '@dofe/infra-common';

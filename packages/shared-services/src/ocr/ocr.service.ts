@@ -9,7 +9,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-import { AgentXClient } from '@dofe/infra-clients';
+import { AgentXClient } from '../agentx';
 
 /**
  * OCR 任务请求参数

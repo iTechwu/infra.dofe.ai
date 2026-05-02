@@ -7,7 +7,7 @@
  */
 
 import { Module } from '@nestjs/common';
-import { AgentXClientModule } from '@dofe/infra-clients';
+import { AgentXClientModule } from '../agentx';
 import { OcrService } from './ocr.service';
 
 /**

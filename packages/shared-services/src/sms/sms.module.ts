@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { RedisModule } from '@dofe/infra-redis';
 import { RabbitmqModule } from '@dofe/infra-rabbitmq';
-import { VerifyModule } from '@dofe/infra-clients';
+import { VerifyModule } from '../verify';
 import { SmsService } from './sms.service';
 
 @Module({
