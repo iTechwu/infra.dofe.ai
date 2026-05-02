@@ -4,7 +4,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Counter, Histogram, Gauge } from 'prom-client';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { clsNamespace } from '@dofe/infra-common';
+import { clsNamespace } from '@dofe/infra-common/dist/middleware/request.middleware';
 import enviroment from '@dofe/infra-utils/environment.util';
 
 /**

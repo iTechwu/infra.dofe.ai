@@ -49,14 +49,9 @@ export * from './decorators/version/version.interceptor';
 export * from './decorators/version/version.module';
 
 export * from './guards/api-key.guard';
-export * from './guards/auth.guard';
-export * from './guards/data-visibility.guard';
-export * from './guards/permission.guard';
-export * from './guards/tenant-context.guard';
 export * from './guards/version.guard';
 
 export * from './middleware/request.middleware';
-export * from './interceptor/audit/audit-log.interceptor';
 export * from './interceptor/mask/mask.interceptor';
 export * from './interceptor/rate-limit/no-rate-limit.interceptor';
 export * from './interceptor/rate-limit/rate-limit.interceptor';
