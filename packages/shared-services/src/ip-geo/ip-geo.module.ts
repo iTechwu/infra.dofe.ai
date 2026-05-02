@@ -5,7 +5,7 @@
  */
 import { Module } from '@nestjs/common';
 import { RedisModule } from '@dofe/infra-redis';
-import { IpInfoClientModule } from '@dofe/infra-clients';
+import { IpInfoClientModule } from '../ip-info-client';
 import { IpGeoService } from './ip-geo.service';
 
 /**

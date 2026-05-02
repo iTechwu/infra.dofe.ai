@@ -8,6 +8,7 @@ export * from './ip-geo/ip-geo.module';
 export * from './ip-geo/ip-geo.service';
 export * from './ip-info/ip-info.module';
 export * from './ip-info/ip-info.service';
+export * from './ip-info-client';
 export * from './ocr/ocr.module';
 export * from './ocr/ocr.service';
 export * from './sms/sms.module';

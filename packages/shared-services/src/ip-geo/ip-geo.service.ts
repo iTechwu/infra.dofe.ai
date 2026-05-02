@@ -20,7 +20,7 @@ import validateUtil from '@dofe/infra-utils/validate.util';
 import { PardxApp } from '@dofe/infra-common';
 import enviromentUtil from '@dofe/infra-utils/environment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
-import { IpInfoClient, IpInfoResponse } from '@dofe/infra-clients';
+import { IpInfoClient, IpInfoResponse } from '../ip-info-client';
 
 /**
  * IP 地理位置服务（Infra 层）
