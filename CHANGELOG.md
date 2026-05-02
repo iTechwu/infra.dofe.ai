@@ -1,3 +1,6 @@
+## [0.1.9] - 2026-05-03
+- refactor: 更新导入路径以使用具体模块而非通用路径
+
 ## [0.1.8] - 2026-05-02
 - feat: add AgentX file client for file uploads and task management
 
