@@ -4,7 +4,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { Counter, Histogram, Gauge } from 'prom-client';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { clsNamespace } from '@dofe/infra-common/dist/middleware/request.middleware';
+import { asyncLocalStorage } from '@dofe/infra-common/dist/middleware/request.middleware';
 import enviroment from '@dofe/infra-utils/environment.util';
 
 /**
@@ -419,12 +419,11 @@ export class DbMetricsService implements OnModuleInit {
   // =========================================================================
 
   /**
-   * Get current trace ID from CLS namespace
-   * 从 CLS 命名空间获取当前 traceId
+   * Get current trace ID from async local storage
    */
   private getTraceId(): string {
     try {
-      return clsNamespace?.get('traceID') || 'unknown';
+      return asyncLocalStorage.getStore()?.traceID || 'unknown';
     } catch {
       return 'unknown';
     }

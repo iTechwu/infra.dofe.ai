@@ -9,24 +9,25 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
+    "@dofe/infra-clients": "workspace:*",
+    "@dofe/infra-contracts": "workspace:*",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/event-emitter": "^3.0.0",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-fastify": "^11.0.0",
     "@prisma/client": "^7.0.0",
-    "@dofe/infra-contracts": "workspace:*",
     "axios": "^1.7.0",
+    "class-validator": "^0.14.1",
     "ioredis": "^5.0.0",
+    "nest-winston": "^1.9.7",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
-    "nest-winston": "^1.9.7",
+    "uuid": "^14.0.0",
     "winston": "^3.13.0",
-    "uuid": "^11.1.0",
-    "class-validator": "^0.14.1",
-    "zod": "^4.3.6",
-    "@nestjs/jwt": "^11.0.2"
+    "zod": "^4.3.6"
   },
   "dependencies": {
     "@dofe/infra-common": "workspace:*",
@@ -37,8 +38,8 @@
     "@dofe/infra-utils": "workspace:*"
   },
   "devDependencies": {
-    "rimraf": "^5.0.0",
-    "typescript": "^5.4.5"
+    "rimraf": "^6.1.3",
+    "typescript": "^6.0.3"
   },
   "type": "commonjs",
   "publishConfig": {

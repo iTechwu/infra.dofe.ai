@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "description": "DofeAI shared infrastructure libraries",
+  "engines": {
+    "node": ">=20.19.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.25.0",
   "scripts": {
     "build": "bash scripts/build-all.sh",
     "build:legacy": "pnpm -r --stream run build",
@@ -34,13 +39,13 @@
   "devDependencies": {
     "@dofe/infra-contracts": "workspace:*",
     "@dofe/infra-docker": "workspace:*",
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.1.10",
-    "@nestjs/platform-fastify": "^11.1.10",
-    "@types/node": "^22.19.17",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "^11.1.19",
+    "@nestjs/platform-fastify": "^11.1.19",
+    "@types/node": "^25.6.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
-    "typescript": "^5.4.5",
-    "zod": "^4.3.6"
+    "typescript": "^6.0.3",
+    "zod": "^4.4.2"
   }
 }

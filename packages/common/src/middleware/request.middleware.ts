@@ -7,7 +7,7 @@ import {
 import { FastifyRequest } from 'fastify';
 import { IncomingMessage, ServerResponse } from 'http';
 import { v4 as uuidv4 } from 'uuid';
-import { createNamespace } from 'cls-hooked';
+import { AsyncLocalStorage } from 'async_hooks';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
@@ -19,7 +19,21 @@ import enviroment from '@dofe/infra-utils/environment.util';
 // Trace ID 请求头名称
 export const TRACE_ID_HEADER = 'x-trace-id';
 
-export const clsNamespace = createNamespace('app');
+export interface RequestContext {
+  traceID: string;
+}
+
+export const asyncLocalStorage = new AsyncLocalStorage<RequestContext>();
+
+/** @deprecated Use asyncLocalStorage instead */
+export const clsNamespace = {
+  run: (fn: () => void) => asyncLocalStorage.run({ traceID: '' }, fn),
+  set: (key: string, value: any) => {
+    const store = asyncLocalStorage.getStore();
+    if (store) (store as any)[key] = value;
+  },
+  get: (key: string) => asyncLocalStorage.getStore()?.[key as keyof RequestContext],
+};
 
 /**
  * 获取或生成 Trace ID
@@ -59,9 +73,6 @@ export default class RequestMiddleware implements NestMiddleware<
   ) {}
 
   async use(req: IncomingMessage, res: ServerResponse, next: () => void) {
-    clsNamespace.bind(req as any);
-    clsNamespace.bind(res as any);
-
     // 获取或生成 Trace ID (支持分布式追踪)
     const traceId = getOrCreateTraceId(req);
 
@@ -88,8 +99,7 @@ export default class RequestMiddleware implements NestMiddleware<
     const realIp = ipUtil.extractIp(req as any);
     (req as any).realIp = realIp;
 
-    clsNamespace.run(() => {
-      clsNamespace.set('traceID', traceId);
+    asyncLocalStorage.run({ traceID: traceId }, () => {
       next();
       // 记录日志 (包含 traceId)
       // 注意：getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
