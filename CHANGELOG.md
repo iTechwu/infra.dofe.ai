@@ -1,3 +1,6 @@
+## [0.1.11] - 2026-05-04
+- chore: add ignoreDeprecations option to tsconfig.build-all.json
+
 ## [0.1.10] - 2026-05-03
 - refactor: 更新导入路径以使用具体模块而非通用路径
 
