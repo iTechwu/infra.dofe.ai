@@ -83,12 +83,12 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
-    "class-validator": "^0.14.1",
+    "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "^7.0.0",
     "@willsoto/nestjs-prometheus": "^6.0.0",
+    "class-validator": "^0.14.1",
     "ioredis": "^5.0.0",
     "nest-winston": "^1.9.7",
-    "@prisma/adapter-pg": "^7.0.0",
     "pg": "^8.0.0",
     "prom-client": "^15.0.0",
     "reflect-metadata": "^0.2.0",
@@ -96,9 +96,9 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.25",
-    "@dofe/infra-redis": "^0.1.25",
-    "@dofe/infra-utils": "^0.1.25"
+    "@dofe/infra-common": "^0.1.26",
+    "@dofe/infra-redis": "^0.1.26",
+    "@dofe/infra-utils": "^0.1.26"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

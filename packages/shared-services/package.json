@@ -364,6 +364,9 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
+    "@alicloud/imm20200930": "^4.6.2",
+    "@alicloud/openapi-core": "^1.0.7",
+    "@darabonba/typescript": "^1.0.4",
     "@dofe/infra-clients": "^0.1.25",
     "@dofe/infra-contracts": "^0.1.25",
     "@nestjs/axios": "^4.0.0",
@@ -376,9 +379,6 @@
     "@prisma/client": "^7.0.0",
     "@volcengine/openapi": "^1.0.0",
     "@volcengine/tos-sdk": "^2.7.6",
-    "@alicloud/imm20200930": "^4.6.2",
-    "@alicloud/openapi-core": "^1.0.7",
-    "@darabonba/typescript": "^1.0.4",
     "ali-oss": "^6.20.0",
     "axios": "^1.7.0",
     "class-validator": "^0.14.1",
@@ -394,13 +394,13 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.25",
-    "@dofe/infra-jwt": "^0.1.25",
-    "@dofe/infra-prisma": "^0.1.25",
-    "@dofe/infra-rabbitmq": "^0.1.25",
-    "@dofe/infra-redis": "^0.1.25",
-    "@dofe/infra-shared-db": "^0.1.25",
-    "@dofe/infra-utils": "^0.1.25"
+    "@dofe/infra-common": "^0.1.26",
+    "@dofe/infra-jwt": "^0.1.26",
+    "@dofe/infra-prisma": "^0.1.26",
+    "@dofe/infra-rabbitmq": "^0.1.26",
+    "@dofe/infra-redis": "^0.1.26",
+    "@dofe/infra-shared-db": "^0.1.26",
+    "@dofe/infra-utils": "^0.1.26"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",
