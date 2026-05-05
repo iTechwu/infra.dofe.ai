@@ -345,10 +345,10 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
-    "@nestjs/jwt": "^11.0.2",
-    "@nestjs/swagger": "^11.0.0",
     "@nestjs/event-emitter": "^3.0.0",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-fastify": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
     "@prisma/client": "^7.0.0",
     "accept-language-parser": "^1.5.0",
     "class-validator": "^0.14.1",
@@ -370,7 +370,7 @@
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",
-    "@types/js-yaml": "^4.0.0",
+    "@types/js-yaml": "^4.0.9",
     "rimraf": "^6.1.3",
     "typescript": "^6.0.3"
   },
