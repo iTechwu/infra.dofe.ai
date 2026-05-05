@@ -12,19 +12,23 @@ import { Logger } from 'winston';
 import { FastifyRequest } from 'fastify';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { OrganizationPermissionService } from '@app/tenant-management/organization-permission';
+import {
+  ORGANIZATION_PERMISSION_SERVICE_TOKEN,
+  IOrganizationPermissionService,
+} from './tokens';
 import {
   REQUIRE_PERMISSIONS_KEY,
   PUBLIC_ENDPOINT_KEY,
   Permission,
 } from '@dofe/infra-contracts';
-import { JwtConfig } from '@/config/validation';
+import { JwtConfig } from '../config/validation';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly permissionService: OrganizationPermissionService,
+    @Inject(ORGANIZATION_PERMISSION_SERVICE_TOKEN)
+    private readonly permissionService: IOrganizationPermissionService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,

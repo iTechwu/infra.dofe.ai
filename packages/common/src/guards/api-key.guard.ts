@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FastifyRequest } from 'fastify';
-import { ALLOW_API_KEY_KEY } from '@/common/decorators/api-key/api-key.decorator';
+import { ALLOW_API_KEY_KEY } from '../decorators/api-key/api-key.decorator';
 
 const API_KEY_HEADER = 'x-api-key' as const;
 const SERVICE_NAME_HEADER = 'x-service-name' as const;

@@ -8,8 +8,11 @@ import { Reflector } from '@nestjs/core';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FastifyRequest } from 'fastify';
-import { OrganizationPermissionService } from '@app/tenant-management/organization-permission';
-import { DATA_VISIBILITY_KEY } from '@/common/decorators/data-visibility';
+import {
+  ORGANIZATION_PERMISSION_SERVICE_TOKEN,
+  IOrganizationPermissionService,
+} from './tokens';
+import { DATA_VISIBILITY_KEY } from '../decorators/data-visibility';
 import type { ResourceType, DataScope } from '@dofe/infra-contracts';
 
 /**
@@ -22,7 +25,8 @@ import type { ResourceType, DataScope } from '@dofe/infra-contracts';
 export class DataVisibilityGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly permissionService: OrganizationPermissionService,
+    @Inject(ORGANIZATION_PERMISSION_SERVICE_TOKEN)
+    private readonly permissionService: IOrganizationPermissionService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 

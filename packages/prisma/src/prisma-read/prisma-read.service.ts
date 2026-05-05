@@ -16,7 +16,7 @@ import {
   QueryContext,
 } from '../db-metrics/src/db-metrics.service';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
-import { getConfig } from '@dofe/infra-common/dist/config/configuration';
+import { getConfig } from '@dofe/infra-common';
 
 /**
  * Prisma Read Service

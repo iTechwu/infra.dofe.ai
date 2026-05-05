@@ -16,7 +16,10 @@ import {
   AUDIT_LOG_KEY,
   AuditLogOptions,
 } from '../../decorators/audit-log.decorator';
-import { OperateLogService } from '@app/db';
+import {
+  OPERATE_LOG_SERVICE_TOKEN,
+  IOperateLogService,
+} from '../../guards/tokens';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
@@ -24,8 +27,8 @@ export class AuditLogInterceptor implements NestInterceptor {
     private readonly reflector: Reflector,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     @Optional()
-    @Inject(OperateLogService)
-    private readonly operateLogService?: OperateLogService,
+    @Inject(OPERATE_LOG_SERVICE_TOKEN)
+    private readonly operateLogService?: IOperateLogService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {

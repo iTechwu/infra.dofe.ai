@@ -19,7 +19,7 @@ import type {
 } from './types';
 import { normalizeModelName } from '@dofe/infra-utils';
 import { DockerImageService } from './docker-image.service';
-import { dockerConfig } from '@dofe/infra-common/dist/config/env-config.service';
+import { dockerConfig } from '@dofe/infra-common';
 
 // 子服务导入 - 直接导入避免循环依赖
 import { DockerStatsService } from './docker-stats.service';

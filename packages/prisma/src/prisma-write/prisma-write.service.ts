@@ -12,7 +12,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import bigintUtil from '@dofe/infra-utils/bigint.util';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
-import { getConfig } from '@dofe/infra-common/dist/config/configuration';
+import { getConfig } from '@dofe/infra-common';
 import {
   DbMetricsService,
   QueryContext,

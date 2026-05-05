@@ -13,12 +13,11 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { MPTRAIL_HEADER, PUBLIC_ENDPOINT_KEY } from '@dofe/infra-contracts';
 import { RedisService } from '@dofe/infra-redis';
-import { UserInfoService } from '@app/db';
-import { JwtConfig } from '@/config/validation';
+import { JwtConfig } from '../config/validation';
 import stringUtil from '@dofe/infra-utils/string.util';
 import enviromentUtil from '@dofe/infra-utils/environment.util';
-import { featureConfig, isProduction } from '@/config/env-config.service';
-import { apiError } from '@/filter/exception/api.exception';
+import { featureConfig, isProduction } from '../config/env-config.service';
+import { apiError } from '../filter/exception/api.exception';
 
 /**
  * Auth Guard Token - 用于注入 AuthService
@@ -50,7 +49,6 @@ export class AuthGuard implements CanActivate {
     private readonly config: ConfigService,
     private readonly reflector: Reflector,
     private readonly redis: RedisService,
-    private readonly user: UserInfoService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     // 这两个配置在早期版本的 YAML 中存在，但当前模板中是可选的

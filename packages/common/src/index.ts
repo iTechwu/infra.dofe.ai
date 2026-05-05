@@ -50,6 +50,7 @@ export * from './decorators/version/version.module';
 
 export * from './guards/api-key.guard';
 export * from './guards/version.guard';
+export * from './guards/tokens';
 
 export * from './middleware/request.middleware';
 export * from './interceptor/mask/mask.interceptor';

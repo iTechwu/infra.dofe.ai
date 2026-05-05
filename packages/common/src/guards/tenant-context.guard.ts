@@ -9,7 +9,10 @@ import { Reflector } from '@nestjs/core';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FastifyRequest } from 'fastify';
-import { TenantContextService } from '@app/tenant-management/tenant-context';
+import {
+  TENANT_CONTEXT_SERVICE_TOKEN,
+  ITenantContextService,
+} from './tokens';
 import {
   CURRENT_TENANT_HEADER,
   TENANT_SCOPE_KEY,
@@ -21,7 +24,8 @@ import {
 export class TenantContextGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly tenantContextService: TenantContextService,
+    @Inject(TENANT_CONTEXT_SERVICE_TOKEN)
+    private readonly tenantContextService: ITenantContextService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
