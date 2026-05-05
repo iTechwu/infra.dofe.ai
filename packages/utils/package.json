@@ -59,7 +59,7 @@
     }
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "workspace:*",
+    "@dofe/infra-contracts": "^0.1.14",
     "@nestjs/swagger": "^11.0.0",
     "@prisma/client": "^7.0.0",
     "bcrypt": "^5.1.0",
