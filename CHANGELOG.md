@@ -1,3 +1,8 @@
+## [0.1.26] - 2026-05-06
+- feat: 更新各包的依赖项，使用具体版本替代工作区引用
+- chore: 注释掉 npm 注册表配置
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.25] - 2026-05-05
 
 ## [0.1.24] - 2026-05-05
