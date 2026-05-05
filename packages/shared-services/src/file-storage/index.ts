@@ -54,4 +54,4 @@ export * from './types';
 export {
   PardxUploader,
   FileStorageInterface,
-} from '@dofe/infra-clients';
+} from '@dofe/infra-clients/file-storage';

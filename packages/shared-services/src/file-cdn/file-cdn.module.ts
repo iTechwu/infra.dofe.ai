@@ -3,7 +3,7 @@ import { FileCdnClient } from './file-cdn.client';
 import { FileStorageServiceModule } from '../file-storage/file-storage.module';
 import { RedisModule } from '@dofe/infra-redis';
 import { ConfigModule } from '@nestjs/config';
-import { CryptModule } from '@dofe/infra-clients';
+import { CryptModule } from '@dofe/infra-clients/crypt';
 
 @Module({
   imports: [ConfigModule, RedisModule, FileStorageServiceModule, CryptModule],

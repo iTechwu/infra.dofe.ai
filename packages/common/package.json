@@ -3,14 +3,104 @@
   "version": "0.1.17",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./common.module": {
+      "types": "./dist/common.module.d.ts",
+      "default": "./dist/common.module.js"
+    },
+    "./encryption.service": {
+      "types": "./dist/encryption.service.d.ts",
+      "default": "./dist/encryption.service.js"
+    },
+    "./config/configuration": {
+      "types": "./dist/config/configuration.d.ts",
+      "default": "./dist/config/configuration.js"
+    },
+    "./config/validation": {
+      "types": "./dist/config/validation/index.d.ts",
+      "default": "./dist/config/validation/index.js"
+    },
+    "./config/env-config.service": {
+      "types": "./dist/config/env-config.service.d.ts",
+      "default": "./dist/config/env-config.service.js"
+    },
+    "./config/dto/config.dto": {
+      "types": "./dist/config/dto/config.dto.d.ts",
+      "default": "./dist/config/dto/config.dto.js"
+    },
+    "./ts-rest": {
+      "types": "./dist/ts-rest/index.d.ts",
+      "default": "./dist/ts-rest/index.js"
+    },
+    "./ts-rest/response.helper": {
+      "types": "./dist/ts-rest/response.helper.d.ts",
+      "default": "./dist/ts-rest/response.helper.js"
+    },
+    "./filter/exception/api.exception": {
+      "types": "./dist/filter/exception/api.exception.d.ts",
+      "default": "./dist/filter/exception/api.exception.js"
+    },
+    "./filter/exception/http.exception": {
+      "types": "./dist/filter/exception/http.exception.d.ts",
+      "default": "./dist/filter/exception/http.exception.js"
+    },
+    "./guards/version.guard": {
+      "types": "./dist/guards/version.guard.d.ts",
+      "default": "./dist/guards/version.guard.js"
+    },
+    "./interceptor/version/version-header.interceptor": {
+      "types": "./dist/interceptor/version/version-header.interceptor.d.ts",
+      "default": "./dist/interceptor/version/version-header.interceptor.js"
+    },
+    "./interceptor/transform/transform.interceptor": {
+      "types": "./dist/interceptor/transform/transform.interceptor.d.ts",
+      "default": "./dist/interceptor/transform/transform.interceptor.js"
+    },
+    "./middleware/request.middleware": {
+      "types": "./dist/middleware/request.middleware.d.ts",
+      "default": "./dist/middleware/request.middleware.js"
+    },
+    "./decorators/version/version.module": {
+      "types": "./dist/decorators/version/version.module.d.ts",
+      "default": "./dist/decorators/version/version.module.js"
+    },
+    "./decorators/transaction/transactional.decorator": {
+      "types": "./dist/decorators/transaction/transactional.decorator.d.ts",
+      "default": "./dist/decorators/transaction/transactional.decorator.js"
+    },
+    "./decorators/feature-flag/feature-flag.module": {
+      "types": "./dist/decorators/feature-flag/feature-flag.module.d.ts",
+      "default": "./dist/decorators/feature-flag/feature-flag.module.js"
+    },
+    "./decorators/event/event.module": {
+      "types": "./dist/decorators/event/event.module.d.ts",
+      "default": "./dist/decorators/event/event.module.js"
+    },
+    "./decorators/cache/cache.module": {
+      "types": "./dist/decorators/cache/cache.module.d.ts",
+      "default": "./dist/decorators/cache/cache.module.js"
+    },
+    "./decorators/app-version/app-version.module": {
+      "types": "./dist/decorators/app-version/app-version.module.d.ts",
+      "default": "./dist/decorators/app-version/app-version.module.js"
+    },
+    "./utils/prisma-error.util": {
+      "types": "./dist/utils/prisma-error.util.d.ts",
+      "default": "./dist/utils/prisma-error.util.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.14",
-    "@dofe/infra-redis": "^0.1.14",
+    "@dofe/infra-contracts": "workspace:*",
+    "@dofe/infra-redis": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -32,8 +122,8 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-i18n": "^0.1.14",
-    "@dofe/infra-utils": "^0.1.14"
+    "@dofe/infra-i18n": "workspace:*",
+    "@dofe/infra-utils": "workspace:*"
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",

@@ -32,7 +32,7 @@ import { FileBucketVendor } from '@prisma/client';
 import {
   FileStorageInterface,
   PardxUploader,
-} from '@dofe/infra-clients';
+} from '@dofe/infra-clients/file-storage';
 import { PardxApp } from '@dofe/infra-common';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';

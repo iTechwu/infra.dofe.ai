@@ -15,7 +15,7 @@ import WsClient from 'ws';
 import { randomUUID } from 'crypto';
 import * as path from 'path';
 import type { ContainerSkillItem } from '@dofe/infra-contracts';
-import { getEnvWithDefault } from '@dofe/infra-common/dist/config/env-config.service';
+import { getEnvWithDefault } from '@dofe/infra-common/config/env-config.service';
 import { DockerExecService } from './docker-exec.service';
 
 const DEFAULT_OPENCLAW_HOME = '/home/node/.openclaw';

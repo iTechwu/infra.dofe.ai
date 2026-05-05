@@ -24,7 +24,7 @@ import {
   FileUs3Client,
   FileTosClient,
   PardxUploader,
-} from '@dofe/infra-clients';
+} from '@dofe/infra-clients/file-storage';
 import { RedisService } from '@dofe/infra-redis';
 import { getKeysConfig } from '@dofe/infra-common';
 import { AppConfig, StorageCredentialsConfig } from '@dofe/infra-common';

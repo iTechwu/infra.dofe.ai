@@ -9,7 +9,7 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.14",
+    "@dofe/infra-contracts": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",

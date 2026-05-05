@@ -3,13 +3,23 @@
   "version": "0.1.17",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./jwt.module": {
+      "types": "./dist/jwt.module.d.ts",
+      "default": "./dist/jwt.module.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@dofe/infra-common": "^0.1.14",
+    "@dofe/infra-common": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/jwt": "^11.0.0",

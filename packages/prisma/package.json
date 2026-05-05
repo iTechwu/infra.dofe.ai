@@ -3,6 +3,20 @@
   "version": "0.1.17",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./prisma": {
+      "types": "./dist/prisma/index.d.ts",
+      "default": "./dist/prisma/index.js"
+    },
+    "./db-metrics": {
+      "types": "./dist/db-metrics/index.d.ts",
+      "default": "./dist/db-metrics/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -24,9 +38,9 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.14",
-    "@dofe/infra-redis": "^0.1.14",
-    "@dofe/infra-utils": "^0.1.14"
+    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-redis": "workspace:*",
+    "@dofe/infra-utils": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

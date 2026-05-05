@@ -16,8 +16,8 @@
     "rxjs": "^7.8.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.14",
-    "@dofe/infra-prisma": "^0.1.14"
+    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-prisma": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

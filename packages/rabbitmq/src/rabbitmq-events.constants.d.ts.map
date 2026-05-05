@@ -1,1 +1,0 @@
-{"version":3,"file":"rabbitmq-events.constants.d.ts","sourceRoot":"","sources":["rabbitmq-events.constants.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,QAAQ,MAAM,SAAS,CAAC;AAEzC,eAAO,MAAM,0BAA0B,+BAA+B,CAAC;AAEvE,MAAM,WAAW,wBAAwB;IACvC,UAAU,EAAE,QAAQ,CAAC,UAAU,CAAC;IAChC,KAAK,EAAE,MAAM,OAAO,CAAC,IAAI,CAAC,CAAC;CAC5B"}

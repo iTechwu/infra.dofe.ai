@@ -22,3 +22,6 @@ export * from './system-health/system-health.module';
 export * from './system-health/system-health.service';
 export * from './uploader/uploader.module';
 export * from './uploader/uploader.service';
+export * from './openspeech';
+export * from './volcengine-tts';
+export * from './transcode';

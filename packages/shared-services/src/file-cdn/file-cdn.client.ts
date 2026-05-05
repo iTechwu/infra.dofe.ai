@@ -17,7 +17,7 @@ import { ConfigService } from '@nestjs/config';
 import { FileBucketVendor } from '@prisma/client';
 
 import { FileStorageService } from '../file-storage/file-storage.service';
-import { CryptClient } from '@dofe/infra-clients';
+import { CryptClient } from '@dofe/infra-clients/crypt';
 import * as cryptoUtil from '@dofe/infra-utils';
 import {
   DoFeFileCdn,

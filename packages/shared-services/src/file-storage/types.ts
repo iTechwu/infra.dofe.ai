@@ -7,7 +7,7 @@
  */
 
 import { FileBucketVendor } from '@prisma/client';
-import { PardxUploader } from '@dofe/infra-clients';
+import { PardxUploader } from '@dofe/infra-clients/file-storage';
 
 /**
  * 文件位置标识

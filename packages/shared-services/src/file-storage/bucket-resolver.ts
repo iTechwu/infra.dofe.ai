@@ -15,7 +15,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FileBucketVendor } from '@prisma/client';
 
-import { PardxUploader } from '@dofe/infra-clients';
+import { PardxUploader } from '@dofe/infra-clients/file-storage';
 import { IpGeoService } from '../ip-geo/ip-geo.service';
 import { AppConfig } from '@dofe/infra-common';
 import arrayUtil from '@dofe/infra-utils/array.util';
