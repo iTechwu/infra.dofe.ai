@@ -96,7 +96,7 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.28",
+    "@dofe/infra-common": "^0.1.29",
     "@dofe/infra-redis": "^0.1.28",
     "@dofe/infra-utils": "^0.1.28"
   },

@@ -40,7 +40,7 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-utils": "^0.1.27",
+    "@dofe/infra-utils": "^0.1.29",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -53,7 +53,7 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.28",
+    "@dofe/infra-common": "^0.1.29",
     "@dofe/infra-prisma": "^0.1.28",
     "@dofe/infra-redis": "^0.1.28"
   },
