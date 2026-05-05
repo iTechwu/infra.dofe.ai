@@ -58,7 +58,7 @@
       "default": "./dist/array.util.js"
     },
     "./*": {
-      "types": "./dist/*",
+      "types": ["./dist/*.d.ts", "./dist/*/index.d.ts"],
       "default": "./dist/*"
     }
   },

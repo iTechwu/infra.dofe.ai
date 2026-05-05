@@ -10,7 +10,15 @@
     },
     "./*": {
       "types": ["./dist/internal/*.d.ts", "./dist/internal/*/index.d.ts"],
-      "default": ["./dist/internal/*.js", "./dist/internal/*/index.js"]
+      "default": "./dist/internal/*"
+    },
+    "./plugin": {
+      "types": "./dist/plugin/index.d.ts",
+      "default": "./dist/plugin/index"
+    },
+    "./plugin/*": {
+      "types": ["./dist/plugin/*.d.ts", "./dist/plugin/*/index.d.ts"],
+      "default": "./dist/plugin/*"
     }
   },
   "scripts": {

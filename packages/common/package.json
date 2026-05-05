@@ -10,7 +10,7 @@
     },
     "./*": {
       "types": ["./dist/*.d.ts", "./dist/*/index.d.ts"],
-      "default": ["./dist/*.js", "./dist/*/index.js"]
+      "default": "./dist/*"
     }
   },
   "scripts": {
