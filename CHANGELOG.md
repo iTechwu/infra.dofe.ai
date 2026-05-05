@@ -1,3 +1,7 @@
+## [0.1.18] - 2026-05-05
+- feat: 添加缺失模块的声明文件，包括 form-data、@alicloud/dysmsapi20170525、@alicloud/openapi-client、tencentcloud-sdk-nodejs-sms、music-metadata、@nestjs/swagger、@nestjs/jwt、unleash-client 和 uuid
+- feat: add Volcengine TTS service with DTOs and client implementation
+
 ## [0.1.17] - 2026-05-05
 - feat: 添加对 file-cdn 模块的导出
 
