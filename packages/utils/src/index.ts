@@ -9,6 +9,7 @@ export * from './logger-standalone.util';
 
 // HTTP & Network utilities
 export * from './http-client';
+export { default as ipUtil } from './ip.util';
 export * from './ip.util';
 
 // Crypto & Security utilities
@@ -34,7 +35,7 @@ export * from './pagination.util';
 export * from './response';
 
 // Environment utilities
-export * from './load-env.util';
+export { default as loadEnvUtil } from './load-env.util';
 export { default as environmentUtil } from './environment.util';
 export * from './environment.util';
 
