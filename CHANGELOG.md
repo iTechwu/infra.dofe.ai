@@ -1,3 +1,8 @@
+## [0.1.24] - 2026-05-05
+- feat: 更新各包的 exports 字段，使用工作区引用替代具体版本
+- feat: 更新各包的依赖项，升级到版本 0.1.22
+- chore: bump package versions to 0.1.23 and update exports
+
 ## [0.1.22] - 2026-05-05
 - feat: 更新各包的 exports 字段，支持多个默认导出配置
 - feat: 更新各包的依赖项，使用具体版本替代工作区引用
