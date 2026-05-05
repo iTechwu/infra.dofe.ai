@@ -92,7 +92,11 @@ export class VolcengineTosTranscodeClient {
 
         this.appConfig = this.configService.getOrThrow<AppConfig>('app');
 
-        this.webhookApiBaseUrl = enviromentUtil.generateEnvironmentUrls().api;
+        this.webhookApiBaseUrl = enviromentUtil.generateEnvironmentUrls({
+            domain: this.appConfig.domain,
+            subDomain: this.appConfig.subDomain,
+            apiSubDomain: this.appConfig.apiSubDomain,
+        }).api;
 
         this.callbackUri = `${this.webhookApiBaseUrl}/${transcodeConfig.tos.callbackUri}`;
     }

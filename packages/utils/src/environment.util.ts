@@ -91,20 +91,23 @@ export default {
     );
   },
 
-  generateEnvironmentUrls(domain: string =  'dofe.ai', subDomain: string = 'www' , apiSubDomain: string = 'api'): {
+  generateEnvironmentUrls(options?: { domain?: string; subDomain?: string; apiSubDomain?: string }): {
     web: string;
     api: string;
     internalApi: string;
     short: string;
     corsDomains: string[];
   } {
+    const domain = options?.domain ?? 'dofe.ai';
+    const subDomain = options?.subDomain ?? 'www';
+    const apiSubDomain = options?.apiSubDomain ?? 'api';
     const protocol = this.isProduction() ? 'https' : 'http';
     const corsDomains = ['*', `*.${domain}`];
 
     const web = `${protocol}://${subDomain ? `${subDomain}.` : ''}${domain}/`;
     let api = `${protocol}://${apiSubDomain ? `${apiSubDomain}.` : ''}${domain}/api`;
     let internalApi = api;
-    
+
     const short = `${web}s/`;
     return { web, api, internalApi, short, corsDomains };
   },

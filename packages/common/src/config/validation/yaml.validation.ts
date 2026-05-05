@@ -43,6 +43,8 @@ export const zoneSchema = z.object({
  */
 export const appConfigSchema = microServiceSchema.extend({
   domain: z.string().min(1),
+  subDomain: z.string().optional().default('www'),
+  apiSubDomain: z.string().optional().default('api'),
   MaxPageSize: z.number().int().positive().default(500),
   defaultPageSize: z.number().int().positive().default(100),
   defaultMiniPageSize: z.number().int().positive().default(30),

@@ -90,7 +90,11 @@ export class FileQiniuClient implements FileStorageInterface {
   ): Promise<string> {
     const defaultOptions: qiniu.rs.PutPolicyOptions = {
       callbackUrl:
-        environmentUtil.generateEnvironmentUrls().api +
+        environmentUtil.generateEnvironmentUrls({
+          domain: this.appConfig.domain,
+          subDomain: this.appConfig.subDomain,
+          apiSubDomain: this.appConfig.apiSubDomain,
+        }).api +
         '/' +
         this.config.webhook +
         callbackAuthKey,
