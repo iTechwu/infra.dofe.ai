@@ -1,3 +1,7 @@
+## [0.1.13] - 2026-05-05
+- refactor: 更新 generateEnvironmentUrls 函数以支持选项参数，简化域名处理逻辑
+- refactor: 更新导入路径以优化模块结构
+
 ## [0.1.12] - 2026-05-05
 - refactor: 优化 generateEnvironmentUrls 函数，简化域名处理逻辑
 
