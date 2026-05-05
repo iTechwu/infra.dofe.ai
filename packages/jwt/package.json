@@ -26,7 +26,7 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@dofe/infra-common": "^0.1.21",
+    "@dofe/infra-common": "^0.1.22",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/jwt": "^11.0.0",

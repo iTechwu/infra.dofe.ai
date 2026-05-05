@@ -26,8 +26,8 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.21",
-    "@dofe/infra-redis": "^0.1.21",
+    "@dofe/infra-contracts": "^0.1.22",
+    "@dofe/infra-redis": "^0.1.22",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -51,8 +51,8 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-i18n": "^0.1.21",
-    "@dofe/infra-utils": "^0.1.21"
+    "@dofe/infra-i18n": "^0.1.22",
+    "@dofe/infra-utils": "^0.1.22"
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",
