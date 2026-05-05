@@ -91,7 +91,7 @@ export default {
     );
   },
 
-  generateEnvironmentUrls(): {
+  generateEnvironmentUrls(domain: string =  'dofe.ai', subDomain: string = 'www' , apiSubDomain: string = 'api'): {
     web: string;
     api: string;
     internalApi: string;
@@ -99,42 +99,12 @@ export default {
     corsDomains: string[];
   } {
     const protocol = this.isProduction() ? 'https' : 'http';
-    const corsDomains = ['*', '*.dofe.ai', '*.dofe.ai'];
-    let domain,
-      subDomain = '',
-      apiSubDomain = '';
-
-    switch (true) {
-      case this.isDev():
-        domain = 'dofe.ai';
-        subDomain = 'www.local';
-        apiSubDomain = 'api.local';
-        break;
-      case this.isTest():
-        domain = 'dofe.ai';
-        subDomain = 'www.test';
-        apiSubDomain = 'api.test';
-        break;
-      case this.isCnProduction():
-        domain = 'youhuitun.com';
-        subDomain = 'www';
-        apiSubDomain = 'mp';
-        break;
-      default:
-        domain = 'dofe.ai';
-        subDomain = 'www';
-        apiSubDomain = 'api';
-        break;
-    }
+    const corsDomains = ['*', `*.${domain}`];
 
     const web = `${protocol}://${subDomain ? `${subDomain}.` : ''}${domain}/`;
     let api = `${protocol}://${apiSubDomain ? `${apiSubDomain}.` : ''}${domain}/api`;
     let internalApi = api;
-    // console.log('techwu api', corsDomains);
-    if (this.isDev()) {
-      api = process.env.API_BASE_URL || api;
-      internalApi = process.env.INTERNAL_API_BASE_URL || api;
-    }
+    
     const short = `${web}s/`;
     return { web, api, internalApi, short, corsDomains };
   },
