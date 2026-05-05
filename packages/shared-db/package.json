@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-shared-db",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -13,7 +13,11 @@
         "./dist/*.d.ts",
         "./dist/*/index.d.ts"
       ],
-      "default": ["./dist/*.js", "./dist/*/index.js", "./dist/*"]
+      "default": [
+        "./dist/*.js",
+        "./dist/*/index.js",
+        "./dist/*"
+      ]
     }
   },
   "scripts": {

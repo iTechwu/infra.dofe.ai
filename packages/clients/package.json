@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-clients",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -13,7 +13,11 @@
         "./dist/internal/*.d.ts",
         "./dist/internal/*/index.d.ts"
       ],
-      "default": ["./dist/internal/*.js", "./dist/internal/*/index.js", "./dist/internal/*"]
+      "default": [
+        "./dist/internal/*.js",
+        "./dist/internal/*/index.js",
+        "./dist/internal/*"
+      ]
     },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",
@@ -24,7 +28,11 @@
         "./dist/plugin/*.d.ts",
         "./dist/plugin/*/index.d.ts"
       ],
-      "default": ["./dist/plugin/*.js", "./dist/plugin/*/index.js", "./dist/plugin/*"]
+      "default": [
+        "./dist/plugin/*.js",
+        "./dist/plugin/*/index.js",
+        "./dist/plugin/*"
+      ]
     }
   },
   "scripts": {
