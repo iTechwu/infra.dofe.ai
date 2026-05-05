@@ -56,6 +56,10 @@
     "./array.util": {
       "types": "./dist/array.util.d.ts",
       "default": "./dist/array.util.js"
+    },
+    "./*": {
+      "types": "./dist/*",
+      "default": "./dist/*"
     }
   },
   "peerDependencies": {

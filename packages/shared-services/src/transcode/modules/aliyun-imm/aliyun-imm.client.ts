@@ -12,7 +12,7 @@ import {
 import * as $dara from '@darabonba/typescript';
 import imm, * as $imm from '@alicloud/imm20200930';
 import { $OpenApiUtil } from '@alicloud/openapi-core';
-import Credential from '@alicloud/credentials';
+
 import { TranscodeOptions } from '../../types/transcode.types';
 import { AliyunOssTranscodeConfig } from '../../config/aliyun-oss.config';
 import { DoFeUploader } from '../../../file-storage';

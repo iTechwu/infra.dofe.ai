@@ -9,8 +9,8 @@
       "default": "./dist/index.js"
     },
     "./*": {
-      "types": ["./dist/*.d.ts", "./dist/*/index.d.ts"],
-      "default": ["./dist/*.js", "./dist/*/index.js"]
+      "types": "./dist/*",
+      "default": "./dist/*"
     }
   },
   "scripts": {
@@ -31,7 +31,7 @@
     "@prisma/client": "^7.0.0",
     "@volcengine/openapi": "^1.0.0",
     "@volcengine/tos-sdk": "^2.7.6",
-    "@alicloud/credentials": "^2.4.4",
+
     "@alicloud/imm20200930": "^4.6.2",
     "@alicloud/openapi-core": "^1.0.7",
     "@darabonba/typescript": "^1.0.4",
