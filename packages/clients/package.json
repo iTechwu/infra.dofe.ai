@@ -180,6 +180,34 @@
       "types": "./dist/internal/ip-info/ip-info.module.d.ts",
       "default": "./dist/internal/ip-info/ip-info.module.js"
     },
+    "./mlflow/mlflow.client": {
+      "types": "./dist/internal/mlflow/mlflow.client.d.ts",
+      "default": "./dist/internal/mlflow/mlflow.client.js"
+    },
+    "./mlflow/mlflow.module": {
+      "types": "./dist/internal/mlflow/mlflow.module.d.ts",
+      "default": "./dist/internal/mlflow/mlflow.module.js"
+    },
+    "./model-research-proxy": {
+      "types": "./dist/internal/model-research-proxy/index.d.ts",
+      "default": "./dist/internal/model-research-proxy/index.js"
+    },
+    "./model-research-proxy/anthropic-proxy-research.client": {
+      "types": "./dist/internal/model-research-proxy/anthropic-proxy-research.client.d.ts",
+      "default": "./dist/internal/model-research-proxy/anthropic-proxy-research.client.js"
+    },
+    "./model-research-proxy/anthropic-proxy-research.module": {
+      "types": "./dist/internal/model-research-proxy/anthropic-proxy-research.module.d.ts",
+      "default": "./dist/internal/model-research-proxy/anthropic-proxy-research.module.js"
+    },
+    "./model-verify": {
+      "types": "./dist/internal/model-verify/index.d.ts",
+      "default": "./dist/internal/model-verify/index.js"
+    },
+    "./model-verify/model-verify.client": {
+      "types": "./dist/internal/model-verify/model-verify.client.d.ts",
+      "default": "./dist/internal/model-verify/model-verify.client.js"
+    },
     "./ocr": {
       "types": "./dist/internal/ocr/index.d.ts",
       "default": "./dist/internal/ocr/index.js"
@@ -208,6 +236,50 @@
       "types": "./dist/internal/openai/openai.module.d.ts",
       "default": "./dist/internal/openai/openai.module.js"
     },
+    "./openclaw": {
+      "types": "./dist/internal/openclaw/index.d.ts",
+      "default": "./dist/internal/openclaw/index.js"
+    },
+    "./openclaw/docker-exec.service": {
+      "types": "./dist/internal/openclaw/docker-exec.service.d.ts",
+      "default": "./dist/internal/openclaw/docker-exec.service.js"
+    },
+    "./openclaw/openclaw-agent-coordination.client": {
+      "types": "./dist/internal/openclaw/openclaw-agent-coordination.client.d.ts",
+      "default": "./dist/internal/openclaw/openclaw-agent-coordination.client.js"
+    },
+    "./openclaw/openclaw-context-status.client": {
+      "types": "./dist/internal/openclaw/openclaw-context-status.client.d.ts",
+      "default": "./dist/internal/openclaw/openclaw-context-status.client.js"
+    },
+    "./openclaw/openclaw-cron.client": {
+      "types": "./dist/internal/openclaw/openclaw-cron.client.d.ts",
+      "default": "./dist/internal/openclaw/openclaw-cron.client.js"
+    },
+    "./openclaw/openclaw-gateway.client": {
+      "types": "./dist/internal/openclaw/openclaw-gateway.client.d.ts",
+      "default": "./dist/internal/openclaw/openclaw-gateway.client.js"
+    },
+    "./openclaw/openclaw-skill-sync.client": {
+      "types": "./dist/internal/openclaw/openclaw-skill-sync.client.d.ts",
+      "default": "./dist/internal/openclaw/openclaw-skill-sync.client.js"
+    },
+    "./openclaw/openclaw.client": {
+      "types": "./dist/internal/openclaw/openclaw.client.d.ts",
+      "default": "./dist/internal/openclaw/openclaw.client.js"
+    },
+    "./openclaw/openclaw.module": {
+      "types": "./dist/internal/openclaw/openclaw.module.d.ts",
+      "default": "./dist/internal/openclaw/openclaw.module.js"
+    },
+    "./openclaw/skill-translation.service": {
+      "types": "./dist/internal/openclaw/skill-translation.service.d.ts",
+      "default": "./dist/internal/openclaw/skill-translation.service.js"
+    },
+    "./openclaw/types/cron.types": {
+      "types": "./dist/internal/openclaw/types/cron.types.d.ts",
+      "default": "./dist/internal/openclaw/types/cron.types.js"
+    },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",
       "default": "./dist/plugin/index.js"
@@ -227,6 +299,18 @@
     "./plugin/utils/retry.util": {
       "types": "./dist/plugin/utils/retry.util.d.ts",
       "default": "./dist/plugin/utils/retry.util.js"
+    },
+    "./provider-verify": {
+      "types": "./dist/internal/provider-verify/index.d.ts",
+      "default": "./dist/internal/provider-verify/index.js"
+    },
+    "./provider-verify/provider-verify.client": {
+      "types": "./dist/internal/provider-verify/provider-verify.client.d.ts",
+      "default": "./dist/internal/provider-verify/provider-verify.client.js"
+    },
+    "./provider-verify/provider-verify.module": {
+      "types": "./dist/internal/provider-verify/provider-verify.module.d.ts",
+      "default": "./dist/internal/provider-verify/provider-verify.module.js"
     },
     "./routing-llm": {
       "types": "./dist/internal/routing-llm/index.d.ts",
@@ -333,8 +417,8 @@
     "@aws-sdk/client-s3": "^3.978.0",
     "@aws-sdk/client-sts": "^3.1024.0",
     "@aws-sdk/s3-request-presigner": "^3.978.0",
-    "@dofe/infra-contracts": "^0.1.23",
-    "@dofe/infra-docker": "^0.1.23",
+    "@dofe/infra-contracts": "workspace:*",
+    "@dofe/infra-docker": "workspace:*",
     "@google-cloud/storage": "^7.12.0",
     "@larksuiteoapi/node-sdk": "^1.30.0",
     "@nestjs/axios": "^4.0.0",
@@ -362,9 +446,9 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.23",
-    "@dofe/infra-redis": "^0.1.23",
-    "@dofe/infra-utils": "^0.1.23"
+    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-redis": "workspace:*",
+    "@dofe/infra-utils": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

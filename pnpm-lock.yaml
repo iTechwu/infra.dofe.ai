@@ -834,9 +834,6 @@ importers:
 
   packages/shared-services:
     dependencies:
-      '@alicloud/credentials':
-        specifier: ^2.4.4
-        version: 2.4.4
       '@alicloud/imm20200930':
         specifier: ^4.6.2
         version: 4.6.2
