@@ -394,13 +394,13 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.27",
-    "@dofe/infra-jwt": "^0.1.27",
-    "@dofe/infra-prisma": "^0.1.27",
-    "@dofe/infra-rabbitmq": "^0.1.27",
-    "@dofe/infra-redis": "^0.1.27",
-    "@dofe/infra-shared-db": "^0.1.27",
-    "@dofe/infra-utils": "^0.1.27"
+    "@dofe/infra-common": "^0.1.28",
+    "@dofe/infra-jwt": "^0.1.28",
+    "@dofe/infra-prisma": "^0.1.28",
+    "@dofe/infra-rabbitmq": "^0.1.28",
+    "@dofe/infra-redis": "^0.1.28",
+    "@dofe/infra-shared-db": "^0.1.28",
+    "@dofe/infra-utils": "^0.1.28"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",
