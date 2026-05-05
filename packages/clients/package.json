@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-clients",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,37 +8,324 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/internal/*.d.ts",
-        "./dist/internal/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/internal/*.js",
-        "./dist/internal/*/index.js",
-        "./dist/internal/*"
-      ]
+    "./agentx": {
+      "types": "./dist/internal/agentx/index.d.ts",
+      "default": "./dist/internal/agentx/index.js"
+    },
+    "./agentx/agentx-client.module": {
+      "types": "./dist/internal/agentx/agentx-client.module.d.ts",
+      "default": "./dist/internal/agentx/agentx-client.module.js"
+    },
+    "./agentx/agentx-client.service": {
+      "types": "./dist/internal/agentx/agentx-client.service.d.ts",
+      "default": "./dist/internal/agentx/agentx-client.service.js"
+    },
+    "./agentx/agentx-file-client.service": {
+      "types": "./dist/internal/agentx/agentx-file-client.service.d.ts",
+      "default": "./dist/internal/agentx/agentx-file-client.service.js"
+    },
+    "./agentx/interfaces/file.interface": {
+      "types": "./dist/internal/agentx/interfaces/file.interface.d.ts",
+      "default": "./dist/internal/agentx/interfaces/file.interface.js"
+    },
+    "./agentx/interfaces/task.interface": {
+      "types": "./dist/internal/agentx/interfaces/task.interface.d.ts",
+      "default": "./dist/internal/agentx/interfaces/task.interface.js"
+    },
+    "./ai": {
+      "types": "./dist/internal/ai/index.d.ts",
+      "default": "./dist/internal/ai/index.js"
+    },
+    "./ai-provider": {
+      "types": "./dist/internal/ai-provider/index.d.ts",
+      "default": "./dist/internal/ai-provider/index.js"
+    },
+    "./ai-provider/ai-provider.client": {
+      "types": "./dist/internal/ai-provider/ai-provider.client.d.ts",
+      "default": "./dist/internal/ai-provider/ai-provider.client.js"
+    },
+    "./ai-provider/ai-provider.module": {
+      "types": "./dist/internal/ai-provider/ai-provider.module.d.ts",
+      "default": "./dist/internal/ai-provider/ai-provider.module.js"
+    },
+    "./ai/risk-detection.client": {
+      "types": "./dist/internal/ai/risk-detection.client.d.ts",
+      "default": "./dist/internal/ai/risk-detection.client.js"
+    },
+    "./ai/risk-detection.module": {
+      "types": "./dist/internal/ai/risk-detection.module.d.ts",
+      "default": "./dist/internal/ai/risk-detection.module.js"
+    },
+    "./channel-verify": {
+      "types": "./dist/internal/channel-verify/index.d.ts",
+      "default": "./dist/internal/channel-verify/index.js"
+    },
+    "./channel-verify/channel-verify.client": {
+      "types": "./dist/internal/channel-verify/channel-verify.client.d.ts",
+      "default": "./dist/internal/channel-verify/channel-verify.client.js"
+    },
+    "./complexity-classifier": {
+      "types": "./dist/internal/complexity-classifier/index.d.ts",
+      "default": "./dist/internal/complexity-classifier/index.js"
+    },
+    "./complexity-classifier/complexity-classifier.module": {
+      "types": "./dist/internal/complexity-classifier/complexity-classifier.module.d.ts",
+      "default": "./dist/internal/complexity-classifier/complexity-classifier.module.js"
+    },
+    "./complexity-classifier/complexity-classifier.service": {
+      "types": "./dist/internal/complexity-classifier/complexity-classifier.service.d.ts",
+      "default": "./dist/internal/complexity-classifier/complexity-classifier.service.js"
+    },
+    "./complexity-classifier/complexity-classifier.types": {
+      "types": "./dist/internal/complexity-classifier/complexity-classifier.types.d.ts",
+      "default": "./dist/internal/complexity-classifier/complexity-classifier.types.js"
+    },
+    "./crypt": {
+      "types": "./dist/internal/crypt/index.d.ts",
+      "default": "./dist/internal/crypt/index.js"
+    },
+    "./crypt/crypt.client": {
+      "types": "./dist/internal/crypt/crypt.client.d.ts",
+      "default": "./dist/internal/crypt/crypt.client.js"
+    },
+    "./crypt/crypt.module": {
+      "types": "./dist/internal/crypt/crypt.module.d.ts",
+      "default": "./dist/internal/crypt/crypt.module.js"
+    },
+    "./email": {
+      "types": "./dist/internal/email/index.d.ts",
+      "default": "./dist/internal/email/index.js"
+    },
+    "./email/dto/email.dto": {
+      "types": "./dist/internal/email/dto/email.dto.d.ts",
+      "default": "./dist/internal/email/dto/email.dto.js"
+    },
+    "./email/sendcloud.client": {
+      "types": "./dist/internal/email/sendcloud.client.d.ts",
+      "default": "./dist/internal/email/sendcloud.client.js"
+    },
+    "./exchange-rate": {
+      "types": "./dist/internal/exchange-rate/index.d.ts",
+      "default": "./dist/internal/exchange-rate/index.js"
+    },
+    "./exchange-rate/exchange-rate.client": {
+      "types": "./dist/internal/exchange-rate/exchange-rate.client.d.ts",
+      "default": "./dist/internal/exchange-rate/exchange-rate.client.js"
+    },
+    "./exchange-rate/exchange-rate.module": {
+      "types": "./dist/internal/exchange-rate/exchange-rate.module.d.ts",
+      "default": "./dist/internal/exchange-rate/exchange-rate.module.js"
+    },
+    "./file-storage": {
+      "types": "./dist/internal/file-storage/index.d.ts",
+      "default": "./dist/internal/file-storage/index.js"
+    },
+    "./file-storage/config/file.config": {
+      "types": "./dist/internal/file-storage/config/file.config.d.ts",
+      "default": "./dist/internal/file-storage/config/file.config.js"
+    },
+    "./file-storage/dto/file.dto": {
+      "types": "./dist/internal/file-storage/dto/file.dto.d.ts",
+      "default": "./dist/internal/file-storage/dto/file.dto.js"
+    },
+    "./file-storage/file-gcs.client": {
+      "types": "./dist/internal/file-storage/file-gcs.client.d.ts",
+      "default": "./dist/internal/file-storage/file-gcs.client.js"
+    },
+    "./file-storage/file-qiniu.client": {
+      "types": "./dist/internal/file-storage/file-qiniu.client.d.ts",
+      "default": "./dist/internal/file-storage/file-qiniu.client.js"
+    },
+    "./file-storage/file-s3.client": {
+      "types": "./dist/internal/file-storage/file-s3.client.d.ts",
+      "default": "./dist/internal/file-storage/file-s3.client.js"
+    },
+    "./file-storage/file-storage.interface": {
+      "types": "./dist/internal/file-storage/file-storage.interface.d.ts",
+      "default": "./dist/internal/file-storage/file-storage.interface.js"
+    },
+    "./file-storage/file-tos.client": {
+      "types": "./dist/internal/file-storage/file-tos.client.d.ts",
+      "default": "./dist/internal/file-storage/file-tos.client.js"
+    },
+    "./file-storage/file-us3.client": {
+      "types": "./dist/internal/file-storage/file-us3.client.d.ts",
+      "default": "./dist/internal/file-storage/file-us3.client.js"
+    },
+    "./health-check": {
+      "types": "./dist/internal/health-check/index.d.ts",
+      "default": "./dist/internal/health-check/index.js"
+    },
+    "./health-check/health-check.client": {
+      "types": "./dist/internal/health-check/health-check.client.d.ts",
+      "default": "./dist/internal/health-check/health-check.client.js"
+    },
+    "./health-check/health-check.module": {
+      "types": "./dist/internal/health-check/health-check.module.d.ts",
+      "default": "./dist/internal/health-check/health-check.module.js"
+    },
+    "./ip-info": {
+      "types": "./dist/internal/ip-info/index.d.ts",
+      "default": "./dist/internal/ip-info/index.js"
+    },
+    "./ip-info/dto/ip-info.dto": {
+      "types": "./dist/internal/ip-info/dto/ip-info.dto.d.ts",
+      "default": "./dist/internal/ip-info/dto/ip-info.dto.js"
+    },
+    "./ip-info/ip-info.client": {
+      "types": "./dist/internal/ip-info/ip-info.client.d.ts",
+      "default": "./dist/internal/ip-info/ip-info.client.js"
+    },
+    "./ip-info/ip-info.module": {
+      "types": "./dist/internal/ip-info/ip-info.module.d.ts",
+      "default": "./dist/internal/ip-info/ip-info.module.js"
+    },
+    "./ocr": {
+      "types": "./dist/internal/ocr/index.d.ts",
+      "default": "./dist/internal/ocr/index.js"
+    },
+    "./ocr/dto/ocr.dto": {
+      "types": "./dist/internal/ocr/dto/ocr.dto.d.ts",
+      "default": "./dist/internal/ocr/dto/ocr.dto.js"
+    },
+    "./ocr/ocr.client": {
+      "types": "./dist/internal/ocr/ocr.client.d.ts",
+      "default": "./dist/internal/ocr/ocr.client.js"
+    },
+    "./ocr/ocr.module": {
+      "types": "./dist/internal/ocr/ocr.module.d.ts",
+      "default": "./dist/internal/ocr/ocr.module.js"
+    },
+    "./openai": {
+      "types": "./dist/internal/openai/index.d.ts",
+      "default": "./dist/internal/openai/index.js"
+    },
+    "./openai/openai.client": {
+      "types": "./dist/internal/openai/openai.client.d.ts",
+      "default": "./dist/internal/openai/openai.client.js"
+    },
+    "./openai/openai.module": {
+      "types": "./dist/internal/openai/openai.module.d.ts",
+      "default": "./dist/internal/openai/openai.module.js"
     },
     "./plugin": {
       "types": "./dist/plugin/index.d.ts",
       "default": "./dist/plugin/index.js"
     },
-    "./plugin/*": {
-      "types": [
-        "./dist/plugin/*.d.ts",
-        "./dist/plugin/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/plugin/*.js",
-        "./dist/plugin/*/index.js",
-        "./dist/plugin/*"
-      ]
+    "./plugin/decorators/inject-client.decorator": {
+      "types": "./dist/plugin/decorators/inject-client.decorator.d.ts",
+      "default": "./dist/plugin/decorators/inject-client.decorator.js"
+    },
+    "./plugin/interceptors/http-logging.interceptor": {
+      "types": "./dist/plugin/interceptors/http-logging.interceptor.d.ts",
+      "default": "./dist/plugin/interceptors/http-logging.interceptor.js"
+    },
+    "./plugin/interfaces/client.interface": {
+      "types": "./dist/plugin/interfaces/client.interface.d.ts",
+      "default": "./dist/plugin/interfaces/client.interface.js"
+    },
+    "./plugin/utils/retry.util": {
+      "types": "./dist/plugin/utils/retry.util.d.ts",
+      "default": "./dist/plugin/utils/retry.util.js"
+    },
+    "./routing-llm": {
+      "types": "./dist/internal/routing-llm/index.d.ts",
+      "default": "./dist/internal/routing-llm/index.js"
+    },
+    "./routing-llm/interfaces/routing-llm.interface": {
+      "types": "./dist/internal/routing-llm/interfaces/routing-llm.interface.d.ts",
+      "default": "./dist/internal/routing-llm/interfaces/routing-llm.interface.js"
+    },
+    "./routing-llm/routing-llm.client": {
+      "types": "./dist/internal/routing-llm/routing-llm.client.d.ts",
+      "default": "./dist/internal/routing-llm/routing-llm.client.js"
+    },
+    "./routing-llm/routing-llm.module": {
+      "types": "./dist/internal/routing-llm/routing-llm.module.d.ts",
+      "default": "./dist/internal/routing-llm/routing-llm.module.js"
+    },
+    "./sms": {
+      "types": "./dist/internal/sms/index.d.ts",
+      "default": "./dist/internal/sms/index.js"
+    },
+    "./sms/dto/sms.dto": {
+      "types": "./dist/internal/sms/dto/sms.dto.d.ts",
+      "default": "./dist/internal/sms/dto/sms.dto.js"
+    },
+    "./sms/sms-aliyun.client": {
+      "types": "./dist/internal/sms/sms-aliyun.client.d.ts",
+      "default": "./dist/internal/sms/sms-aliyun.client.js"
+    },
+    "./sms/sms-http.client": {
+      "types": "./dist/internal/sms/sms-http.client.d.ts",
+      "default": "./dist/internal/sms/sms-http.client.js"
+    },
+    "./sms/sms-tencent.client": {
+      "types": "./dist/internal/sms/sms-tencent.client.d.ts",
+      "default": "./dist/internal/sms/sms-tencent.client.js"
+    },
+    "./sms/sms-volcengine.client": {
+      "types": "./dist/internal/sms/sms-volcengine.client.d.ts",
+      "default": "./dist/internal/sms/sms-volcengine.client.js"
+    },
+    "./sms/sms-zxjc.client": {
+      "types": "./dist/internal/sms/sms-zxjc.client.d.ts",
+      "default": "./dist/internal/sms/sms-zxjc.client.js"
+    },
+    "./sse": {
+      "types": "./dist/internal/sse/index.d.ts",
+      "default": "./dist/internal/sse/index.js"
+    },
+    "./sse/sse.client": {
+      "types": "./dist/internal/sse/sse.client.d.ts",
+      "default": "./dist/internal/sse/sse.client.js"
+    },
+    "./sse/sse.module": {
+      "types": "./dist/internal/sse/sse.module.d.ts",
+      "default": "./dist/internal/sse/sse.module.js"
+    },
+    "./third-party-sse": {
+      "types": "./dist/internal/third-party-sse/index.d.ts",
+      "default": "./dist/internal/third-party-sse/index.js"
+    },
+    "./third-party-sse/third-party-sse.client": {
+      "types": "./dist/internal/third-party-sse/third-party-sse.client.d.ts",
+      "default": "./dist/internal/third-party-sse/third-party-sse.client.js"
+    },
+    "./third-party-sse/third-party-sse.module": {
+      "types": "./dist/internal/third-party-sse/third-party-sse.module.d.ts",
+      "default": "./dist/internal/third-party-sse/third-party-sse.module.js"
+    },
+    "./verify": {
+      "types": "./dist/internal/verify/index.d.ts",
+      "default": "./dist/internal/verify/index.js"
+    },
+    "./verify/verify.client": {
+      "types": "./dist/internal/verify/verify.client.d.ts",
+      "default": "./dist/internal/verify/verify.client.js"
+    },
+    "./verify/verify.module": {
+      "types": "./dist/internal/verify/verify.module.d.ts",
+      "default": "./dist/internal/verify/verify.module.js"
+    },
+    "./wechat": {
+      "types": "./dist/internal/wechat/index.d.ts",
+      "default": "./dist/internal/wechat/index.js"
+    },
+    "./wechat/wechat.client": {
+      "types": "./dist/internal/wechat/wechat.client.d.ts",
+      "default": "./dist/internal/wechat/wechat.client.js"
+    },
+    "./wechat/wechat.module": {
+      "types": "./dist/internal/wechat/wechat.module.d.ts",
+      "default": "./dist/internal/wechat/wechat.module.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
     "@alicloud/dysmsapi20170525": "^3.0.0",
@@ -46,8 +333,8 @@
     "@aws-sdk/client-s3": "^3.978.0",
     "@aws-sdk/client-sts": "^3.1024.0",
     "@aws-sdk/s3-request-presigner": "^3.978.0",
-    "@dofe/infra-contracts": "^0.1.22",
-    "@dofe/infra-docker": "^0.1.22",
+    "@dofe/infra-contracts": "^0.1.23",
+    "@dofe/infra-docker": "^0.1.23",
     "@google-cloud/storage": "^7.12.0",
     "@larksuiteoapi/node-sdk": "^1.30.0",
     "@nestjs/axios": "^4.0.0",
@@ -75,9 +362,9 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.22",
-    "@dofe/infra-redis": "^0.1.22",
-    "@dofe/infra-utils": "^0.1.22"
+    "@dofe/infra-common": "^0.1.23",
+    "@dofe/infra-redis": "^0.1.23",
+    "@dofe/infra-utils": "^0.1.23"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

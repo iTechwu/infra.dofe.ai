@@ -27,4 +27,11 @@ echo "Copying i18n locale resources..."
 cp -r packages/i18n/src/en packages/i18n/dist/en 2>/dev/null || true
 cp -r packages/i18n/src/zh-CN packages/i18n/dist/zh-CN 2>/dev/null || true
 
+# Generate explicit exports for each package (Node.js v25 CJS compat)
+echo "Generating exports..."
+for pkg in packages/*/; do
+  name=$(basename "$pkg")
+  (cd "$pkg" && node ../../scripts/generate-exports.mjs)
+done
+
 echo "Done. All packages built successfully."

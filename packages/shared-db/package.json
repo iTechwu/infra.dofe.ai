@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-shared-db",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,22 +8,36 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/*.js",
-        "./dist/*/index.js",
-        "./dist/*"
-      ]
+    "./country-code/country-code.module": {
+      "types": "./dist/country-code/country-code.module.d.ts",
+      "default": "./dist/country-code/country-code.module.js"
+    },
+    "./country-code/country-code.service": {
+      "types": "./dist/country-code/country-code.service.d.ts",
+      "default": "./dist/country-code/country-code.service.js"
+    },
+    "./transaction-context": {
+      "types": "./dist/transaction-context.d.ts",
+      "default": "./dist/transaction-context.js"
+    },
+    "./transaction.module": {
+      "types": "./dist/transaction.module.d.ts",
+      "default": "./dist/transaction.module.js"
+    },
+    "./transactional-service.base": {
+      "types": "./dist/transactional-service.base.d.ts",
+      "default": "./dist/transactional-service.base.js"
+    },
+    "./unit-of-work.service": {
+      "types": "./dist/unit-of-work.service.d.ts",
+      "default": "./dist/unit-of-work.service.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
@@ -33,9 +47,9 @@
     "rxjs": "^7.8.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.22",
-    "@dofe/infra-prisma": "^0.1.22",
-    "@dofe/infra-redis": "^0.1.22"
+    "@dofe/infra-common": "^0.1.23",
+    "@dofe/infra-prisma": "^0.1.23",
+    "@dofe/infra-redis": "^0.1.23"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

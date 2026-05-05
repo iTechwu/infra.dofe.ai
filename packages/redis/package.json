@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-redis",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,25 +8,51 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/*.js",
-        "./dist/*/index.js",
-        "./dist/*"
-      ]
+    "./cache.service": {
+      "types": "./dist/cache.service.d.ts",
+      "default": "./dist/cache.service.js"
+    },
+    "./dto/redis.dto": {
+      "types": "./dist/dto/redis.dto.d.ts",
+      "default": "./dist/dto/redis.dto.js"
+    },
+    "./redis-lock.module": {
+      "types": "./dist/redis-lock.module.d.ts",
+      "default": "./dist/redis-lock.module.js"
+    },
+    "./redis-lock.service": {
+      "types": "./dist/redis-lock.service.d.ts",
+      "default": "./dist/redis-lock.service.js"
+    },
+    "./redis-version-check": {
+      "types": "./dist/redis-version-check.d.ts",
+      "default": "./dist/redis-version-check.js"
+    },
+    "./redis.module": {
+      "types": "./dist/redis.module.d.ts",
+      "default": "./dist/redis.module.js"
+    },
+    "./redis.service": {
+      "types": "./dist/redis.service.d.ts",
+      "default": "./dist/redis.service.js"
+    },
+    "./tenant-redis.module": {
+      "types": "./dist/tenant-redis.module.d.ts",
+      "default": "./dist/tenant-redis.module.js"
+    },
+    "./tenant-redis.service": {
+      "types": "./dist/tenant-redis.service.d.ts",
+      "default": "./dist/tenant-redis.service.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.22",
+    "@dofe/infra-contracts": "^0.1.23",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",

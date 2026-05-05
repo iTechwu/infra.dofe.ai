@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-contracts",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,22 +8,28 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/*.js",
-        "./dist/*/index.js",
-        "./dist/*"
-      ]
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "default": "./dist/constants.js"
+    },
+    "./error-codes": {
+      "types": "./dist/error-codes.d.ts",
+      "default": "./dist/error-codes.js"
+    },
+    "./providers": {
+      "types": "./dist/providers.d.ts",
+      "default": "./dist/providers.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "type": "commonjs",
   "publishConfig": {

@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-prisma",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,22 +8,76 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/*.js",
-        "./dist/*/index.js",
-        "./dist/*"
-      ]
+    "./db-metrics": {
+      "types": "./dist/db-metrics/index.d.ts",
+      "default": "./dist/db-metrics/index.js"
+    },
+    "./db-metrics/src": {
+      "types": "./dist/db-metrics/src/index.d.ts",
+      "default": "./dist/db-metrics/src/index.js"
+    },
+    "./db-metrics/src/db-metrics.module": {
+      "types": "./dist/db-metrics/src/db-metrics.module.d.ts",
+      "default": "./dist/db-metrics/src/db-metrics.module.js"
+    },
+    "./db-metrics/src/db-metrics.service": {
+      "types": "./dist/db-metrics/src/db-metrics.service.d.ts",
+      "default": "./dist/db-metrics/src/db-metrics.service.js"
+    },
+    "./middleware/soft-delete.middleware": {
+      "types": "./dist/middleware/soft-delete.middleware.d.ts",
+      "default": "./dist/middleware/soft-delete.middleware.js"
+    },
+    "./middleware/tenant-isolation-extension": {
+      "types": "./dist/middleware/tenant-isolation-extension.d.ts",
+      "default": "./dist/middleware/tenant-isolation-extension.js"
+    },
+    "./prisma": {
+      "types": "./dist/prisma/index.d.ts",
+      "default": "./dist/prisma/index.js"
+    },
+    "./prisma-read/prisma-read.module": {
+      "types": "./dist/prisma-read/prisma-read.module.d.ts",
+      "default": "./dist/prisma-read/prisma-read.module.js"
+    },
+    "./prisma-read/prisma-read.service": {
+      "types": "./dist/prisma-read/prisma-read.service.d.ts",
+      "default": "./dist/prisma-read/prisma-read.service.js"
+    },
+    "./prisma-write/prisma-write.module": {
+      "types": "./dist/prisma-write/prisma-write.module.d.ts",
+      "default": "./dist/prisma-write/prisma-write.module.js"
+    },
+    "./prisma-write/prisma-write.service": {
+      "types": "./dist/prisma-write/prisma-write.service.d.ts",
+      "default": "./dist/prisma-write/prisma-write.service.js"
+    },
+    "./prisma/prisma.module": {
+      "types": "./dist/prisma/prisma.module.d.ts",
+      "default": "./dist/prisma/prisma.module.js"
+    },
+    "./prisma/prisma.service": {
+      "types": "./dist/prisma/prisma.service.d.ts",
+      "default": "./dist/prisma/prisma.service.js"
+    },
+    "./prisma/types": {
+      "types": "./dist/prisma/types.d.ts",
+      "default": "./dist/prisma/types.js"
+    },
+    "./prometheus": {
+      "types": "./dist/prometheus/index.d.ts",
+      "default": "./dist/prometheus/index.js"
+    },
+    "./prometheus/prometheus.module": {
+      "types": "./dist/prometheus/prometheus.module.d.ts",
+      "default": "./dist/prometheus/prometheus.module.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
@@ -42,9 +96,9 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.22",
-    "@dofe/infra-redis": "^0.1.22",
-    "@dofe/infra-utils": "^0.1.22"
+    "@dofe/infra-common": "^0.1.23",
+    "@dofe/infra-redis": "^0.1.23",
+    "@dofe/infra-utils": "^0.1.23"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

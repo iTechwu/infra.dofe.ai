@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-common",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,26 +8,340 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/*.js",
-        "./dist/*/index.js",
-        "./dist/*"
-      ]
+    "./adapters": {
+      "types": "./dist/adapters/index.d.ts",
+      "default": "./dist/adapters/index.js"
+    },
+    "./adapters/base.adapter": {
+      "types": "./dist/adapters/base.adapter.d.ts",
+      "default": "./dist/adapters/base.adapter.js"
+    },
+    "./common.module": {
+      "types": "./dist/common.module.d.ts",
+      "default": "./dist/common.module.js"
+    },
+    "./config/agentx.config": {
+      "types": "./dist/config/agentx.config.d.ts",
+      "default": "./dist/config/agentx.config.js"
+    },
+    "./config/configuration": {
+      "types": "./dist/config/configuration.d.ts",
+      "default": "./dist/config/configuration.js"
+    },
+    "./config/constant/config.constants": {
+      "types": "./dist/config/constant/config.constants.d.ts",
+      "default": "./dist/config/constant/config.constants.js"
+    },
+    "./config/dto/config.dto": {
+      "types": "./dist/config/dto/config.dto.d.ts",
+      "default": "./dist/config/dto/config.dto.js"
+    },
+    "./config/env-config.service": {
+      "types": "./dist/config/env-config.service.d.ts",
+      "default": "./dist/config/env-config.service.js"
+    },
+    "./config/features": {
+      "types": "./dist/config/features/index.d.ts",
+      "default": "./dist/config/features/index.js"
+    },
+    "./config/features/feature-errors": {
+      "types": "./dist/config/features/feature-errors.d.ts",
+      "default": "./dist/config/features/feature-errors.js"
+    },
+    "./config/features/feature-registry": {
+      "types": "./dist/config/features/feature-registry.d.ts",
+      "default": "./dist/config/features/feature-registry.js"
+    },
+    "./config/validation": {
+      "types": "./dist/config/validation/index.d.ts",
+      "default": "./dist/config/validation/index.js"
+    },
+    "./config/validation/env.validation": {
+      "types": "./dist/config/validation/env.validation.d.ts",
+      "default": "./dist/config/validation/env.validation.js"
+    },
+    "./config/validation/keys.validation": {
+      "types": "./dist/config/validation/keys.validation.d.ts",
+      "default": "./dist/config/validation/keys.validation.js"
+    },
+    "./config/validation/yaml.validation": {
+      "types": "./dist/config/validation/yaml.validation.d.ts",
+      "default": "./dist/config/validation/yaml.validation.js"
+    },
+    "./config/vendor.config": {
+      "types": "./dist/config/vendor.config.d.ts",
+      "default": "./dist/config/vendor.config.js"
+    },
+    "./decorators/api-key/api-key.decorator": {
+      "types": "./dist/decorators/api-key/api-key.decorator.d.ts",
+      "default": "./dist/decorators/api-key/api-key.decorator.js"
+    },
+    "./decorators/app-version/app-version.controller": {
+      "types": "./dist/decorators/app-version/app-version.controller.d.ts",
+      "default": "./dist/decorators/app-version/app-version.controller.js"
+    },
+    "./decorators/app-version/app-version.interceptor": {
+      "types": "./dist/decorators/app-version/app-version.interceptor.d.ts",
+      "default": "./dist/decorators/app-version/app-version.interceptor.js"
+    },
+    "./decorators/app-version/app-version.module": {
+      "types": "./dist/decorators/app-version/app-version.module.d.ts",
+      "default": "./dist/decorators/app-version/app-version.module.js"
+    },
+    "./decorators/app-version/app-version.service": {
+      "types": "./dist/decorators/app-version/app-version.service.d.ts",
+      "default": "./dist/decorators/app-version/app-version.service.js"
+    },
+    "./decorators/audit-log.decorator": {
+      "types": "./dist/decorators/audit-log.decorator.d.ts",
+      "default": "./dist/decorators/audit-log.decorator.js"
+    },
+    "./decorators/cache/cache.decorator": {
+      "types": "./dist/decorators/cache/cache.decorator.d.ts",
+      "default": "./dist/decorators/cache/cache.decorator.js"
+    },
+    "./decorators/cache/cache.interceptor": {
+      "types": "./dist/decorators/cache/cache.interceptor.d.ts",
+      "default": "./dist/decorators/cache/cache.interceptor.js"
+    },
+    "./decorators/cache/cache.module": {
+      "types": "./dist/decorators/cache/cache.module.d.ts",
+      "default": "./dist/decorators/cache/cache.module.js"
+    },
+    "./decorators/data-visibility": {
+      "types": "./dist/decorators/data-visibility/index.d.ts",
+      "default": "./dist/decorators/data-visibility/index.js"
+    },
+    "./decorators/data-visibility/data-visibility.decorator": {
+      "types": "./dist/decorators/data-visibility/data-visibility.decorator.d.ts",
+      "default": "./dist/decorators/data-visibility/data-visibility.decorator.js"
+    },
+    "./decorators/event/event.decorator": {
+      "types": "./dist/decorators/event/event.decorator.d.ts",
+      "default": "./dist/decorators/event/event.decorator.js"
+    },
+    "./decorators/event/event.interceptor": {
+      "types": "./dist/decorators/event/event.interceptor.d.ts",
+      "default": "./dist/decorators/event/event.interceptor.js"
+    },
+    "./decorators/event/event.module": {
+      "types": "./dist/decorators/event/event.module.d.ts",
+      "default": "./dist/decorators/event/event.module.js"
+    },
+    "./decorators/event/handlers/cache-event.handler": {
+      "types": "./dist/decorators/event/handlers/cache-event.handler.d.ts",
+      "default": "./dist/decorators/event/handlers/cache-event.handler.js"
+    },
+    "./decorators/feature-flag/feature-flag.decorator": {
+      "types": "./dist/decorators/feature-flag/feature-flag.decorator.d.ts",
+      "default": "./dist/decorators/feature-flag/feature-flag.decorator.js"
+    },
+    "./decorators/feature-flag/feature-flag.interceptor": {
+      "types": "./dist/decorators/feature-flag/feature-flag.interceptor.d.ts",
+      "default": "./dist/decorators/feature-flag/feature-flag.interceptor.js"
+    },
+    "./decorators/feature-flag/feature-flag.module": {
+      "types": "./dist/decorators/feature-flag/feature-flag.module.d.ts",
+      "default": "./dist/decorators/feature-flag/feature-flag.module.js"
+    },
+    "./decorators/feature-flag/feature-flag.service": {
+      "types": "./dist/decorators/feature-flag/feature-flag.service.d.ts",
+      "default": "./dist/decorators/feature-flag/feature-flag.service.js"
+    },
+    "./decorators/rate-limit/dto/rate-limit.dto": {
+      "types": "./dist/decorators/rate-limit/dto/rate-limit.dto.d.ts",
+      "default": "./dist/decorators/rate-limit/dto/rate-limit.dto.js"
+    },
+    "./decorators/rate-limit/rate-limit.constants": {
+      "types": "./dist/decorators/rate-limit/rate-limit.constants.d.ts",
+      "default": "./dist/decorators/rate-limit/rate-limit.constants.js"
+    },
+    "./decorators/rate-limit/rate-limit.decorator": {
+      "types": "./dist/decorators/rate-limit/rate-limit.decorator.d.ts",
+      "default": "./dist/decorators/rate-limit/rate-limit.decorator.js"
+    },
+    "./decorators/rate-limit/rate-limit.exception": {
+      "types": "./dist/decorators/rate-limit/rate-limit.exception.d.ts",
+      "default": "./dist/decorators/rate-limit/rate-limit.exception.js"
+    },
+    "./decorators/rate-limit/rate-limit.module": {
+      "types": "./dist/decorators/rate-limit/rate-limit.module.d.ts",
+      "default": "./dist/decorators/rate-limit/rate-limit.module.js"
+    },
+    "./decorators/rate-limit/rate-limit.service": {
+      "types": "./dist/decorators/rate-limit/rate-limit.service.d.ts",
+      "default": "./dist/decorators/rate-limit/rate-limit.service.js"
+    },
+    "./decorators/response.decorator": {
+      "types": "./dist/decorators/response.decorator.d.ts",
+      "default": "./dist/decorators/response.decorator.js"
+    },
+    "./decorators/tenant/tenant.decorator": {
+      "types": "./dist/decorators/tenant/tenant.decorator.d.ts",
+      "default": "./dist/decorators/tenant/tenant.decorator.js"
+    },
+    "./decorators/transaction/transactional.decorator": {
+      "types": "./dist/decorators/transaction/transactional.decorator.d.ts",
+      "default": "./dist/decorators/transaction/transactional.decorator.js"
+    },
+    "./decorators/ts-rest-controller.decorator": {
+      "types": "./dist/decorators/ts-rest-controller.decorator.d.ts",
+      "default": "./dist/decorators/ts-rest-controller.decorator.js"
+    },
+    "./decorators/validation.decorator": {
+      "types": "./dist/decorators/validation.decorator.d.ts",
+      "default": "./dist/decorators/validation.decorator.js"
+    },
+    "./decorators/version/version.decorator": {
+      "types": "./dist/decorators/version/version.decorator.d.ts",
+      "default": "./dist/decorators/version/version.decorator.js"
+    },
+    "./decorators/version/version.interceptor": {
+      "types": "./dist/decorators/version/version.interceptor.d.ts",
+      "default": "./dist/decorators/version/version.interceptor.js"
+    },
+    "./decorators/version/version.module": {
+      "types": "./dist/decorators/version/version.module.d.ts",
+      "default": "./dist/decorators/version/version.module.js"
+    },
+    "./encryption.service": {
+      "types": "./dist/encryption.service.d.ts",
+      "default": "./dist/encryption.service.js"
+    },
+    "./enums/action.enum": {
+      "types": "./dist/enums/action.enum.d.ts",
+      "default": "./dist/enums/action.enum.js"
+    },
+    "./enums/error-codes": {
+      "types": "./dist/enums/error-codes.d.ts",
+      "default": "./dist/enums/error-codes.js"
+    },
+    "./enums/role.enum": {
+      "types": "./dist/enums/role.enum.d.ts",
+      "default": "./dist/enums/role.enum.js"
+    },
+    "./filter/exception/api.exception": {
+      "types": "./dist/filter/exception/api.exception.d.ts",
+      "default": "./dist/filter/exception/api.exception.js"
+    },
+    "./filter/exception/exception": {
+      "types": "./dist/filter/exception/exception.d.ts",
+      "default": "./dist/filter/exception/exception.js"
+    },
+    "./filter/exception/http.exception": {
+      "types": "./dist/filter/exception/http.exception.d.ts",
+      "default": "./dist/filter/exception/http.exception.js"
+    },
+    "./guards": {
+      "types": "./dist/guards/index.d.ts",
+      "default": "./dist/guards/index.js"
+    },
+    "./guards/api-key.guard": {
+      "types": "./dist/guards/api-key.guard.d.ts",
+      "default": "./dist/guards/api-key.guard.js"
+    },
+    "./guards/auth.guard": {
+      "types": "./dist/guards/auth.guard.d.ts",
+      "default": "./dist/guards/auth.guard.js"
+    },
+    "./guards/data-visibility.guard": {
+      "types": "./dist/guards/data-visibility.guard.d.ts",
+      "default": "./dist/guards/data-visibility.guard.js"
+    },
+    "./guards/permission.guard": {
+      "types": "./dist/guards/permission.guard.d.ts",
+      "default": "./dist/guards/permission.guard.js"
+    },
+    "./guards/tenant-context.guard": {
+      "types": "./dist/guards/tenant-context.guard.d.ts",
+      "default": "./dist/guards/tenant-context.guard.js"
+    },
+    "./guards/tokens": {
+      "types": "./dist/guards/tokens.d.ts",
+      "default": "./dist/guards/tokens.js"
+    },
+    "./guards/version.guard": {
+      "types": "./dist/guards/version.guard.d.ts",
+      "default": "./dist/guards/version.guard.js"
+    },
+    "./interceptor/audit": {
+      "types": "./dist/interceptor/audit/index.d.ts",
+      "default": "./dist/interceptor/audit/index.js"
+    },
+    "./interceptor/audit/audit-log.interceptor": {
+      "types": "./dist/interceptor/audit/audit-log.interceptor.d.ts",
+      "default": "./dist/interceptor/audit/audit-log.interceptor.js"
+    },
+    "./interceptor/mask": {
+      "types": "./dist/interceptor/mask/index.d.ts",
+      "default": "./dist/interceptor/mask/index.js"
+    },
+    "./interceptor/mask/mask.interceptor": {
+      "types": "./dist/interceptor/mask/mask.interceptor.d.ts",
+      "default": "./dist/interceptor/mask/mask.interceptor.js"
+    },
+    "./interceptor/rate-limit/no-rate-limit.interceptor": {
+      "types": "./dist/interceptor/rate-limit/no-rate-limit.interceptor.d.ts",
+      "default": "./dist/interceptor/rate-limit/no-rate-limit.interceptor.js"
+    },
+    "./interceptor/rate-limit/rate-limit.interceptor": {
+      "types": "./dist/interceptor/rate-limit/rate-limit.interceptor.d.ts",
+      "default": "./dist/interceptor/rate-limit/rate-limit.interceptor.js"
+    },
+    "./interceptor/transform/transform.interceptor": {
+      "types": "./dist/interceptor/transform/transform.interceptor.d.ts",
+      "default": "./dist/interceptor/transform/transform.interceptor.js"
+    },
+    "./interceptor/version": {
+      "types": "./dist/interceptor/version/index.d.ts",
+      "default": "./dist/interceptor/version/index.js"
+    },
+    "./interceptor/version/version-header.interceptor": {
+      "types": "./dist/interceptor/version/version-header.interceptor.d.ts",
+      "default": "./dist/interceptor/version/version-header.interceptor.js"
+    },
+    "./middleware/request.middleware": {
+      "types": "./dist/middleware/request.middleware.d.ts",
+      "default": "./dist/middleware/request.middleware.js"
+    },
+    "./middleware/tenant-isolation.middleware": {
+      "types": "./dist/middleware/tenant-isolation.middleware.d.ts",
+      "default": "./dist/middleware/tenant-isolation.middleware.js"
+    },
+    "./pipes/transform-root.pipe": {
+      "types": "./dist/pipes/transform-root.pipe.d.ts",
+      "default": "./dist/pipes/transform-root.pipe.js"
+    },
+    "./ts-rest": {
+      "types": "./dist/ts-rest/index.d.ts",
+      "default": "./dist/ts-rest/index.js"
+    },
+    "./ts-rest/response.helper": {
+      "types": "./dist/ts-rest/response.helper.d.ts",
+      "default": "./dist/ts-rest/response.helper.js"
+    },
+    "./utils/audit-log-helper.util": {
+      "types": "./dist/utils/audit-log-helper.util.d.ts",
+      "default": "./dist/utils/audit-log-helper.util.js"
+    },
+    "./utils/audit-signature.util": {
+      "types": "./dist/utils/audit-signature.util.d.ts",
+      "default": "./dist/utils/audit-signature.util.js"
+    },
+    "./utils/prisma-error.util": {
+      "types": "./dist/utils/prisma-error.util.d.ts",
+      "default": "./dist/utils/prisma-error.util.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.22",
-    "@dofe/infra-redis": "^0.1.22",
+    "@dofe/infra-contracts": "^0.1.23",
+    "@dofe/infra-redis": "^0.1.23",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -51,8 +365,8 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-i18n": "^0.1.22",
-    "@dofe/infra-utils": "^0.1.22"
+    "@dofe/infra-i18n": "^0.1.23",
+    "@dofe/infra-utils": "^0.1.23"
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",

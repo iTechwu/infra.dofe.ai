@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-module-registry",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,18 +8,32 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": "./dist/*"
+    "./dynamic-feature.module": {
+      "types": "./dist/dynamic-feature.module.d.ts",
+      "default": "./dist/dynamic-feature.module.js"
+    },
+    "./module-registry.module": {
+      "types": "./dist/module-registry.module.d.ts",
+      "default": "./dist/module-registry.module.js"
+    },
+    "./module-registry.service": {
+      "types": "./dist/module-registry.service.d.ts",
+      "default": "./dist/module-registry.service.js"
+    },
+    "./module-scanner.service": {
+      "types": "./dist/module-scanner.service.d.ts",
+      "default": "./dist/module-scanner.service.js"
+    },
+    "./register-module.decorator": {
+      "types": "./dist/register-module.decorator.d.ts",
+      "default": "./dist/register-module.decorator.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",

@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-rabbitmq",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -8,25 +8,39 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./*": {
-      "types": [
-        "./dist/*.d.ts",
-        "./dist/*/index.d.ts"
-      ],
-      "default": [
-        "./dist/*.js",
-        "./dist/*/index.js",
-        "./dist/*"
-      ]
+    "./dto/rabbitmq.dto": {
+      "types": "./dist/dto/rabbitmq.dto.d.ts",
+      "default": "./dist/dto/rabbitmq.dto.js"
+    },
+    "./rabbitmq-events.constants": {
+      "types": "./dist/rabbitmq-events.constants.d.ts",
+      "default": "./dist/rabbitmq-events.constants.js"
+    },
+    "./rabbitmq-events.module": {
+      "types": "./dist/rabbitmq-events.module.d.ts",
+      "default": "./dist/rabbitmq-events.module.js"
+    },
+    "./rabbitmq-events.service": {
+      "types": "./dist/rabbitmq-events.service.d.ts",
+      "default": "./dist/rabbitmq-events.service.js"
+    },
+    "./rabbitmq.module": {
+      "types": "./dist/rabbitmq.module.d.ts",
+      "default": "./dist/rabbitmq.module.js"
+    },
+    "./rabbitmq.service": {
+      "types": "./dist/rabbitmq.service.d.ts",
+      "default": "./dist/rabbitmq.service.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-utils": "^0.1.22",
+    "@dofe/infra-utils": "^0.1.23",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
@@ -39,9 +53,9 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.22",
-    "@dofe/infra-prisma": "^0.1.22",
-    "@dofe/infra-redis": "^0.1.22"
+    "@dofe/infra-common": "^0.1.23",
+    "@dofe/infra-prisma": "^0.1.23",
+    "@dofe/infra-redis": "^0.1.23"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
