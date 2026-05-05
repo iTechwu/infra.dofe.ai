@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import type { ResourceType, DataScope, Permission } from '@dofe/infra-contracts';
 import { REQUIRE_PERMISSIONS_KEY } from '@dofe/infra-contracts';
-import { AuthGuard } from '../../guards';
+import { AuthGuard } from '../../guards/auth.guard';
 import { TenantContextGuard } from '../../guards/tenant-context.guard';
 import { PermissionGuard } from '../../guards/permission.guard';
 import { DataVisibilityGuard } from '../../guards/data-visibility.guard';

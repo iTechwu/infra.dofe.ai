@@ -11,7 +11,7 @@ import {
   REQUIRE_PERMISSIONS_KEY,
   Permission,
 } from '@dofe/infra-contracts';
-import { AuthGuard } from '../../guards';
+import { AuthGuard } from '../../guards/auth.guard';
 import { TenantContextGuard } from '../../guards/tenant-context.guard';
 import { PermissionGuard } from '../../guards/permission.guard';
 

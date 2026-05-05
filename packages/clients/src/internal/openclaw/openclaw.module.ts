@@ -13,7 +13,7 @@ import { OpenClawAgentCoordinationClient } from './openclaw-agent-coordination.c
 import { OpenClawSkillSyncClient } from './openclaw-skill-sync.client';
 import { OpenClawContextStatusClient } from './openclaw-context-status.client';
 import { SkillTranslationService } from './skill-translation.service';
-import { OpenAIClientModule } from '@dofe/infra-clients';
+import { OpenAIClientModule } from '../openai/openai.module';
 
 @Module({
   imports: [
