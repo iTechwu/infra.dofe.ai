@@ -62,7 +62,7 @@
         "./dist/*.d.ts",
         "./dist/*/index.d.ts"
       ],
-      "default": "./dist/*"
+      "default": ["./dist/*.js", "./dist/*/index.js", "./dist/*"]
     }
   },
   "peerDependencies": {
