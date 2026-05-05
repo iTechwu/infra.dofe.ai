@@ -1,3 +1,6 @@
+## [0.1.29] - 2026-05-06
+- feat: 更新依赖项版本至0.1.28，确保一致性和兼容性
+
 ## [0.1.28] - 2026-05-06
 - feat: 更新依赖项版本至0.1.26，确保一致性和兼容性
 - Refactor code structure for improved readability and maintainability
