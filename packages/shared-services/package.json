@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-shared-services",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -367,8 +367,8 @@
     "@alicloud/imm20200930": "^4.6.2",
     "@alicloud/openapi-core": "^1.0.7",
     "@darabonba/typescript": "^1.0.4",
-    "@dofe/infra-clients": "^0.1.25",
-    "@dofe/infra-contracts": "^0.1.25",
+    "@dofe/infra-clients": "^0.1.27",
+    "@dofe/infra-contracts": "^0.1.27",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -381,7 +381,7 @@
     "@volcengine/tos-sdk": "^2.7.6",
     "ali-oss": "^6.20.0",
     "axios": "^1.7.0",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.14.1 || ^0.15.0",
     "form-data": "^4.0.0",
     "ioredis": "^5.0.0",
     "music-metadata": "^10.0.0 || ^11.0.0",
@@ -394,13 +394,13 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.26",
-    "@dofe/infra-jwt": "^0.1.26",
-    "@dofe/infra-prisma": "^0.1.26",
-    "@dofe/infra-rabbitmq": "^0.1.26",
-    "@dofe/infra-redis": "^0.1.26",
-    "@dofe/infra-shared-db": "^0.1.26",
-    "@dofe/infra-utils": "^0.1.26"
+    "@dofe/infra-common": "^0.1.27",
+    "@dofe/infra-jwt": "^0.1.27",
+    "@dofe/infra-prisma": "^0.1.27",
+    "@dofe/infra-rabbitmq": "^0.1.27",
+    "@dofe/infra-redis": "^0.1.27",
+    "@dofe/infra-shared-db": "^0.1.27",
+    "@dofe/infra-utils": "^0.1.27"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

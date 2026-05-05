@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-utils",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -148,7 +148,7 @@
     }
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.25",
+    "@dofe/infra-contracts": "^0.1.27",
     "@nestjs/swagger": "^11.0.0",
     "@prisma/client": "^7.0.0",
     "bcrypt": "^5.1.0 || ^6.0.0",
@@ -157,7 +157,7 @@
     "dotenv-expand": "^12.0.0 || ^13.0.0",
     "fastify": "^5.0.0",
     "lodash": "^4.17.0",
-    "moment-timezone": "^0.5.0",
+    "moment-timezone": "^0.5.0 || ^0.6.0",
     "pinyin-pro": "^3.0.0",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^5.0.0"

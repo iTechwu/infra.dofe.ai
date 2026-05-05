@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-rabbitmq",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -40,22 +40,22 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-utils": "^0.1.25",
+    "@dofe/infra-utils": "^0.1.27",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^1.0.0",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.14.1 || ^0.15.0",
     "nest-winston": "^1.9.7",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.26",
-    "@dofe/infra-prisma": "^0.1.26",
-    "@dofe/infra-redis": "^0.1.26"
+    "@dofe/infra-common": "^0.1.27",
+    "@dofe/infra-prisma": "^0.1.27",
+    "@dofe/infra-redis": "^0.1.27"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
