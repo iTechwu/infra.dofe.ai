@@ -1,3 +1,6 @@
+## [0.1.19] - 2026-05-05
+- feat: add stub type declarations for dockerode, prisma-client, and missing third-party modules
+
 ## [0.1.18] - 2026-05-05
 - feat: 添加缺失模块的声明文件，包括 form-data、@alicloud/dysmsapi20170525、@alicloud/openapi-client、tencentcloud-sdk-nodejs-sms、music-metadata、@nestjs/swagger、@nestjs/jwt、unleash-client 和 uuid
 - feat: add Volcengine TTS service with DTOs and client implementation
