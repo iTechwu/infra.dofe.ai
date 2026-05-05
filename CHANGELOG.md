@@ -1,3 +1,6 @@
+## [0.1.17] - 2026-05-05
+- feat: 添加对 file-cdn 模块的导出
+
 ## [0.1.16] - 2026-05-05
 - feat: refactor guards to use DI tokens for services and update imports
 - chore: 更新所有依赖项版本为 ^0.1.14
