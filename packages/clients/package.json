@@ -9,16 +9,8 @@
       "default": "./dist/index.js"
     },
     "./*": {
-      "types": "./dist/internal/*",
-      "default": "./dist/internal/*"
-    },
-    "./plugin": {
-      "types": "./dist/plugin/index.d.ts",
-      "default": "./dist/plugin/index.js"
-    },
-    "./plugin/*": {
-      "types": "./dist/plugin/*",
-      "default": "./dist/plugin/*"
+      "types": ["./dist/internal/*.d.ts", "./dist/internal/*/index.d.ts"],
+      "default": ["./dist/internal/*.js", "./dist/internal/*/index.js"]
     }
   },
   "scripts": {
