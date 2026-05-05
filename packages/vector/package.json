@@ -22,7 +22,7 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
-    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-common": "^0.1.21",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
