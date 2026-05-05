@@ -1,3 +1,6 @@
+## [0.1.12] - 2026-05-05
+- refactor: 优化 generateEnvironmentUrls 函数，简化域名处理逻辑
+
 ## [0.1.11] - 2026-05-04
 - chore: add ignoreDeprecations option to tsconfig.build-all.json
 
