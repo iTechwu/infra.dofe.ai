@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-common",
-  "version": "0.1.30",
+  "version": "0.1.31",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -72,17 +72,9 @@
       "types": "./dist/config/vendor.config.d.ts",
       "default": "./dist/config/vendor.config.js"
     },
-    "./decorators/api-key": {
-      "types": "./dist/decorators/api-key/index.d.ts",
-      "default": "./dist/decorators/api-key/index.js"
-    },
     "./decorators/api-key/api-key.decorator": {
       "types": "./dist/decorators/api-key/api-key.decorator.d.ts",
       "default": "./dist/decorators/api-key/api-key.decorator.js"
-    },
-    "./decorators/app-version": {
-      "types": "./dist/decorators/app-version/index.d.ts",
-      "default": "./dist/decorators/app-version/index.js"
     },
     "./decorators/app-version/app-version.controller": {
       "types": "./dist/decorators/app-version/app-version.controller.d.ts",
@@ -104,10 +96,6 @@
       "types": "./dist/decorators/audit-log.decorator.d.ts",
       "default": "./dist/decorators/audit-log.decorator.js"
     },
-    "./decorators/cache": {
-      "types": "./dist/decorators/cache/index.d.ts",
-      "default": "./dist/decorators/cache/index.js"
-    },
     "./decorators/cache/cache.decorator": {
       "types": "./dist/decorators/cache/cache.decorator.d.ts",
       "default": "./dist/decorators/cache/cache.decorator.js"
@@ -128,10 +116,6 @@
       "types": "./dist/decorators/data-visibility/data-visibility.decorator.d.ts",
       "default": "./dist/decorators/data-visibility/data-visibility.decorator.js"
     },
-    "./decorators/event": {
-      "types": "./dist/decorators/event/index.d.ts",
-      "default": "./dist/decorators/event/index.js"
-    },
     "./decorators/event/event.decorator": {
       "types": "./dist/decorators/event/event.decorator.d.ts",
       "default": "./dist/decorators/event/event.decorator.js"
@@ -148,10 +132,6 @@
       "types": "./dist/decorators/event/handlers/cache-event.handler.d.ts",
       "default": "./dist/decorators/event/handlers/cache-event.handler.js"
     },
-    "./decorators/feature-flag": {
-      "types": "./dist/decorators/feature-flag/index.d.ts",
-      "default": "./dist/decorators/feature-flag/index.js"
-    },
     "./decorators/feature-flag/feature-flag.decorator": {
       "types": "./dist/decorators/feature-flag/feature-flag.decorator.d.ts",
       "default": "./dist/decorators/feature-flag/feature-flag.decorator.js"
@@ -167,10 +147,6 @@
     "./decorators/feature-flag/feature-flag.service": {
       "types": "./dist/decorators/feature-flag/feature-flag.service.d.ts",
       "default": "./dist/decorators/feature-flag/feature-flag.service.js"
-    },
-    "./decorators/rate-limit": {
-      "types": "./dist/decorators/rate-limit/index.d.ts",
-      "default": "./dist/decorators/rate-limit/index.js"
     },
     "./decorators/rate-limit/dto/rate-limit.dto": {
       "types": "./dist/decorators/rate-limit/dto/rate-limit.dto.d.ts",
@@ -200,21 +176,9 @@
       "types": "./dist/decorators/response.decorator.d.ts",
       "default": "./dist/decorators/response.decorator.js"
     },
-    "./decorators/skip-version-check.decorator": {
-      "types": "./dist/decorators/skip-version-check.decorator.d.ts",
-      "default": "./dist/decorators/skip-version-check.decorator.js"
-    },
-    "./decorators/tenant": {
-      "types": "./dist/decorators/tenant/index.d.ts",
-      "default": "./dist/decorators/tenant/index.js"
-    },
     "./decorators/tenant/tenant.decorator": {
       "types": "./dist/decorators/tenant/tenant.decorator.d.ts",
       "default": "./dist/decorators/tenant/tenant.decorator.js"
-    },
-    "./decorators/transaction": {
-      "types": "./dist/decorators/transaction/index.d.ts",
-      "default": "./dist/decorators/transaction/index.js"
     },
     "./decorators/transaction/transactional.decorator": {
       "types": "./dist/decorators/transaction/transactional.decorator.d.ts",
@@ -227,10 +191,6 @@
     "./decorators/validation.decorator": {
       "types": "./dist/decorators/validation.decorator.d.ts",
       "default": "./dist/decorators/validation.decorator.js"
-    },
-    "./decorators/version": {
-      "types": "./dist/decorators/version/index.d.ts",
-      "default": "./dist/decorators/version/index.js"
     },
     "./decorators/version/version.decorator": {
       "types": "./dist/decorators/version/version.decorator.d.ts",
