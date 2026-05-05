@@ -36,7 +36,7 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-common": "workspace:*",
+    "@dofe/infra-common": "^0.1.25",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",

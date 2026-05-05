@@ -364,8 +364,8 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-clients": "workspace:*",
-    "@dofe/infra-contracts": "workspace:*",
+    "@dofe/infra-clients": "^0.1.25",
+    "@dofe/infra-contracts": "^0.1.25",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -394,13 +394,13 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "workspace:*",
-    "@dofe/infra-jwt": "workspace:*",
-    "@dofe/infra-prisma": "workspace:*",
-    "@dofe/infra-rabbitmq": "workspace:*",
-    "@dofe/infra-redis": "workspace:*",
-    "@dofe/infra-shared-db": "workspace:*",
-    "@dofe/infra-utils": "workspace:*"
+    "@dofe/infra-common": "^0.1.25",
+    "@dofe/infra-jwt": "^0.1.25",
+    "@dofe/infra-prisma": "^0.1.25",
+    "@dofe/infra-rabbitmq": "^0.1.25",
+    "@dofe/infra-redis": "^0.1.25",
+    "@dofe/infra-shared-db": "^0.1.25",
+    "@dofe/infra-utils": "^0.1.25"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",
