@@ -15,7 +15,7 @@ import { $OpenApiUtil } from '@alicloud/openapi-core';
 import Credential from '@alicloud/credentials';
 import { TranscodeOptions } from '../../types/transcode.types';
 import { AliyunOssTranscodeConfig } from '../../config/aliyun-oss.config';
-import { PardxUploader } from '../../../file-storage';
+import { DoFeUploader } from '../../../file-storage';
 import { arrayUtil } from '@dofe/infra-utils';
 import { getKeysConfig } from '@dofe/infra-common';
 import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
@@ -95,7 +95,7 @@ export class AliyunImmClient {
             throw new Error(`Unsupported vendor: ${vendor}`);
         }
         const bucketConfigs =
-            this.configService.getOrThrow<PardxUploader.Config[]>('buckets');
+            this.configService.getOrThrow<DoFeUploader.Config[]>('buckets');
         const bucketConfig = arrayUtil.findOne(bucketConfigs, {
             bucket,
             vendor,
@@ -147,12 +147,12 @@ export class AliyunImmClient {
                 regionId: this.config.region,
             } as any);
             return new imm(config);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to create IMM client', {
-                error: error.message,
+                error: error instanceof Error ? error.message : String(error),
                 config: this.config,
             });
-            throw new Error(`Failed to create IMM client: ${error.message}`);
+            throw new Error(`Failed to create IMM client: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
@@ -186,13 +186,13 @@ export class AliyunImmClient {
                 response: response.body,
             });
 
-            return this.parseMediaMetaResponse(response.body, type);
-        } catch (error) {
+            return this.parseMediaMetaResponse(response.body!, type);
+        } catch (error: unknown) {
             this.logger.error('Failed to detect media meta', {
                 vendor,
                 bucket,
                 key,
-                error: error.message,
+                error: error instanceof Error ? error.message : String(error),
             });
             throw error;
         }
@@ -418,14 +418,14 @@ export class AliyunImmClient {
 
             this.logger.info('Task status retrieved', {
                 taskId,
-                status: response.body.status,
+                status: response.body?.status,
             });
 
             return this.parseTaskStatus(response.body);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get task status', {
                 taskId,
-                error: error.message,
+                error: error instanceof Error ? error.message : String(error),
             });
             throw error;
         }
@@ -664,16 +664,17 @@ export class AliyunImmClient {
             videoHeight,
         } = mediaMetadata;
 
+        const fmtName = formatName ?? '';
         type =
             type !== 'else'
                 ? type
-                : fileUtil.isVideoFile(formatName) || formatName.includes('mov')
+                : fileUtil.isVideoFile(fmtName) || fmtName.includes('mov')
                   ? 'video'
-                  : fileUtil.isAudioFile(formatName) ||
-                      formatName.includes('audio')
+                  : fileUtil.isAudioFile(fmtName) ||
+                      fmtName.includes('audio')
                     ? 'audio'
-                    : fileUtil.isImageFile(formatName) ||
-                        formatName.includes('image')
+                    : fileUtil.isImageFile(fmtName) ||
+                        fmtName.includes('image')
                       ? 'image'
                       : 'else';
 
@@ -681,8 +682,8 @@ export class AliyunImmClient {
             const videoInfo: Partial<VideoInfo> = {
                 width: videoWidth,
                 height: videoHeight,
-                duration: duration,
-                streamDuration: videoStreams[0]?.streamDuration,
+                duration: duration ? Number(duration) : undefined,
+                streamDuration: videoStreams[0]?.streamDuration ? Number(videoStreams[0].streamDuration) : undefined,
                 sar: videoStreams[0]?.sampleAspectRatio,
                 dar: videoStreams[0]?.displayAspectRatio,
                 rFrameRate: videoStreams[0]?.frameRate,
@@ -698,8 +699,8 @@ export class AliyunImmClient {
 
         if (type === 'audio' && audioStreams && audioStreams.length > 0) {
             const audioInfo: Partial<AudioInfo> = {
-                duration: duration,
-                streamDuration: audioStreams[0]?.streamDuration,
+                duration: duration ? Number(duration) : undefined,
+                streamDuration: audioStreams[0]?.streamDuration ? Number(audioStreams[0].streamDuration) : undefined,
                 channels: audioStreams[0]?.channels,
                 channelLayout: audioStreams[0]?.channelLayout,
                 sampleRate: audioStreams[0]?.sampleRate?.toString(),

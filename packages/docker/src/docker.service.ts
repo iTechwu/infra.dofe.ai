@@ -91,7 +91,7 @@ export interface CreateSandboxOptions {
 
 @Injectable()
 export class DockerService implements OnModuleInit {
-  private docker: Docker;
+  private docker!: Docker;
   /** Bot images mapped by bot type */
   private readonly botImages: Record<BotType, string>;
   private readonly portStart: number;
@@ -1580,7 +1580,7 @@ if auth_profiles_file:
       try {
         const containers = await this.docker.listContainers({ all: true });
         dockerUsedPorts = containers.flatMap((c) =>
-          c.Ports.filter((p) => p.PublicPort).map((p) => p.PublicPort),
+          c.Ports.filter((p) => p.PublicPort).map((p) => p.PublicPort!),
         );
       } catch (error) {
         this.logger.warn(

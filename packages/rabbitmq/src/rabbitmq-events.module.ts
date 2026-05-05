@@ -29,7 +29,7 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
         let lastError: Error | null = null;
 
         // 使用独立的 RabbitMQ 连接 URL (独立 vhost)
-        const rabbitmqEventsUrl = process.env.RABBITMQ_EVENTS_URL;
+        const rabbitmqEventsUrl = process.env.RABBITMQ_EVENTS_URL!;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {

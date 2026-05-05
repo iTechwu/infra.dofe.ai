@@ -1,7 +1,7 @@
 import validate from './validate.util';
 import timer from './timer.util';
 import objectUtil from './object.util';
-import { findIndex } from 'lodash';
+import findIndex from 'lodash/findIndex';
 
 export interface MultiMensionArray {
   [key: string]: any;

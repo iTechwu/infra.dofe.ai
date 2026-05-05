@@ -94,7 +94,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
     // 2. 应用监控扩展
     return withSoftDelete.$extends({
       query: {
-        async $allOperations({ operation, model, args, query }) {
+        async $allOperations({ operation, model, args, query }: { operation: any; model: any; args: any; query: any }) {
           // Start tracking
           const ctx: QueryContext = dbMetrics?.recordQueryStart() ?? {
             startTime: Date.now(),

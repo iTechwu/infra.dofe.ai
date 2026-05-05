@@ -233,9 +233,9 @@ export class RateLimitService implements OnModuleInit {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Rate limit check failed', {
-        error: error.message,
+        error: (error as Error).message,
         key,
         traceId: context.traceId,
       });
@@ -284,9 +284,9 @@ export class RateLimitService implements OnModuleInit {
         dimension,
         identifier,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Rate limit status check failed', {
-        error: error.message,
+        error: (error as Error).message,
         key,
       });
 
@@ -320,9 +320,9 @@ export class RateLimitService implements OnModuleInit {
         dimension,
         identifier,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Rate limit reset failed', {
-        error: error.message,
+        error: (error as Error).message,
         key,
       });
     }

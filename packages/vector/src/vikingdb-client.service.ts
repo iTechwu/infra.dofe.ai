@@ -24,7 +24,7 @@ import { vikingdb as volcVikingdb } from '@volcengine/openapi';
 
 @Injectable()
 export class VikingDbClientService implements OnModuleInit {
-  private config: VikingDbConfig;
+  private config!: VikingDbConfig;
   private volcService?: InstanceType<typeof volcVikingdb.VikingdbService>;
 
   constructor(

@@ -39,7 +39,7 @@ export type TtsResult = z.infer<typeof TtsResultSchema>;
 
 // Legacy class exports for backward compatibility
 export class TtsRequestDto implements TtsRequest {
-  text: string;
+  text!: string;
   speaker?: string;
   format: string = 'mp3';
   speech_rate: number = 0;
@@ -48,14 +48,14 @@ export class TtsRequestDto implements TtsRequest {
 }
 
 export class TtsResponseDto implements TtsResponse {
-  code: number;
+  code!: number;
   data?: string;
   sentence?: any;
   message?: string;
 }
 
 export class TtsResultDto implements TtsResult {
-  success: boolean;
+  success!: boolean;
   audio?: string;
   s3Uri?: string;
   duration?: number;

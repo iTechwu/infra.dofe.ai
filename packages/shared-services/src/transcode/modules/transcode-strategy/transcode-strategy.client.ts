@@ -193,6 +193,7 @@ export class TranscodeStrategyClient {
      * 创建IMM策略适配器
      */
     private createImmStrategyAdapter(): TranscodeStrategy {
+        const immClient = this.aliyunImm;
         return {
             async getVideoInfo(
                 vendor: FileBucketVendor,
@@ -206,7 +207,7 @@ export class TranscodeStrategyClient {
                         'IMM service does not support OSS processing',
                     );
                 }
-                const result = await this.aliyunImm.detectMediaMeta(
+                const result = await immClient.detectMediaMeta(
                     vendor,
                     bucket,
                     key,
@@ -226,7 +227,7 @@ export class TranscodeStrategyClient {
                         'IMM service does not support OSS processing',
                     );
                 }
-                const result = await this.aliyunImm.detectMediaMeta(
+                const result = await immClient.detectMediaMeta(
                     vendor,
                     bucket,
                     key,
@@ -246,7 +247,7 @@ export class TranscodeStrategyClient {
                         'IMM service does not support OSS processing',
                     );
                 }
-                const result = await this.aliyunImm.detectMediaMeta(
+                const result = await immClient.detectMediaMeta(
                     vendor,
                     bucket,
                     key,
@@ -262,7 +263,7 @@ export class TranscodeStrategyClient {
                 quality?: VideoQuality[],
                 index: number = 0,
             ): Promise<MediaConvertTaskResult> {
-                return this.aliyunImm.createMediaConvertTask(
+                return immClient.createMediaConvertTask(
                     vendor,
                     bucket,
                     key,
@@ -310,7 +311,7 @@ export class TranscodeStrategyClient {
                 key: string,
                 options?: AudioExtractOptions,
             ): Promise<MediaConvertTaskResult> {
-                return this.aliyunImm.extractAudioFromVideo(
+                return immClient.extractAudioFromVideo(
                     vendor,
                     bucket,
                     key,
@@ -328,7 +329,7 @@ export class TranscodeStrategyClient {
                 result?: any;
                 error?: string;
             }> {
-                return this.aliyunImm.getTask(vendor, bucket, taskId);
+                return immClient.getTask(vendor, bucket, taskId);
             },
 
             async cancelTranscodeTask(
@@ -402,13 +403,13 @@ export class TranscodeStrategyClient {
                 key,
                 processingType,
             );
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get video info', {
                 vendor,
                 bucket,
                 key,
                 type,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -446,13 +447,13 @@ export class TranscodeStrategyClient {
                 key,
                 processingType,
             );
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get audio info', {
                 vendor,
                 bucket,
                 key,
                 type,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -490,13 +491,13 @@ export class TranscodeStrategyClient {
                 key,
                 processingType,
             );
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get image info', {
                 vendor,
                 bucket,
                 key,
                 type,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -536,14 +537,14 @@ export class TranscodeStrategyClient {
                 quality,
                 index,
             );
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to transcode video', {
                 vendor,
                 bucket,
                 key,
                 quality: quality[index],
                 index,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -581,13 +582,13 @@ export class TranscodeStrategyClient {
                 key,
                 options,
             );
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to extract audio from video', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -642,13 +643,13 @@ export class TranscodeStrategyClient {
             });
 
             return await strategy.generateSprite(vendor, bucket, key, options);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to generate video sprite', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -675,13 +676,13 @@ export class TranscodeStrategyClient {
             });
 
             return await strategy.takeSnapshot(vendor, bucket, key, options);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to take video snapshot', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -706,12 +707,12 @@ export class TranscodeStrategyClient {
             });
 
             return await strategy.getVideoThumbnail(vendor, bucket, key);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get video thumbnail', {
                 vendor,
                 bucket,
                 key,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -733,7 +734,7 @@ export class TranscodeStrategyClient {
         try {
             const strategy = this.getStrategy(vendor);
 
-            if ('getTranscodeTaskStatus' in strategy) {
+            if ('getTranscodeTaskStatus' in strategy && strategy.getTranscodeTaskStatus) {
                 return await strategy.getTranscodeTaskStatus(
                     vendor,
                     bucket,
@@ -755,11 +756,11 @@ export class TranscodeStrategyClient {
                 result: null,
                 error: 'Status query not supported for this vendor',
             };
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get transcode task status', {
                 vendor,
                 taskId,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -775,7 +776,7 @@ export class TranscodeStrategyClient {
         try {
             const strategy = this.getStrategy(vendor);
 
-            if ('cancelTranscodeTask' in strategy) {
+            if ('cancelTranscodeTask' in strategy && strategy.cancelTranscodeTask) {
                 return await strategy.cancelTranscodeTask(vendor, taskId);
             }
 
@@ -790,11 +791,11 @@ export class TranscodeStrategyClient {
 
             // 默认返回失败
             return false;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to cancel transcode task', {
                 vendor,
                 taskId,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -833,9 +834,9 @@ export class TranscodeStrategyClient {
             // 获取视频信息
             try {
                 result.videoInfo = await this.getVideoInfo(vendor, bucket, key);
-            } catch (error) {
+            } catch (error: unknown) {
                 result.errors?.push(
-                    `Failed to get video info: ${error.message}`,
+                    `Failed to get video info: ${(error instanceof Error ? error.message : String(error))}`,
                 );
             }
 
@@ -847,9 +848,9 @@ export class TranscodeStrategyClient {
                         bucket,
                         key,
                     );
-                } catch (error) {
+                } catch (error: unknown) {
                     result.errors?.push(
-                        `Failed to generate thumbnail: ${error.message}`,
+                        `Failed to generate thumbnail: ${(error instanceof Error ? error.message : String(error))}`,
                     );
                 }
             }
@@ -863,15 +864,15 @@ export class TranscodeStrategyClient {
                         key,
                         options.spriteOptions,
                     );
-                } catch (error) {
+                } catch (error: unknown) {
                     result.errors?.push(
-                        `Failed to generate sprite: ${error.message}`,
+                        `Failed to generate sprite: ${(error instanceof Error ? error.message : String(error))}`,
                     );
                 }
             }
 
             // 判断是否成功
-            result.success = result.errors.length === 0;
+            result.success = (result.errors?.length ?? 0) === 0;
 
             this.logger.info('Batch media processing completed', {
                 vendor,
@@ -882,13 +883,13 @@ export class TranscodeStrategyClient {
             });
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to batch process media', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }

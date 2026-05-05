@@ -53,9 +53,9 @@ export const defaultCloudTranscodeConfig: CloudTranscodeConfig = {
 @Injectable()
 export class TranscodeConfigManager {
     // 已经废弃，使用云服务转码替代
-    private transcodeConfig: ValidationTranscodeConfig;
-    private cnZoneConfig: ZoneConfig;
-    private appConfig: AppConfig;
+    private transcodeConfig!: ValidationTranscodeConfig;
+    private cnZoneConfig!: ZoneConfig;
+    private appConfig!: AppConfig;
 
     constructor(private readonly configService: ConfigService) {
         this.initializeConfig();
@@ -73,9 +73,11 @@ export class TranscodeConfigManager {
         this.appConfig = this.configService.getOrThrow<AppConfig>('app');
 
         // 获取中国区域配置
-        this.cnZoneConfig = this.appConfig.zones.find(
+        const cnZone = this.appConfig.zones.find(
             (zone) => zone.zone === 'cn',
         );
+
+        this.cnZoneConfig = cnZone!;
 
         if (!this.cnZoneConfig) {
             throw new Error('CN zone configuration not found');

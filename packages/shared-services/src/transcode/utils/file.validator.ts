@@ -75,21 +75,21 @@ export class FileValidator {
      * 检查是否为视频文件
      */
     isVideoFile(fileKey: FileKeyPartial): boolean {
-        return fileUtil.isVideoFile(fileKey?.ext);
+        return fileUtil.isVideoFile(fileKey?.ext ?? '');
     }
 
     /**
      * 检查是否为音频文件
      */
     isAudioFile(fileKey: FileKeyPartial): boolean {
-        return fileUtil.isAudioFile(fileKey?.ext);
+        return fileUtil.isAudioFile(fileKey?.ext ?? '');
     }
 
     /**
      * 检查是否为图片文件
      */
     isImageFile(fileKey: FileKeyPartial): boolean {
-        return fileUtil.isImageFile(fileKey?.ext);
+        return fileUtil.isImageFile(fileKey?.ext ?? '');
     }
 
     /**

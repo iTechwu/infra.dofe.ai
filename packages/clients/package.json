@@ -8,65 +8,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./crypt": {
-      "types": "./dist/internal/crypt/index.d.ts",
-      "default": "./dist/internal/crypt/index.js"
-    },
-    "./sms": {
-      "types": "./dist/internal/sms/index.d.ts",
-      "default": "./dist/internal/sms/index.js"
-    },
-    "./email": {
-      "types": "./dist/internal/email/index.d.ts",
-      "default": "./dist/internal/email/index.js"
-    },
-    "./file-storage": {
-      "types": "./dist/internal/file-storage/index.d.ts",
-      "default": "./dist/internal/file-storage/index.js"
-    },
-    "./agentx": {
-      "types": "./dist/internal/agentx/index.d.ts",
-      "default": "./dist/internal/agentx/index.js"
-    },
-    "./ai": {
-      "types": "./dist/internal/ai/index.d.ts",
-      "default": "./dist/internal/ai/index.js"
-    },
-    "./ai-provider": {
-      "types": "./dist/internal/ai-provider/index.d.ts",
-      "default": "./dist/internal/ai-provider/index.js"
-    },
-    "./exchange-rate": {
-      "types": "./dist/internal/exchange-rate/index.d.ts",
-      "default": "./dist/internal/exchange-rate/index.js"
-    },
-    "./ip-info": {
-      "types": "./dist/internal/ip-info/index.d.ts",
-      "default": "./dist/internal/ip-info/index.js"
-    },
-    "./ocr": {
-      "types": "./dist/internal/ocr/index.d.ts",
-      "default": "./dist/internal/ocr/index.js"
-    },
-    "./openai": {
-      "types": "./dist/internal/openai/index.d.ts",
-      "default": "./dist/internal/openai/index.js"
-    },
-    "./sse": {
-      "types": "./dist/internal/sse/index.d.ts",
-      "default": "./dist/internal/sse/index.js"
-    },
-    "./third-party-sse": {
-      "types": "./dist/internal/third-party-sse/index.d.ts",
-      "default": "./dist/internal/third-party-sse/index.js"
-    },
-    "./verify": {
-      "types": "./dist/internal/verify/index.d.ts",
-      "default": "./dist/internal/verify/index.js"
-    },
-    "./wechat": {
-      "types": "./dist/internal/wechat/index.d.ts",
-      "default": "./dist/internal/wechat/index.js"
+    "./*": {
+      "types": "./dist/internal/*.d.ts",
+      "default": "./dist/internal/*.js"
     }
   },
   "scripts": {
@@ -75,12 +19,15 @@
     "clean": "rimraf dist"
   },
   "peerDependencies": {
+    "@alicloud/dysmsapi20170525": "^3.0.0",
+    "@alicloud/openapi-client": "^0.4.0",
     "@aws-sdk/client-s3": "^3.978.0",
     "@aws-sdk/client-sts": "^3.1024.0",
     "@aws-sdk/s3-request-presigner": "^3.978.0",
     "@dofe/infra-contracts": "workspace:*",
     "@dofe/infra-docker": "workspace:*",
     "@google-cloud/storage": "^7.12.0",
+    "@larksuiteoapi/node-sdk": "^1.30.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -90,6 +37,7 @@
     "axios": "^1.7.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "form-data": "^4.0.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "nest-winston": "^1.9.7",
@@ -98,6 +46,7 @@
     "qiniu": "^7.12.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
+    "tencentcloud-sdk-nodejs-sms": "^4.0.0",
     "uuid": "^14.0.0",
     "winston": "^3.13.0",
     "ws": "^8.18.3",

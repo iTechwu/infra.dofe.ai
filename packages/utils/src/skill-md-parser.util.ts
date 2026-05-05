@@ -217,7 +217,7 @@ export function extractSkillFrontmatter(
   const openclaw = extractOpenClawMetadata(parsed);
 
   const frontmatter: SkillFrontmatter = {
-    name: parsed.name || undefined,
+    name: parsed.name ?? '',
     description: parsed.description || undefined,
     version: parsed.version || undefined,
   };
@@ -305,8 +305,8 @@ export function evaluateSkillEligibility(
 
   if (requirements.env?.length) {
     const missingEnv = requirements.env
-      .map((item) => item.name)
-      .filter((name) => !runtime.env?.[name]);
+      .map((item: any) => item.name)
+      .filter((name: string) => !runtime.env?.[name]);
     if (missingEnv.length) {
       missing.env = missingEnv;
       reasons.push(`Missing env: ${missingEnv.join(', ')}`);
@@ -316,7 +316,7 @@ export function evaluateSkillEligibility(
   if (requirements.bins?.length) {
     const runtimeBins = new Set(runtime.bins || []);
     const missingBins = requirements.bins.filter(
-      (bin) => !runtimeBins.has(bin),
+      (bin: string) => !runtimeBins.has(bin),
     );
     if (missingBins.length) {
       missing.bins = missingBins;
@@ -326,7 +326,7 @@ export function evaluateSkillEligibility(
 
   if (requirements.config?.length) {
     const missingConfig = requirements.config.filter(
-      (key) => runtime.config?.[key] === undefined,
+      (key: string) => runtime.config?.[key] === undefined,
     );
     if (missingConfig.length) {
       missing.config = missingConfig;
@@ -344,7 +344,7 @@ export function evaluateSkillEligibility(
   if (requirements.requiresMcp?.length) {
     const runtimeMcp = new Set(runtime.mcp || []);
     const missingMcp = requirements.requiresMcp.filter(
-      (server) => !runtimeMcp.has(server),
+      (server: string) => !runtimeMcp.has(server),
     );
     if (missingMcp.length) {
       missing.mcp = missingMcp;

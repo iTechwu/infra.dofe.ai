@@ -65,3 +65,61 @@ declare module 'uuid' {
   export function parse(uuid: string): Uint8Array;
   export function stringify(buffer: Uint8Array): string;
 }
+
+declare module '@prisma/client' {
+  export const FileBucketVendor: {
+    readonly s3: 's3';
+    readonly oss: 'oss';
+    readonly tos: 'tos';
+    readonly gcs: 'gcs';
+    readonly qiniu: 'qiniu';
+    readonly us3: 'us3';
+    readonly cos: 'cos';
+  };
+  export type FileBucketVendor = (typeof FileBucketVendor)[keyof typeof FileBucketVendor];
+
+  export const FileEnvType: {
+    readonly dev: 'dev';
+    readonly test: 'test';
+    readonly prod: 'prod';
+    readonly produs: 'produs';
+    readonly prodap: 'prodap';
+  };
+  export type FileEnvType = (typeof FileEnvType)[keyof typeof FileEnvType];
+
+  export interface FileSource {
+    id: string;
+    vendor?: FileBucketVendor;
+    bucket?: string;
+    key?: string;
+    ext?: string;
+    env?: string;
+    [key: string]: unknown;
+  }
+
+  export class PrismaClient {
+    constructor(options?: Record<string, unknown>);
+    $connect(): Promise<void>;
+    $disconnect(): Promise<void>;
+    $extends(extension: Record<string, unknown>): this;
+    $transaction<T>(fn: (client: any) => Promise<T>, options?: { maxWait?: number; timeout?: number; isolationLevel?: string }): Promise<T>;
+    [model: string]: any;
+  }
+
+  export namespace Prisma {
+    export type TransactionIsolationLevel = string;
+    export type SortOrder = 'asc' | 'desc';
+    export type InputJsonValue = string | number | boolean | null | InputJsonValue[] | { [key: string]: InputJsonValue };
+    export const dmmf: unknown;
+    export class PrismaClientKnownRequestError extends Error {
+      code: string;
+      meta?: Record<string, unknown>;
+    }
+    export class PrismaClientValidationError extends Error {}
+    export class PrismaClientInitializationError extends Error {
+      errorCode?: string;
+    }
+    export class PrismaClientUnknownRequestError extends Error {}
+    export class PrismaClientRustPanicError extends Error {}
+  }
+}

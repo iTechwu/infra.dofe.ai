@@ -839,8 +839,8 @@ export class VolcengineTtsClient {
         }),
       );
       return response.data;
-    } catch (error) {
-      this.logger.error(`火山引擎API调用失败: ${error.message}`);
+    } catch (error: unknown) {
+      this.logger.error(`火山引擎API调用失败: ${error instanceof Error ? error.message : String(error)}`);
       return undefined;
     }
   }

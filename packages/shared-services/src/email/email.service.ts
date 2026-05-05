@@ -28,9 +28,9 @@ export class EmailService implements OnModuleInit {
   private emailSendLoggerKey = 'emailCodeDevice';
   private emailCodePerDayLoggerKey = 'emailCodePerDay';
   private deviceCodePerDayLoggerKey = 'deviceCodePerDay';
-  private secretConfig: SendCloudConfig;
+  private secretConfig!: SendCloudConfig;
   private templates: Record<string, PardxEmailSender.EmailTemplate> = {};
-  private emailClient: SendCloudClient;
+  private emailClient!: SendCloudClient;
 
   constructor(
     private readonly verify: VerifyClient,
@@ -148,7 +148,7 @@ export class EmailService implements OnModuleInit {
       name: userInfo.nickname!,
       code: code,
     };
-    return this.processingEmail(userInfo, deviceInfo, templateName, subValues);
+    return this.processingEmail({ email: userInfo.email!, nickname: userInfo.nickname ?? undefined, name: userInfo.name ?? undefined }, deviceInfo, templateName, subValues);
   }
 
   async processingSendResetPasswordeEmail(
@@ -233,7 +233,7 @@ export class EmailService implements OnModuleInit {
       template.frequency,
     );
     const sub = template.sub;
-    const subVery = {};
+    const subVery: Record<string, any> = {};
     if (sub && subValues) {
       for (const key of Object.keys(sub)) {
         const subKey = sub[key] as string;

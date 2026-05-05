@@ -8,73 +8,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./file-storage": {
-      "types": "./dist/file-storage/index.d.ts",
-      "default": "./dist/file-storage/index.js"
-    },
-    "./file-cdn": {
-      "types": "./dist/file-cdn/index.d.ts",
-      "default": "./dist/file-cdn/index.js"
-    },
-    "./uploader": {
-      "types": "./dist/uploader/index.d.ts",
-      "default": "./dist/uploader/index.js"
-    },
-    "./email": {
-      "types": "./dist/email/index.d.ts",
-      "default": "./dist/email/index.js"
-    },
-    "./sms": {
-      "types": "./dist/sms/index.d.ts",
-      "default": "./dist/sms/index.js"
-    },
-    "./ip-geo": {
-      "types": "./dist/ip-geo/index.d.ts",
-      "default": "./dist/ip-geo/index.js"
-    },
-    "./ip-info": {
-      "types": "./dist/ip-info/index.d.ts",
-      "default": "./dist/ip-info/index.js"
-    },
-    "./ip-info-client": {
-      "types": "./dist/ip-info-client/index.d.ts",
-      "default": "./dist/ip-info-client/index.js"
-    },
-    "./ocr": {
-      "types": "./dist/ocr/index.d.ts",
-      "default": "./dist/ocr/index.js"
-    },
-    "./openspeech": {
-      "types": "./dist/openspeech/index.d.ts",
-      "default": "./dist/openspeech/index.js"
-    },
-    "./volcengine-tts": {
-      "types": "./dist/volcengine-tts/index.d.ts",
-      "default": "./dist/volcengine-tts/index.js"
-    },
-    "./transcode": {
-      "types": "./dist/transcode/index.d.ts",
-      "default": "./dist/transcode/index.js"
-    },
-    "./streaming-asr": {
-      "types": "./dist/streaming-asr/index.d.ts",
-      "default": "./dist/streaming-asr/index.js"
-    },
-    "./system-health": {
-      "types": "./dist/system-health/index.d.ts",
-      "default": "./dist/system-health/index.js"
-    },
-    "./notification": {
-      "types": "./dist/notification/index.d.ts",
-      "default": "./dist/notification/index.js"
-    },
-    "./agentx": {
-      "types": "./dist/agentx/index.d.ts",
-      "default": "./dist/agentx/index.js"
-    },
-    "./verify": {
-      "types": "./dist/verify/index.d.ts",
-      "default": "./dist/verify/index.js"
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
     }
   },
   "scripts": {
@@ -93,22 +29,33 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-fastify": "^11.0.0",
     "@prisma/client": "^7.0.0",
+    "@volcengine/openapi": "^1.0.0",
+    "@volcengine/tos-sdk": "^2.7.6",
+    "ali-oss": "^6.20.0",
     "axios": "^1.7.0",
     "class-validator": "^0.14.1",
+    "form-data": "^4.0.0",
     "ioredis": "^5.0.0",
+    "music-metadata": "^10.0.0",
     "nest-winston": "^1.9.7",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "uuid": "^14.0.0",
     "winston": "^3.13.0",
+    "ws": "^8.18.3",
     "zod": "^4.3.6"
   },
   "dependencies": {
+    "@alicloud/credentials": "^2.4.4",
+    "@alicloud/imm20200930": "^4.6.2",
+    "@alicloud/openapi-core": "^1.0.7",
+    "@darabonba/typescript": "^1.0.4",
     "@dofe/infra-common": "workspace:*",
     "@dofe/infra-jwt": "workspace:*",
     "@dofe/infra-prisma": "workspace:*",
     "@dofe/infra-rabbitmq": "workspace:*",
     "@dofe/infra-redis": "workspace:*",
+    "@dofe/infra-shared-db": "workspace:*",
     "@dofe/infra-utils": "workspace:*"
   },
   "devDependencies": {

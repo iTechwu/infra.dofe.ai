@@ -4,7 +4,7 @@ export const RABBITMQ_CONNECTION = Symbol('RABBITMQ:AUTH');
 
 export class AppRabbitConfig {
   @IsNotEmpty()
-  url: string;
+  url!: string;
 }
 
 export interface RabbitmqConnection {

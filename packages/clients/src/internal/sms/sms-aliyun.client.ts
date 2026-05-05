@@ -41,10 +41,10 @@ export class SmsAliyunClient {
     });
     try {
       return await this.client.sendSms(sendSmsRequest);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `使用aliyun发送短信失败，手机号码：${phone}，错误信息：${error.message}`,
-        error.data?.['Recommend'],
+        `使用aliyun发送短信失败，手机号码：${phone}，错误信息：${(error as Error).message}`,
+        (error as any).data?.['Recommend'],
       );
       throw error;
     }

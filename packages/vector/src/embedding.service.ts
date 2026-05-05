@@ -15,7 +15,7 @@ import type { EmbeddingConfig } from './vikingdb.types';
 
 @Injectable()
 export class EmbeddingService implements OnModuleInit {
-  private config: EmbeddingConfig;
+  private config!: EmbeddingConfig;
 
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
@@ -44,7 +44,7 @@ export class EmbeddingService implements OnModuleInit {
         embeddingKeys?.apiKey ??
         this.configService.get<string>(
           'EMBEDDING_API_KEY',
-          this.configService.get<string>('OPENAI_API_KEY'),
+          this.configService.get<string>('OPENAI_API_KEY', ''),
         ),
       model:
         embeddingKeys?.model ??

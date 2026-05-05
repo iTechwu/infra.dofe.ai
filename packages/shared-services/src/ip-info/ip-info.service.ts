@@ -111,11 +111,11 @@ export class IpInfoService {
       }
 
       return ipInfoData;
-    } catch (error) {
+    } catch (error: unknown) {
       // 7. 失败时返回默认值
       this.logger.error('[IpInfoService] Failed to fetch IP info', {
         ip,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       return this.getDefaultIpInfo(ip, 'SG', 'Singapore', 'Asia/Singapore');
     }
@@ -126,7 +126,7 @@ export class IpInfoService {
    */
   async getIpCountry(ip: string): Promise<string> {
     const ipInfo = await this.getIpInfo(ip);
-    return ipInfo.country;
+    return ipInfo.country ?? 'SG';
   }
 
   /**
@@ -154,7 +154,7 @@ export class IpInfoService {
    */
   async getTimeZone(ip: string): Promise<string> {
     const ipInfo = await this.getIpInfo(ip);
-    return ipInfo.timezone;
+    return ipInfo.timezone ?? 'Asia/Singapore';
   }
 
   /**

@@ -52,3 +52,7 @@ export { default as stringUtil } from './string.util';
 export { default as timerUtil } from './timer.util';
 export { default as urlencodeUtil } from './urlencode.util';
 export { default as validateUtil } from './validate.util';
+
+// Skill utilities
+export * from './skill-md-parser.util';
+export * from './skill-validator.util';

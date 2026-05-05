@@ -285,7 +285,7 @@ export function setupSoftDeleteMiddleware(
 
   return prisma.$extends({
     query: {
-      $allOperations({ operation, model, args, query }) {
+      $allOperations({ operation, model, args, query }: { operation: any; model: any; args: any; query: any }) {
         // 检查是否为软删除模型
         if (!isModelSoftDeletable(model)) {
           return query(args);

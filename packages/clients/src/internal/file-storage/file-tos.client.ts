@@ -19,8 +19,8 @@ import { TRANSCODE_CONSTANTS } from '@dofe/infra-common';
  */
 export class FileTosClient extends FileS3Client {
   protected urlRedisKey = 'privateDownloadUrl';
-  private tosClient: TosClient;
-  private tosInternalClient: TosClient;
+  private tosClient!: TosClient;
+  private tosInternalClient!: TosClient;
 
   constructor(
     config: DoFeUploader.Config,
@@ -79,9 +79,9 @@ export class FileTosClient extends FileS3Client {
           });
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize TOS clients', {
-        error: error.message,
+        error: (error as Error).message,
         config: {
           bucket: this.config.bucket,
           region: this.config.region,
@@ -204,12 +204,12 @@ export class FileTosClient extends FileS3Client {
       } else {
         throw new Error('Failed to get video info: missing data in response');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get video info', {
         fileKey,
         bucket: finalBucket,
-        error: error.message,
-        stack: error.stack,
+        error: (error as Error).message,
+        stack: (error as Error).stack,
         internal,
       });
       throw error;
@@ -324,12 +324,12 @@ export class FileTosClient extends FileS3Client {
       } else {
         throw new Error('Failed to get image info: missing data in response');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get image info', {
         fileKey,
         bucket: finalBucket,
-        error: error.message,
-        stack: error.stack,
+        error: (error as Error).message,
+        stack: (error as Error).stack,
         internal,
       });
       throw error;
@@ -465,12 +465,12 @@ export class FileTosClient extends FileS3Client {
       } else {
         throw new Error('Failed to get audio info: missing data in response');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to get audio info', {
         fileKey,
         bucket: finalBucket,
-        error: error.message,
-        stack: error.stack,
+        error: (error as Error).message,
+        stack: (error as Error).stack,
         internal,
       });
       throw error;
@@ -577,12 +577,12 @@ export class FileTosClient extends FileS3Client {
           'Failed to get snapshot result from TOS response: missing data',
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate video snapshot', {
         fileKey,
         bucket: finalBucket,
-        error: error.message,
-        stack: error.stack,
+        error: (error as Error).message,
+        stack: (error as Error).stack,
         internal,
       });
       throw error;
@@ -653,11 +653,11 @@ export class FileTosClient extends FileS3Client {
 
       // 如果需要替换为自定义域名，使用 replaceUrlToOwnDoamin
       return this.replaceUrlToOwnDoamin(signedUrl);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate presigned URL for TOS', {
         fileKey,
         bucket: finalBucket,
-        error: error.message,
+        error: (error as Error).message,
         internal,
       });
       throw error;
@@ -738,11 +738,11 @@ export class FileTosClient extends FileS3Client {
       }
 
       return signedUrl;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to generate presigned URL for TOS', {
         fileKey,
         bucket: finalBucket,
-        error: error.message,
+        error: (error as Error).message,
         internal,
       });
       throw error;

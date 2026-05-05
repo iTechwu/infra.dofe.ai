@@ -31,7 +31,7 @@ import { FileBucketVendor } from '@prisma/client';
 
 import {
   FileStorageInterface,
-  PardxUploader,
+  DoFeUploader,
 } from '@dofe/infra-clients/file-storage';
 import { PardxApp } from '@dofe/infra-common';
 import { CommonErrorCode } from '@dofe/infra-contracts';
@@ -189,7 +189,7 @@ export class FileStorageService {
    * @param {string} [ip] - 客户端 IP
    * @param {boolean} [isPublic] - 是否公开
    * @param {string} [locale] - 区域设置
-   * @returns {Promise<PardxUploader.Config>} 存储桶配置
+   * @returns {Promise<DoFeUploader.Config>} 存储桶配置
    */
   async getFileServiceConfig(
     vendor?: FileBucketVendor,
@@ -197,7 +197,7 @@ export class FileStorageService {
     ip?: string,
     isPublic?: boolean,
     locale?: string,
-  ): Promise<PardxUploader.Config> {
+  ): Promise<DoFeUploader.Config> {
     const client = await this.getFileClient(
       vendor,
       bucket,

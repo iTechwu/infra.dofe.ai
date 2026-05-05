@@ -14,7 +14,7 @@ import {
 import { getKeysConfig } from '@dofe/infra-common';
 import { TranscodeConfig, AppConfig } from '@dofe/infra-common';
 import { FileStorageService } from '../../../file-storage/file-storage.service';
-import { PardxUploader } from '../../../file-storage';
+import { DoFeUploader } from '../../../file-storage';
 import { arrayUtil } from '@dofe/infra-utils';
 import { fileUtil } from '@dofe/infra-utils';
 import { Signer } from '@volcengine/openapi';
@@ -169,7 +169,7 @@ export class VolcengineTosTranscodeClient {
             width = 0,
             height = 0,
             format = 'jpg',
-        } = options;
+        } = options ?? {};
         // 将 time (如 '00:00:01') 转为毫秒格式
         let timeMs: number = 0;
         if (typeof time === 'string') {
@@ -230,7 +230,7 @@ export class VolcengineTosTranscodeClient {
     ): Promise<boolean> {
         // 需要 bucket 参数，但这里没有提供，尝试从配置中获取默认 bucket
         const bucketConfigs =
-            this.configService.getOrThrow<PardxUploader.Config[]>('buckets');
+            this.configService.getOrThrow<DoFeUploader.Config[]>('buckets');
         const defaultBucketConfig = bucketConfigs.find(
             (config) => config.vendor === 'tos',
         );

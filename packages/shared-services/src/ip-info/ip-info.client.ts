@@ -66,12 +66,12 @@ export class IpInfoClient {
       });
 
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('[IpInfoClient] Failed to fetch IP info', {
         ip,
-        error: error.message || String(error),
+        error: error instanceof Error ? error.message : String(error),
       });
-      throw new Error(`Failed to fetch IP info for ${ip}: ${error.message}`);
+      throw new Error(`Failed to fetch IP info for ${ip}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

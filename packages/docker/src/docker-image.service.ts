@@ -24,7 +24,7 @@ interface ImageConfig {
 
 @Injectable()
 export class DockerImageService implements OnModuleInit {
-  private docker: Docker;
+  private docker!: Docker;
   private readonly openclawSrcPath: string;
   private readonly imageConfigs: ImageConfig[];
 

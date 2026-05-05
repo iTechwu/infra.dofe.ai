@@ -14,6 +14,8 @@ import {
 import { sms } from '@volcengine/openapi';
 import { RedisService } from '@dofe/infra-redis';
 import { v4 as uuidv4 } from 'uuid';
+// Workaround: uuid is an ESM-only package but this file uses CommonJS.
+// The 'uuid' module is declared in missing-modules.stub.d.ts to avoid TS1479.
 
 export class SmsVolcengineClient {
   private smsService: sms.SmsService;
@@ -68,10 +70,10 @@ export class SmsVolcengineClient {
       });
 
       return response;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `使用火山引擎发送验证码失败，手机号码：${phone}，错误信息：${error.message}`,
-        error.stack,
+        `使用火山引擎发送验证码失败，手机号码：${phone}，错误信息：${(error as Error).message}`,
+        (error as Error).stack,
       );
       throw error;
     }
@@ -153,12 +155,12 @@ export class SmsVolcengineClient {
         result,
         message: errorMessages[result] || '未知的验证结果',
       };
-    } catch (error) {
-      this.logger.error(`验证码校验异常: ${error.message}`, error.stack);
+    } catch (error: unknown) {
+      this.logger.error(`验证码校验异常: ${(error as Error).message}`, (error as Error).stack);
       return {
         success: false,
         result: VerifyCodeResult.INVALID_CODE,
-        message: `验证码校验异常: ${error.message}`,
+        message: `验证码校验异常: ${(error as Error).message}`,
       };
     }
   }

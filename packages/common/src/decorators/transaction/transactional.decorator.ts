@@ -437,7 +437,7 @@ async function executeTransaction(
 
   try {
     const result = await writeClient.$transaction(
-      async (tx) => {
+      async (tx: any) => {
         // Store the transaction client and context
         setTransactionClient(context, tx as unknown as PrismaClient);
         setTransactionContext(context, txContext);
@@ -660,7 +660,7 @@ export abstract class TransactionalService {
     const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
 
     return this.prisma.write.$transaction(
-      async (tx) => {
+      async (tx: any) => {
         setTransactionClient(this, tx as unknown as PrismaClient);
         try {
           return await callback(tx as unknown as PrismaClient);

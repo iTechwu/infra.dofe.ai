@@ -63,7 +63,7 @@ export interface VersionCheckResult {
 
 @Injectable()
 export class AppVersionService implements OnModuleInit {
-  private versionInfo: AppVersionInfo;
+  private versionInfo!: AppVersionInfo;
   private buildHash: string = '';
 
   constructor(
@@ -107,9 +107,9 @@ export class AppVersionService implements OnModuleInit {
           versionInfo: this.versionInfo,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to load version info', {
-        error: error.message,
+        error: (error as Error).message,
       });
       this.versionInfo = {
         appVersion: '0.0.1',

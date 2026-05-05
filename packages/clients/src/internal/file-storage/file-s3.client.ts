@@ -43,8 +43,8 @@ import { environmentUtil } from '@dofe/infra-utils';
  * - 不包含业务逻辑
  */
 export class FileS3Client implements FileStorageInterface {
-  protected externalClient: S3Client;
-  protected internalClient: S3Client;
+  protected externalClient!: S3Client;
+  protected internalClient!: S3Client;
   config: DoFeUploader.Config;
   storageConfig: StorageCredentialsConfig;
   appConfig: AppConfig;
@@ -109,7 +109,7 @@ export class FileS3Client implements FileStorageInterface {
 
     const maxRetries = customMaxRetries || this.maxRetries;
     const startTime = Date.now();
-    let lastError: any;
+    let lastError: any = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -125,7 +125,7 @@ export class FileS3Client implements FileStorageInterface {
         }
 
         return result;
-      } catch (error) {
+      } catch (error: unknown) {
         lastError = error;
 
         // 不可重试的错误类型
@@ -139,7 +139,7 @@ export class FileS3Client implements FileStorageInterface {
           'InvalidRequest',
         ];
 
-        const errorCode = error?.Code || error?.name;
+        const errorCode = (error as any)?.Code || (error as any)?.name;
 
         if (nonRetryableErrors.includes(errorCode)) {
           if (this.enableEnhancedLogging) {
@@ -167,7 +167,7 @@ export class FileS3Client implements FileStorageInterface {
               `${operationName} attempt ${attempt} failed, retrying`,
               {
                 operation: operationName,
-                error: error?.message,
+                error: (error as Error)?.message,
                 errorCode,
                 attempt,
                 maxRetries,
@@ -182,7 +182,7 @@ export class FileS3Client implements FileStorageInterface {
           if (this.enableEnhancedLogging) {
             this.logger.error(`${operationName} failed after all retries`, {
               operation: operationName,
-              error: error?.message,
+              error: (error as Error)?.message,
               errorCode,
               attempts: maxRetries,
               context,
@@ -290,9 +290,9 @@ export class FileS3Client implements FileStorageInterface {
           });
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Failed to initialize S3 clients', {
-        error: error.message,
+        error: (error as Error).message,
         config: {
           bucket: this.config.bucket,
           region: this.config.region,
@@ -583,7 +583,7 @@ export class FileS3Client implements FileStorageInterface {
           attempt,
           duration,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         // 不可重试的错误
         const nonRetryableErrors = [
           'NoSuchKey',
@@ -591,7 +591,7 @@ export class FileS3Client implements FileStorageInterface {
           'AccessDenied',
           'InvalidAccessKeyId',
         ];
-        const errorCode = error?.Code || error?.name;
+        const errorCode = (error as any)?.Code || (error as any)?.name;
 
         if (nonRetryableErrors.includes(errorCode)) {
           if (errorCode === 'NoSuchKey') {
@@ -600,7 +600,7 @@ export class FileS3Client implements FileStorageInterface {
               {
                 fileKey,
                 bucket: finalBucket,
-                error: error.message,
+                error: (error as Error).message,
                 attempt,
               },
             );
@@ -612,7 +612,7 @@ export class FileS3Client implements FileStorageInterface {
               {
                 fileKey,
                 bucket: finalBucket,
-                error: error.message,
+                error: (error as Error).message,
                 errorCode,
                 attempt,
               },
@@ -629,7 +629,7 @@ export class FileS3Client implements FileStorageInterface {
             {
               fileKey,
               bucket: finalBucket,
-              error: error.message,
+              error: (error as Error).message,
               errorCode,
               attempt,
               maxRetries,
@@ -645,7 +645,7 @@ export class FileS3Client implements FileStorageInterface {
             {
               fileKey,
               bucket: finalBucket,
-              error: error.message,
+              error: (error as Error).message,
               errorCode,
               attempts: maxRetries,
               duration: Date.now() - startTime,
@@ -875,12 +875,12 @@ export class FileS3Client implements FileStorageInterface {
         'deleteFile',
         context,
       );
-    } catch (e) {
+    } catch (e: unknown) {
       const duration = Date.now() - startTime;
       this.logOperationResult('deleteFile', false, context, e, duration);
 
       // 对于删除操作，如果文件不存在也算成功
-      if (e?.Code === 'NoSuchKey' || e?.name === 'NoSuchKey') {
+      if ((e as any)?.Code === 'NoSuchKey' || (e as any)?.name === 'NoSuchKey') {
         this.logger.info('File already deleted or does not exist', context);
         return true;
       }

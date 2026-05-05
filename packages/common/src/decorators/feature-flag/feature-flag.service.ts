@@ -143,9 +143,9 @@ export class FeatureFlagService implements OnModuleInit {
       this.unleashClient.on('error', (err: Error) => {
         this.logger.error('Unleash error', { error: err.message });
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.warn('Unleash not available, falling back to Redis/memory', {
-        error: error.message,
+        error: (error as Error).message,
       });
       this.provider = this.redis ? 'redis' : 'memory';
     }
@@ -168,10 +168,10 @@ export class FeatureFlagService implements OnModuleInit {
         default:
           return this.memoryFlags.get(flagName) ?? false;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Feature flag check error', {
         flagName,
-        error: error.message,
+        error: (error as Error).message,
       });
       return false;
     }

@@ -15,7 +15,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FileBucketVendor } from '@prisma/client';
 
-import { PardxUploader } from '@dofe/infra-clients/file-storage';
+import { DoFeUploader } from '@dofe/infra-clients/file-storage';
 import { IpGeoService } from '../ip-geo/ip-geo.service';
 import { AppConfig } from '@dofe/infra-common';
 import arrayUtil from '@dofe/infra-utils/array.util';
@@ -33,7 +33,7 @@ export interface BucketResolveResult {
   /** 解析后的存储供应商 */
   vendor: FileBucketVendor;
   /** 存储桶配置（如果找到） */
-  config?: PardxUploader.Config;
+  config?: DoFeUploader.Config;
 }
 
 /**
@@ -71,7 +71,7 @@ export class BucketResolver {
    * 存储桶配置列表
    * @private
    */
-  private readonly bucketConfigs: PardxUploader.Config[];
+  private readonly bucketConfigs: DoFeUploader.Config[];
 
   /**
    * 应用配置
@@ -98,7 +98,7 @@ export class BucketResolver {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     this.bucketConfigs =
-      configService.getOrThrow<PardxUploader.Config[]>('buckets');
+      configService.getOrThrow<DoFeUploader.Config[]>('buckets');
     this.appConfig = configService.getOrThrow<AppConfig>('app');
     this.defaultVendor = this.appConfig.defaultVendor;
   }
@@ -239,12 +239,12 @@ export class BucketResolver {
    *
    * @param {FileBucketVendor} vendor - 存储供应商
    * @param {string} bucket - 存储桶名称
-   * @returns {PardxUploader.Config | undefined} 配置或 undefined
+   * @returns {DoFeUploader.Config | undefined} 配置或 undefined
    */
   findBucketConfig(
     vendor: FileBucketVendor,
     bucket: string,
-  ): PardxUploader.Config | undefined {
+  ): DoFeUploader.Config | undefined {
     return this.bucketConfigs.find(
       (config) =>
         config.bucket === bucket &&
@@ -255,19 +255,19 @@ export class BucketResolver {
   /**
    * 获取所有存储桶配置
    *
-   * @returns {PardxUploader.Config[]} 配置列表
+   * @returns {DoFeUploader.Config[]} 配置列表
    */
-  getAllConfigs(): PardxUploader.Config[] {
+  getAllConfigs(): DoFeUploader.Config[] {
     return [...this.bucketConfigs];
   }
 
   /**
    * 根据属性过滤存储桶
    *
-   * @param {Partial<PardxUploader.Config>} filter - 过滤条件
-   * @returns {PardxUploader.Config[]} 匹配的配置列表
+   * @param {Partial<DoFeUploader.Config>} filter - 过滤条件
+   * @returns {DoFeUploader.Config[]} 匹配的配置列表
    */
-  filterBuckets(filter: Partial<PardxUploader.Config>): PardxUploader.Config[] {
+  filterBuckets(filter: Partial<DoFeUploader.Config>): DoFeUploader.Config[] {
     return this.bucketConfigs.filter((config) => {
       for (const [key, value] of Object.entries(filter)) {
         if ((config as Record<string, unknown>)[key] !== value) {

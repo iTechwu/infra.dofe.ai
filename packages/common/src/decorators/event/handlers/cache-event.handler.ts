@@ -65,10 +65,10 @@ export class CacheEventHandler {
         pattern: payload.pattern,
         reason: payload.reason,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Cache invalidation error', {
         cacheName: payload.cacheName,
-        error: error.message,
+        error: (error as Error).message,
       });
     }
   }
@@ -86,10 +86,10 @@ export class CacheEventHandler {
           event: EventNames.USER.UPDATED,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('User cache invalidation error', {
         userId: payload.userId,
-        error: error.message,
+        error: (error as Error).message,
       });
     }
   }
@@ -107,10 +107,10 @@ export class CacheEventHandler {
           event: EventNames.USER.DELETED,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('User cache invalidation error on delete', {
         userId: payload.userId,
-        error: error.message,
+        error: (error as Error).message,
       });
     }
   }

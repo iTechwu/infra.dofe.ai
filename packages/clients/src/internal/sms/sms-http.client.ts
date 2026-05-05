@@ -46,16 +46,16 @@ export class SmsHttpClient {
         error: '0',
         data: response.data,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`HTTP短信发送失败: ${phone}`, {
-        error: error.message,
-        stack: error.stack,
+        error: (error as Error).message,
+        stack: (error as Error).stack,
       });
 
       return {
         statusCode: 500,
         error: '1',
-        message: error.message,
+        message: (error as Error).message,
       };
     }
   }
@@ -67,7 +67,7 @@ export class SmsHttpClient {
   ) {
     const timestamp = Date.now().toString();
     const sign = this.generateMd5Sign(
-      this.config.appKey,
+      this.config.appKey!,
       this.config.accessSecret,
       timestamp,
     );
@@ -96,7 +96,7 @@ export class SmsHttpClient {
     });
 
     return await firstValueFrom(
-      this.httpService.post(this.config.endpoint, jsonData, config),
+      this.httpService.post(this.config.endpoint!, jsonData, config),
     );
   }
 

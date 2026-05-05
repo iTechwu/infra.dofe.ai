@@ -52,6 +52,6 @@ export * from './types';
 
 // Re-export DTOs from client layer for convenience
 export {
-  PardxUploader,
+  DoFeUploader,
   FileStorageInterface,
 } from '@dofe/infra-clients/file-storage';

@@ -8,13 +8,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./prisma": {
-      "types": "./dist/prisma/index.d.ts",
-      "default": "./dist/prisma/index.js"
-    },
-    "./db-metrics": {
-      "types": "./dist/db-metrics/index.d.ts",
-      "default": "./dist/db-metrics/index.js"
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
     }
   },
   "scripts": {
@@ -26,6 +22,7 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
+    "class-validator": "^0.14.1",
     "@prisma/client": "^7.0.0",
     "@willsoto/nestjs-prometheus": "^6.0.0",
     "ioredis": "^5.0.0",

@@ -136,7 +136,7 @@ export namespace DoFeApp {
   export type SimplePaginatedResponse<T> = PaginatedResponse<T>;
 
   export class Task {
-    task:
+    task!:
       | Partial<SystemTaskQueue>
       | {
           id: string;
@@ -242,7 +242,7 @@ export namespace PardxApp {
   export type SimplePaginatedResponse<T> = PaginatedResponse<T>;
 
   export class Task {
-    task:
+    task!:
       | Partial<SystemTaskQueue>
       | {
           id: string;

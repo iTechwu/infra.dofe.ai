@@ -1,5 +1,6 @@
 export * from './common.module';
 export * from './encryption.service';
+export * from './adapters';
 export * from './config/env-config.service';
 export { getKeysConfig, initKeysConfig, getEnvConfig, getConfig } from './config/configuration';
 export type { KeysConfig, YamlConfig, EnvConfig } from './config/validation';
@@ -13,7 +14,10 @@ export { PardxApp, DoFeApp, Locale, LocaleString, VideoResolutionDto } from './c
 export { FeatureNotConfiguredError } from './config/features';
 export { AgentXConfigHelper } from './config/agentx.config';
 export { TRANSCODE_CONSTANTS, SUPPORTED_VIDEO_FORMATS, SUPPORTED_AUDIO_FORMATS, SUPPORTED_IMAGE_FORMATS } from './config/constant/config.constants';
+export * from './config/vendor.config';
 export * from './filter/exception/api.exception';
+export * from './filter/exception/exception';
+export * from './filter/exception/http.exception';
 
 // Prisma utilities (moved from @dofe/infra-utils)
 export * from './utils/prisma-error.util';
@@ -49,12 +53,26 @@ export * from './decorators/version/version.interceptor';
 export * from './decorators/version/version.module';
 
 export * from './guards/api-key.guard';
+export * from './guards/auth.guard';
+export * from './guards/data-visibility.guard';
+export * from './guards/permission.guard';
+export * from './guards/tenant-context.guard';
 export * from './guards/version.guard';
 export * from './guards/tokens';
 
 export * from './middleware/request.middleware';
+export * from './middleware/tenant-isolation.middleware';
+export * from './interceptor/audit';
 export * from './interceptor/mask/mask.interceptor';
 export * from './interceptor/rate-limit/no-rate-limit.interceptor';
 export * from './interceptor/rate-limit/rate-limit.interceptor';
 export * from './interceptor/transform/transform.interceptor';
 export * from './interceptor/version/version-header.interceptor';
+
+export * from './enums/action.enum';
+export * from './enums/error-codes';
+export * from './enums/role.enum';
+
+export * from './ts-rest';
+
+export * from './pipes/transform-root.pipe';

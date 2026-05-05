@@ -24,6 +24,8 @@
   "include": ["src/**/*"],
   "exclude": [
     "src/internal/transcode/**/*",
-    "src/internal/feishu/**/*"
+    "src/internal/feishu/**/*",
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ]
 }

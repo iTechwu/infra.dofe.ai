@@ -70,7 +70,7 @@ export class UnitOfWorkService {
     callback: () => Promise<T>,
     options?: TransactionOptions,
   ): Promise<T> {
-    return await this.prisma.write.$transaction(async (tx) => {
+    return await this.prisma.write.$transaction(async (tx: any) => {
       // 在事务上下文中运行回调
       // db 服务层会自动通过 getTransactionClient() 获取事务客户端
       return await runInTransactionContext(

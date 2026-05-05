@@ -118,11 +118,11 @@ export class CacheInterceptor implements NestInterceptor {
             if (shouldCache) {
               this.redis
                 .saveData(options.cacheName, cacheKey, result, options.ttl)
-                .catch((err) => {
+                .catch((err: unknown) => {
                   this.logger.error('Cache save error', {
                     cacheName: options.cacheName,
                     cacheKey,
-                    error: err.message,
+                    error: (err as Error).message,
                   });
                 });
             }
@@ -151,11 +151,11 @@ export class CacheInterceptor implements NestInterceptor {
         if (shouldCache) {
           this.redis
             .saveData(options.cacheName, cacheKey, result, options.ttl)
-            .catch((err) => {
+            .catch((err: unknown) => {
               this.logger.error('Cache put error', {
                 cacheName: options.cacheName,
                 cacheKey,
-                error: err.message,
+                error: (err as Error).message,
               });
             });
         }
@@ -220,10 +220,10 @@ export class CacheInterceptor implements NestInterceptor {
           cacheKey,
         });
       }
-    } catch (err) {
+    } catch (err: unknown) {
       this.logger.error('Cache evict error', {
         cacheName: options.cacheName,
-        error: err.message,
+        error: (err as Error).message,
       });
     }
   }

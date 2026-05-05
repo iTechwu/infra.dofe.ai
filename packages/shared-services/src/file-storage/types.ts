@@ -7,7 +7,7 @@
  */
 
 import { FileBucketVendor } from '@prisma/client';
-import { PardxUploader } from '@dofe/infra-clients/file-storage';
+import { DoFeUploader } from '@dofe/infra-clients/file-storage';
 
 /**
  * 文件位置标识
@@ -201,10 +201,10 @@ export type VendorClientMapping = Record<
  * 存储凭证配置映射
  */
 export interface StorageCredentialsMap {
-  gcs?: PardxUploader.FileApiKey;
-  us3?: PardxUploader.FileApiKey;
-  oss?: PardxUploader.FileApiKey;
-  tos?: PardxUploader.FileApiKey;
-  qiniu?: PardxUploader.FileApiKey;
-  s3?: PardxUploader.FileApiKey;
+  gcs?: DoFeUploader.FileApiKey;
+  us3?: DoFeUploader.FileApiKey;
+  oss?: DoFeUploader.FileApiKey;
+  tos?: DoFeUploader.FileApiKey;
+  qiniu?: DoFeUploader.FileApiKey;
+  s3?: DoFeUploader.FileApiKey;
 }

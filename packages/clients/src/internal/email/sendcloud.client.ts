@@ -87,9 +87,9 @@ export class SendCloudClient {
     try {
       const response = await firstValueFrom(this.httpService.post(url, data));
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`SendCloud API error: ${url}`, {
-        error: error.message,
+        error: (error as Error).message,
       });
       throw error;
     }
@@ -130,8 +130,8 @@ export class SendCloudClient {
         this.httpService.post(SENDCLOUD_API.send, finalData),
       );
       return response.data;
-    } catch (err) {
-      throw new Error('邮件发送失败: ' + err.message);
+    } catch (err: unknown) {
+      throw new Error('邮件发送失败: ' + (err as Error).message);
     }
   }
 
@@ -148,7 +148,7 @@ export class SendCloudClient {
         html: data,
       };
       const info = await new Promise((resolve, reject) => {
-        this.transporter.sendMail(mail, (err, info) => {
+        this.transporter.sendMail(mail, (err: Error | null, info: any) => {
           if (err) {
             reject(new Error('邮件发送失败: ' + err.message));
           } else {
@@ -157,8 +157,8 @@ export class SendCloudClient {
         });
       });
       return info;
-    } catch (error) {
-      throw new Error('邮件发送过程中发生错误: ' + error.message);
+    } catch (error: unknown) {
+      throw new Error('邮件发送过程中发生错误: ' + (error as Error).message);
     }
   }
 
@@ -202,12 +202,12 @@ export class SendCloudClient {
       });
 
       return response.data;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`SendCloud email failed to ${to}`, {
         template: templateName,
-        error: error.message,
+        error: (error as Error).message,
       });
-      throw new Error('发送模板邮件失败: ' + error.message);
+      throw new Error('发送模板邮件失败: ' + (error as Error).message);
     }
   }
 
@@ -392,8 +392,8 @@ export class SendCloudClient {
         return this.addListMember(targetList, member.address, _name, options);
       });
       return Promise.all(promises);
-    } catch (err) {
-      this.logger.error('addToOtherList failed', { error: err.message });
+    } catch (err: unknown) {
+      this.logger.error('addToOtherList failed', { error: (err as Error).message });
       throw err;
     }
   }

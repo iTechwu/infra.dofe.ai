@@ -143,12 +143,12 @@ export class EventInterceptor implements NestInterceptor {
           source: `${className}.${methodName}`,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Event emission error', {
         eventName: options.eventName,
         className,
         methodName,
-        error: error.message,
+        error: (error as Error).message,
       });
     }
   }

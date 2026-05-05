@@ -104,7 +104,7 @@ export class AuthGuard implements CanActivate {
     if (!featureConfig.modeUserId) {
       let access;
       if (guardType === 'sse') {
-        access = decodeURIComponent(request.query['access_token'] as string);
+        access = decodeURIComponent((request.query as Record<string, string>)['access_token']);
       } else {
         access = this.auth.extractTokenFromHeader(request);
         if (!access) {

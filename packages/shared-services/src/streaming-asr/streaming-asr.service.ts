@@ -23,11 +23,11 @@ import { EventEmitter } from 'events';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
-  VolcengineStreamingAsrProvider,
   VolcengineSaucConfig,
   StreamingAsrResult,
   StreamingAsrCallbacks,
-} from '@dofe/infra-clients';
+} from '../openspeech/types';
+import { VolcengineStreamingAsrProvider } from '../openspeech/providers/volcengine-streaming.provider';
 import { getKeysConfig } from '@dofe/infra-common';
 import { OpenSpeechConfig, JwtConfig } from '@dofe/infra-common';
 import { RedisService } from '@dofe/infra-redis';
@@ -135,7 +135,7 @@ export class StreamingAsrService implements OnModuleDestroy {
   /**
    * 流式识别 Provider
    */
-  private provider: VolcengineStreamingAsrProvider;
+  private provider!: VolcengineStreamingAsrProvider;
 
   /**
    * 会话信息存储

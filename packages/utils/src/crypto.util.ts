@@ -19,9 +19,9 @@ export function rsaDecrypt(val: string) {
       });
     }
     return originalText;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[rsaDecrypt] Decryption failed:', {
-      error: error.message || error,
+      error: (error as Error).message || error,
       inputLength: val.length,
       inputPreview: val.substring(0, 50),
     });
@@ -190,7 +190,7 @@ export const signUrl = (uri: string, key: string): string => {
   const hash = CryptoJS.HmacSHA1(uri, key);
 
   const wordArray = hash.words;
-  const buffer = Buffer.from(wordArray.map((word) => (word >>> 0) & 0xff));
+  const buffer = Buffer.from(wordArray.map((word: number) => (word >>> 0) & 0xff));
   // 使用Base64 URL安全的编码
   const hash_encoded = buffer
     .toString('base64')

@@ -43,9 +43,9 @@ export class SmsTencentClient {
       `发送验证码 ${code} 到 ${phone} 使用模板 ${template.name}`,
     );
     const params = {
-      SmsSdkAppId: this.config.appId,
+      SmsSdkAppId: this.config.appId!,
       SignName: template.sign,
-      TemplateId: template.templateCode,
+      TemplateId: template.templateCode!,
       TemplateParamSet: [code],
       PhoneNumberSet: [`+86${phone}`],
     };

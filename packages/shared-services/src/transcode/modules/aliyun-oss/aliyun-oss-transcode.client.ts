@@ -11,7 +11,7 @@ import {
     VideoQuality,
 } from '@prisma/client';
 import { FileStorageService } from '../../../file-storage/file-storage.service';
-import { PardxUploader } from '../../../file-storage';
+import { DoFeUploader } from '../../../file-storage';
 import { arrayUtil } from '@dofe/infra-utils';
 import { getKeysConfig } from '@dofe/infra-common';
 import { StorageCredentialsConfig } from '@dofe/infra-common';
@@ -113,7 +113,7 @@ export class AliyunOssTranscodeClient {
             throw new Error(`Unsupported vendor: ${vendor}`);
         }
         const bucketConfigs =
-            this.configService.getOrThrow<PardxUploader.Config[]>('buckets');
+            this.configService.getOrThrow<DoFeUploader.Config[]>('buckets');
         const bucketConfig = arrayUtil.findOne(bucketConfigs, {
             bucket,
             vendor,
@@ -186,15 +186,15 @@ export class AliyunOssTranscodeClient {
             );
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('OSS process failed', {
                 vendor,
                 bucket,
                 key,
                 process,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
-            throw new Error(`OSS process failed: ${error.message}`);
+            throw new Error(`OSS process failed: ${(error instanceof Error ? error.message : String(error))}`);
         }
     }
 
@@ -207,7 +207,7 @@ export class AliyunOssTranscodeClient {
         bucket: string,
         key: string,
         process: string,
-        outputKey: string = null,
+        outputKey: string | null = null,
     ): Promise<any> {
         if (vendor !== 'oss') {
             throw new Error(`Unsupported vendor: ${vendor}`);
@@ -240,30 +240,31 @@ export class AliyunOssTranscodeClient {
             });
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
+            const err = error as any;
             this.logger.error('OSS process with client failed', {
                 vendor,
                 bucket,
                 key,
                 process,
-                error: error.message,
-                errorCode: error.code,
-                errorName: error.name,
+                error: (error instanceof Error ? error.message : String(error)),
+                errorCode: err.code,
+                errorName: err.name,
             });
 
             // 根据错误类型提供更详细的错误信息
-            if (error.code === 'NoSuchKey') {
+            if (err.code === 'NoSuchKey') {
                 throw new Error(`File not found: ${key} in bucket ${bucket}`);
-            } else if (error.code === 'AccessDenied') {
+            } else if (err.code === 'AccessDenied') {
                 throw new Error(
                     `Access denied to bucket ${bucket} or file ${key}`,
                 );
-            } else if (error.code === 'InvalidArgument') {
+            } else if (err.code === 'InvalidArgument') {
                 throw new Error(`Invalid process parameters: ${process}`);
-            } else if (error.name === 'RequestTimeoutError') {
+            } else if (err.name === 'RequestTimeoutError') {
                 throw new Error(`Request timeout for process: ${process}`);
             } else {
-                throw new Error(`OSS process failed: ${error.message}`);
+                throw new Error(`OSS process failed: ${(error instanceof Error ? error.message : String(error))}`);
             }
         }
     }
@@ -300,13 +301,13 @@ export class AliyunOssTranscodeClient {
             });
 
             return result.info as VideoInfo;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get video info', {
                 vendor,
                 bucket,
                 key,
                 type,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -344,13 +345,13 @@ export class AliyunOssTranscodeClient {
             });
 
             return result.info as AudioInfo;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get audio info', {
                 vendor,
                 bucket,
                 key,
                 type,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -388,13 +389,13 @@ export class AliyunOssTranscodeClient {
             });
 
             return result.info as ImageInfo;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get image info', {
                 vendor,
                 bucket,
                 key,
                 type,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -441,7 +442,7 @@ export class AliyunOssTranscodeClient {
             );
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error(
                 'Failed to create video transcode task using IMM',
                 {
@@ -449,7 +450,7 @@ export class AliyunOssTranscodeClient {
                     bucket,
                     key,
                     quality,
-                    error: error.message,
+                    error: (error instanceof Error ? error.message : String(error)),
                 },
             );
             throw error;
@@ -503,13 +504,13 @@ export class AliyunOssTranscodeClient {
                 }),
             );
             return { taskId: this.extractTaskId(response.data) };
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Async process execution failed', {
                 url,
                 process,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
-            throw new Error(`Async process failed: ${error.message}`);
+            throw new Error(`Async process failed: ${(error instanceof Error ? error.message : String(error))}`);
         }
     }
 
@@ -530,15 +531,15 @@ export class AliyunOssTranscodeClient {
                 config,
             );
             return `OSS ${config.accessKeyId}:${signature}`;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to build authorization header', {
                 method,
                 bucket,
                 key,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw new Error(
-                `Failed to build authorization header: ${error.message}`,
+                `Failed to build authorization header: ${(error instanceof Error ? error.message : String(error))}`,
             );
         }
     }
@@ -640,9 +641,9 @@ export class AliyunOssTranscodeClient {
                 return this.parseOssImageContent(content);
             }
             return response;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS image response', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             return response;
         }
@@ -685,9 +686,9 @@ export class AliyunOssTranscodeClient {
                 size: imageInfo.size,
                 rawContent: content,
             };
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS image content', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
                 content: content.substring(0, 200),
             });
             return { rawContent: content };
@@ -704,9 +705,9 @@ export class AliyunOssTranscodeClient {
                 return this.parseOssVideoContent(content);
             }
             return response;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS video response', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             return response;
         }
@@ -771,9 +772,9 @@ export class AliyunOssTranscodeClient {
                 ],
                 rawContent: content,
             };
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS video content', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
                 content: content.substring(0, 200),
             });
             return { rawContent: content };
@@ -790,9 +791,9 @@ export class AliyunOssTranscodeClient {
                 return this.parseOssAudioContent(content);
             }
             return response;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS audio response', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             return response;
         }
@@ -849,9 +850,9 @@ export class AliyunOssTranscodeClient {
                 ],
                 rawContent: content,
             };
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS audio content', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
                 content: content.substring(0, 200),
             });
             return { rawContent: content };
@@ -901,9 +902,9 @@ export class AliyunOssTranscodeClient {
             }
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.warn('Failed to parse OSS head response', {
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             return headResult;
         }
@@ -981,12 +982,12 @@ export class AliyunOssTranscodeClient {
             );
 
             return signature;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to generate OSS signature', {
                 method,
                 bucket,
                 key,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             // 如果签名生成失败，使用简单的占位符
             return 'signature_placeholder';
@@ -1036,7 +1037,7 @@ export class AliyunOssTranscodeClient {
             );
 
             return signature;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error(
                 'Failed to generate OSS media process signature',
                 {
@@ -1044,11 +1045,11 @@ export class AliyunOssTranscodeClient {
                     bucket,
                     key,
                     process,
-                    error: error.message,
+                    error: (error instanceof Error ? error.message : String(error)),
                 },
             );
             throw new Error(
-                `Failed to generate OSS media process signature: ${error.message}`,
+                `Failed to generate OSS media process signature: ${(error instanceof Error ? error.message : String(error))}`,
             );
         }
     }
@@ -1234,15 +1235,15 @@ export class AliyunOssTranscodeClient {
 
             // 返回处理后的文件路径，而不是URL
             return spriteKey;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to generate sprite', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
-            throw new Error(`Sprite generation failed: ${error.message}`);
+            throw new Error(`Sprite generation failed: ${(error instanceof Error ? error.message : String(error))}`);
         }
     }
 
@@ -1362,17 +1363,17 @@ export class AliyunOssTranscodeClient {
             };
 
             return this.generateSprite(vendor, bucket, key, spriteOptions);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to generate custom time range sprite', {
                 vendor,
                 bucket,
                 key,
                 startTime,
                 endTime,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw new Error(
-                `Custom time range sprite generation failed: ${error.message}`,
+                `Custom time range sprite generation failed: ${(error instanceof Error ? error.message : String(error))}`,
             );
         }
     }
@@ -1448,15 +1449,15 @@ export class AliyunOssTranscodeClient {
 
             // 返回处理后的文件路径，而不是URL
             return result?.res?.statusCode === 200 ? snapshotKey : '';
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to generate snapshot', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
-            throw new Error(`Snapshot generation failed: ${error.message}`);
+            throw new Error(`Snapshot generation failed: ${(error instanceof Error ? error.message : String(error))}`);
         }
     }
 
@@ -1510,7 +1511,9 @@ export class AliyunOssTranscodeClient {
             return false;
         }
 
-        const [, hours, minutes, seconds] = time.match(timeRegex);
+        const match = time.match(timeRegex);
+        if (!match) return false;
+        const [, hours, minutes, seconds] = match;
         const h = parseInt(hours, 10);
         const m = parseInt(minutes, 10);
         const s = parseInt(seconds, 10);
@@ -1656,16 +1659,16 @@ export class AliyunOssTranscodeClient {
             });
 
             return snapshotUrls;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to generate multiple snapshots', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw new Error(
-                `Multiple snapshots generation failed: ${error.message}`,
+                `Multiple snapshots generation failed: ${(error instanceof Error ? error.message : String(error))}`,
             );
         }
     }
@@ -1721,13 +1724,13 @@ export class AliyunOssTranscodeClient {
             });
 
             return result;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to extract audio from video', {
                 vendor,
                 bucket,
                 key,
                 options,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -1762,10 +1765,10 @@ export class AliyunOssTranscodeClient {
             });
 
             return status;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to get transcode task status using IMM', {
                 taskId,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             throw error;
         }
@@ -1785,10 +1788,10 @@ export class AliyunOssTranscodeClient {
             // const response = await this.immClient.cancelTask(taskId);
 
             return true;
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Failed to cancel transcode task', {
                 taskId,
-                error: error.message,
+                error: (error instanceof Error ? error.message : String(error)),
             });
             return false;
         }

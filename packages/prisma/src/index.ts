@@ -4,5 +4,6 @@ export * from './prisma-read/prisma-read.service';
 export * from './prisma-write/prisma-write.module';
 export * from './prisma-write/prisma-write.service';
 export * from './middleware/soft-delete.middleware';
+export * from './middleware/tenant-isolation-extension';
 export * from './db-metrics';
 export * from './prometheus/prometheus.module';

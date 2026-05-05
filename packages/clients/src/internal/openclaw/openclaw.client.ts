@@ -601,7 +601,7 @@ export class OpenClawClient {
         });
       });
 
-      ws.on('message', (data: WsClient.Data) => {
+      ws.on('message', (data: any) => {
         try {
           const frame = JSON.parse(data.toString());
           this.logger.info('OpenClawClient: 收到消息', {
@@ -2682,7 +2682,7 @@ export class OpenClawClient {
           targetPluginId: pluginId,
           openclawHome: parsed.openclawHome,
           foundManifestsCount: parsed.foundManifests?.length || 0,
-          foundManifests: parsed.foundManifests?.map((m) => ({
+          foundManifests: parsed.foundManifests?.map((m: any) => ({
             path: m.path,
             pluginId: m.pluginId,
           })),
@@ -3747,8 +3747,8 @@ export class OpenClawClient {
         `[OpenClawClient] Successfully deleted cron job: ${jobId}`,
       );
       return response.data;
-    } catch (error) {
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      if ((error as any).response?.status === 404) {
         this.logger.warn(
           `[OpenClawClient] Cron job ${jobId} not found (already deleted)`,
         );

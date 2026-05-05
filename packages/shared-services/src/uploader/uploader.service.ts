@@ -79,11 +79,11 @@ export class UploaderService {
         throw apiError(CommonErrorCode.SignatureError);
       }
       signatureData = JSON.parse(jsonString);
-    } catch (e) {
+    } catch (e: unknown) {
       this.logger.error(
         '[Signature Validation] Decryption or parsing failed:',
         {
-          error: e.message || e,
+          error: e instanceof Error ? e.message : e,
           signature: cmd.signature?.substring(0, 50) + '...',
           userId,
         },
