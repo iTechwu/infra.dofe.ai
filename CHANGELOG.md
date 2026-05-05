@@ -1,3 +1,9 @@
+## [0.1.20] - 2026-05-05
+- feat: 更新各包的 exports 字段，优化类型声明和默认导出配置
+- feat: 更新 exports 字段，支持通配符类型和默认导出配置
+- feat: 优化各包的 exports 字段，简化类型和默认导出配置
+- feat: 更新各包的 exports 字段，支持目录索引解析并优化依赖声明
+
 ## [0.1.19] - 2026-05-05
 - feat: add stub type declarations for dockerode, prisma-client, and missing third-party modules
 

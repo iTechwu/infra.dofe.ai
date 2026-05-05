@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-utils",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -58,7 +58,10 @@
       "default": "./dist/array.util.js"
     },
     "./*": {
-      "types": ["./dist/*.d.ts", "./dist/*/index.d.ts"],
+      "types": [
+        "./dist/*.d.ts",
+        "./dist/*/index.d.ts"
+      ],
       "default": "./dist/*"
     }
   },

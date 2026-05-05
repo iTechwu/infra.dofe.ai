@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-jwt",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -9,7 +9,10 @@
       "default": "./dist/index.js"
     },
     "./*": {
-      "types": ["./dist/*.d.ts", "./dist/*/index.d.ts"],
+      "types": [
+        "./dist/*.d.ts",
+        "./dist/*/index.d.ts"
+      ],
       "default": "./dist/*"
     }
   },
