@@ -365,8 +365,8 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-i18n": "workspace:^",
-    "@dofe/infra-utils": "workspace:^"
+    "@dofe/infra-i18n": "^0.1.38",
+    "@dofe/infra-utils": "^0.1.38"
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",
