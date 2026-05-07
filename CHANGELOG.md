@@ -1,3 +1,6 @@
+## [0.1.37] - 2026-05-07
+- feat: 更新多个包的依赖版本为 workspace:^，以支持更灵活的版本管理
+
 ## [0.1.36] - 2026-05-07
 - Refactor code structure for improved readability and maintainability
 
