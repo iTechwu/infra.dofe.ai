@@ -362,9 +362,9 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "workspace:*",
-    "@dofe/infra-redis": "workspace:*",
-    "@dofe/infra-utils": "workspace:*"
+    "@dofe/infra-common": "^0.1.37",
+    "@dofe/infra-redis": "^0.1.37",
+    "@dofe/infra-utils": "^0.1.36"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",
