@@ -340,8 +340,8 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "workspace:*",
-    "@dofe/infra-redis": "workspace:*",
+    "@dofe/infra-contracts": "workspace:^",
+    "@dofe/infra-redis": "workspace:^",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
