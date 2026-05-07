@@ -37,7 +37,10 @@
         "@dofe/infra-shared-db": true,
         "@dofe/infra-shared-services": true
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core"
+    ]
   },
   "devDependencies": {
     "@dofe/infra-contracts": "workspace:*",
