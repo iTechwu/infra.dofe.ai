@@ -114,6 +114,10 @@ export const videoQualitySchema = z.enum([
 export const jwtConfigSchema = z.object({
   secret: z.string().min(8, 'JWT secret must be at least 8 characters'),
   expireIn: z.number().int().positive(),
+  // RS256/JWKS 相关（OIDC 模式）
+  jwksUri: z.string().url().optional().describe('SSO JWKS 端点 URL，启用 RS256 验证'),
+  issuer: z.string().optional().describe('JWT issuer 声明，启用 RS256 时校验'),
+  oidcMode: z.boolean().optional().default(false).describe('启用 OIDC 模式：支持 RS256+JWKS 验证'),
 });
 
 /**
