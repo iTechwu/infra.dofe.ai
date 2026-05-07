@@ -184,28 +184,15 @@ echo ""
 # ──────────────────────────────────────────────────────────────────────
 # Publish
 # ──────────────────────────────────────────────────────────────────────
-echo "=== Replacing workspace:* with ^${NEW_VERSION} for publish ==="
-for pkg_json in packages/*/package.json; do
-  if grep -q 'workspace:\*' "$pkg_json" 2>/dev/null; then
-    sed -i '' 's/"workspace:\*"/"^'"$NEW_VERSION"'"/g' "$pkg_json"
-    echo "  Updated: $pkg_json"
-  fi
-done
+# Note: pnpm automatically converts workspace:* to actual version during publish
+# No need to manually replace workspace:* or restore package.json after publish
 
-echo ""
 echo "=== Publishing ==="
 PUBLISH_ARGS=(-r --access public --no-git-checks)
 if [ -n "$OTP_FLAG" ]; then
   PUBLISH_ARGS+=("$OTP_FLAG")
 fi
 pnpm publish "${PUBLISH_ARGS[@]}" || true
-
-# ──────────────────────────────────────────────────────────────────────
-# Restore package.json files (keep workspace:* in repo)
-# ──────────────────────────────────────────────────────────────────────
-echo ""
-echo "=== Restoring package.json files ==="
-git checkout -- packages/*/package.json
 
 echo ""
 echo "Done. Published ${NEW_VERSION}."
