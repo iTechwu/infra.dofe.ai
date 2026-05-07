@@ -98,8 +98,17 @@ for (const key of Object.keys(exports).sort()) {
   sorted[key] = exports[key];
 }
 
-pkg.exports = sorted;
-writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + '\n');
+// Idempotent check: only write if exports actually changed
+const currentExports = pkg.exports || {};
+const newExportsStr = JSON.stringify(sorted, null, 2);
+const currentExportsStr = JSON.stringify(currentExports, null, 2);
 
 const count = Object.keys(sorted).length;
-console.log(`[generate-exports] ${pkg.name}: ${count} export${count !== 1 ? 's' : ''} written`);
+
+if (newExportsStr === currentExportsStr) {
+  console.log(`[generate-exports] ${pkg.name}: ${count} export${count !== 1 ? 's' : ''} unchanged, skipping write`);
+} else {
+  pkg.exports = sorted;
+  writeFileSync(pkgJsonPath, JSON.stringify(pkg, null, 2) + '\n');
+  console.log(`[generate-exports] ${pkg.name}: ${count} export${count !== 1 ? 's' : ''} updated`);
+}
