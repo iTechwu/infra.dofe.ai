@@ -18,3 +18,4 @@ export * from './internal/sse';
 export * from './internal/third-party-sse';
 export * from './internal/verify';
 export * from './internal/wechat';
+export * from './internal/sso';

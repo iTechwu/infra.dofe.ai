@@ -1,4 +1,2 @@
 packages:
   - "packages/*"
-  # Allow infra packages to resolve peer dependencies from the consuming project
-  - "../models.dofe.ai/packages/*"

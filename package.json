@@ -48,7 +48,7 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.19",
     "@nestjs/platform-fastify": "^11.1.19",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
     "typescript": "^6.0.3",
