@@ -95,18 +95,6 @@
     "packages/*/dist",
     "**/*.spec.ts",
     "**/*.test.ts",
-    "packages/clients/src/internal/agentx/**/*.ts",
-    "packages/clients/src/internal/feishu/**/*.ts",
-    "packages/clients/src/internal/mlflow/**/*.ts",
-    "packages/clients/src/internal/model-research-proxy/**/*.ts",
-    "packages/clients/src/internal/openclaw/**/*.ts",
-    "packages/clients/src/internal/provider-verify/**/*.ts",
-    "packages/clients/src/internal/file-storage/**/*.ts",
-    "packages/clients/src/internal/file-cdn/**/*.ts",
-    "packages/clients/src/internal/model-verify/**/*.ts",
-    "packages/shared-services/**/*.ts",
-    "packages/common/src/config/**/*.ts",
-    "packages/common/src/decorators/**/*.ts",
-    "packages/common/src/prisma-error.util.ts"
+    "packages/clients/src/internal/feishu/**/*.ts"
   ]
 }

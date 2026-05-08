@@ -39,10 +39,11 @@ declare module '.prisma/client/default' {
   export type FileEnvType = (typeof FileEnvType)[keyof typeof FileEnvType];
 
   export const VideoQuality: {
-    readonly sd: 'sd';
-    readonly hd: 'hd';
-    readonly fhd: 'fhd';
-    readonly uhd: 'uhd';
+    readonly VIDEO_360P: 'VIDEO_360P';
+    readonly VIDEO_720P: 'VIDEO_720P';
+    readonly VIDEO_1080P: 'VIDEO_1080P';
+    readonly VIDEO_4K: 'VIDEO_4K';
+    readonly VIDEO_ORIGIN: 'VIDEO_ORIGIN';
   };
   export type VideoQuality = (typeof VideoQuality)[keyof typeof VideoQuality];
 

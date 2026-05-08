@@ -97,6 +97,9 @@ declare module '@volcengine/openapi' {
     addAuthorization(credentials: any, date: any): void;
     static sign(request: any, credentials: any): void;
   }
+
+  export * as sms from '@volcengine/openapi/lib/services/sms/index';
+  export * as vikingdb from '@volcengine/openapi/lib/services/vikingdb/index';
 }
 
 declare module '@volcengine/tos-sdk' {
