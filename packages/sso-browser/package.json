@@ -1,0 +1,33 @@
+{
+  "name": "@dofe/sso-browser",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./sso-session": {
+      "types": "./dist/sso-session.d.ts",
+      "default": "./dist/sso-session.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "rimraf": "^6.1.3",
+    "typescript": "^6.0.3"
+  },
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "UNLICENSED"
+}
