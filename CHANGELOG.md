@@ -1,3 +1,8 @@
+## [0.1.39] - 2026-05-08
+- feat: 更新视频质量常量，添加 SMS 和 VikingDB 服务的导出，调整 tsconfig 排除项
+- feat(sso): implement SSO client module with authentication and messaging capabilities
+- feat: 更新多个包的依赖版本为 ^0.1.38，以支持更灵活的版本管理
+
 ## [0.1.38] - 2026-05-07
 - feat: 将多个包的依赖版本更新为 workspace:^，以支持更灵活的版本管理
 - feat: 更新多个包的依赖版本以支持更灵活的版本管理
