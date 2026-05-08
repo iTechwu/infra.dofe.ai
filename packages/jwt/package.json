@@ -1,12 +1,16 @@
 {
   "name": "@dofe/infra-jwt",
-  "version": "0.1.40",
+  "version": "0.1.41",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./jwks-client": {
+      "types": "./dist/jwks-client.d.ts",
+      "default": "./dist/jwks-client.js"
     },
     "./jwt.module": {
       "types": "./dist/jwt.module.d.ts",

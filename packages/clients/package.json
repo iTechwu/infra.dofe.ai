@@ -466,9 +466,9 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.38",
-    "@dofe/infra-redis": "^0.1.38",
-    "@dofe/infra-utils": "^0.1.38"
+    "@dofe/infra-common": "^0.1.40",
+    "@dofe/infra-redis": "^0.1.40",
+    "@dofe/infra-utils": "^0.1.40"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",
