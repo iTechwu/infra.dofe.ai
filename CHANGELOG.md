@@ -1,3 +1,7 @@
+## [0.1.42] - 2026-05-08
+- feat: add @dofe/infra-contracts-base and @dofe/sso-browser packages
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.41] - 2026-05-08
 - feat(jwt): implement JWKS client for fetching and caching public keys
 
