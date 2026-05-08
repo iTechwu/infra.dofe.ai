@@ -1,3 +1,6 @@
+## [0.1.41] - 2026-05-08
+- feat(jwt): implement JWKS client for fetching and caching public keys
+
 ## [0.1.40] - 2026-05-08
 
 ## [0.1.39] - 2026-05-08
