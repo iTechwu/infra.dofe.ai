@@ -1,3 +1,5 @@
+## [0.1.40] - 2026-05-08
+
 ## [0.1.39] - 2026-05-08
 - feat: 更新视频质量常量，添加 SMS 和 VikingDB 服务的导出，调整 tsconfig 排除项
 - feat(sso): implement SSO client module with authentication and messaging capabilities
