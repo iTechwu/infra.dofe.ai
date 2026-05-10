@@ -14,9 +14,17 @@ import {
 
 // Domain mapping for i18n namespace
 const ERROR_DOMAIN_MAP: Record<string, string> = {
-  // User errors (2xx)
-  '20': 'user',
-  '21': 'user',
+  // Auth errors (2000xx)
+  '2000': 'auth',
+  // User errors (2004xx-2094xx)
+  '2004': 'user',
+  '2005': 'user',
+  '2064': 'user',
+  '2074': 'user',
+  '2084': 'user',
+  '2094': 'user',
+  // Tenant errors (3xx)
+  '30': 'tenant',
   // Common errors (9xx)
   '90': 'common',
   '91': 'common',
@@ -25,8 +33,11 @@ const ERROR_DOMAIN_MAP: Record<string, string> = {
 };
 
 function getDomainFromCode(errorCode: string): string {
-  const prefix = errorCode.slice(0, 2);
-  return ERROR_DOMAIN_MAP[prefix] || 'common';
+  for (let len = 4; len >= 2; len--) {
+    const prefix = errorCode.slice(0, len);
+    if (ERROR_DOMAIN_MAP[prefix]) return ERROR_DOMAIN_MAP[prefix];
+  }
+  return 'common';
 }
 
 export class ApiException extends HttpException {

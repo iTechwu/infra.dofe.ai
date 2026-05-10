@@ -95,12 +95,63 @@ export const UserErrorCode = {
 export type UserErrorCode = (typeof UserErrorCode)[keyof typeof UserErrorCode];
 
 // ============================================================================
+// Auth Error Codes (200xxx range, auth-specific)
+// ============================================================================
+
+export const AuthErrorCode = {
+  InvalidCredentials: '200001',
+  AccountLocked: '200002',
+  AccountDisabled: '200003',
+  TokenExpired: '200004',
+  InvalidToken: '200005',
+  RefreshTokenExpired: '200006',
+  VerifyCodeExpired: '200007',
+  InvalidVerifyCode: '200008',
+  EmailAlreadyExists: '200009',
+  MobileAlreadyExists: '200010',
+  OAuthProviderError: '200011',
+  DeviceNotSupported: '200012',
+  PasswordTooWeak: '200013',
+  SuperAdminAlreadyExists: '200014',
+  MfaRequired: '200015',
+  MfaAlreadyEnabled: '200016',
+  MfaNotEnabled: '200017',
+  MfaTokenExpired: '200018',
+  MfaCodeInvalid: '200019',
+  BackupCodeInvalid: '200020',
+  BackupCodeAlreadyUsed: '200021',
+} as const;
+
+export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
+
+// ============================================================================
+// Tenant Error Codes (3xx prefix)
+// ============================================================================
+
+export const TenantErrorCode = {
+  TenantNotFound: '300001',
+  NotATenantMember: '300002',
+  InsufficientPermission: '300003',
+  SlugAlreadyExists: '300004',
+  MemberLimitReached: '300005',
+  InvitationExpired: '300006',
+  InvitationAlreadyAccepted: '300007',
+  CannotRemoveOwner: '300008',
+  CannotChangeOwnRole: '300009',
+  TenantSuspended: '300010',
+} as const;
+
+export type TenantErrorCode = (typeof TenantErrorCode)[keyof typeof TenantErrorCode];
+
+// ============================================================================
 // Unified API Error Code
 // ============================================================================
 
 export const ApiErrorCode = {
   ...UserErrorCode,
   ...CommonErrorCode,
+  ...AuthErrorCode,
+  ...TenantErrorCode,
 } as const;
 
 export type ApiErrorCode = (typeof ApiErrorCode)[keyof typeof ApiErrorCode];
@@ -187,10 +238,49 @@ export const CommonErrorTypes: Record<CommonErrorCode, string> = {
   [CommonErrorCode.MissingVendor]: 'missingVendor',
 };
 
+export const TenantErrorTypes: Record<TenantErrorCode, string> = {
+  [TenantErrorCode.TenantNotFound]: 'tenantNotFound',
+  [TenantErrorCode.NotATenantMember]: 'notATenantMember',
+  [TenantErrorCode.InsufficientPermission]: 'insufficientPermission',
+  [TenantErrorCode.SlugAlreadyExists]: 'slugAlreadyExists',
+  [TenantErrorCode.MemberLimitReached]: 'memberLimitReached',
+  [TenantErrorCode.InvitationExpired]: 'invitationExpired',
+  [TenantErrorCode.InvitationAlreadyAccepted]: 'invitationAlreadyAccepted',
+  [TenantErrorCode.CannotRemoveOwner]: 'cannotRemoveOwner',
+  [TenantErrorCode.CannotChangeOwnRole]: 'cannotChangeOwnRole',
+  [TenantErrorCode.TenantSuspended]: 'tenantSuspended',
+};
+
+export const AuthErrorTypes: Record<AuthErrorCode, string> = {
+  [AuthErrorCode.InvalidCredentials]: 'invalidCredentials',
+  [AuthErrorCode.AccountLocked]: 'accountLocked',
+  [AuthErrorCode.AccountDisabled]: 'accountDisabled',
+  [AuthErrorCode.TokenExpired]: 'tokenExpired',
+  [AuthErrorCode.InvalidToken]: 'invalidToken',
+  [AuthErrorCode.RefreshTokenExpired]: 'refreshTokenExpired',
+  [AuthErrorCode.VerifyCodeExpired]: 'verifyCodeExpired',
+  [AuthErrorCode.InvalidVerifyCode]: 'invalidVerifyCode',
+  [AuthErrorCode.EmailAlreadyExists]: 'emailAlreadyExists',
+  [AuthErrorCode.MobileAlreadyExists]: 'mobileAlreadyExists',
+  [AuthErrorCode.OAuthProviderError]: 'oauthProviderError',
+  [AuthErrorCode.DeviceNotSupported]: 'deviceNotSupported',
+  [AuthErrorCode.PasswordTooWeak]: 'passwordTooWeak',
+  [AuthErrorCode.SuperAdminAlreadyExists]: 'superAdminAlreadyExists',
+  [AuthErrorCode.MfaRequired]: 'mfaRequired',
+  [AuthErrorCode.MfaAlreadyEnabled]: 'mfaAlreadyEnabled',
+  [AuthErrorCode.MfaNotEnabled]: 'mfaNotEnabled',
+  [AuthErrorCode.MfaTokenExpired]: 'mfaTokenExpired',
+  [AuthErrorCode.MfaCodeInvalid]: 'mfaCodeInvalid',
+  [AuthErrorCode.BackupCodeInvalid]: 'backupCodeInvalid',
+  [AuthErrorCode.BackupCodeAlreadyUsed]: 'backupCodeAlreadyUsed',
+};
+
 // Unified
 export const AllErrorTypes: Record<string, string> = {
   ...UserErrorTypes,
   ...CommonErrorTypes,
+  ...TenantErrorTypes,
+  ...AuthErrorTypes,
 };
 
 // ============================================================================
@@ -275,9 +365,48 @@ export const CommonErrorHttpStatus: Record<CommonErrorCode, number> = {
   [CommonErrorCode.MissingVendor]: 400,
 };
 
+export const TenantErrorHttpStatus: Record<TenantErrorCode, number> = {
+  [TenantErrorCode.TenantNotFound]: 404,
+  [TenantErrorCode.NotATenantMember]: 403,
+  [TenantErrorCode.InsufficientPermission]: 403,
+  [TenantErrorCode.SlugAlreadyExists]: 409,
+  [TenantErrorCode.MemberLimitReached]: 400,
+  [TenantErrorCode.InvitationExpired]: 400,
+  [TenantErrorCode.InvitationAlreadyAccepted]: 409,
+  [TenantErrorCode.CannotRemoveOwner]: 400,
+  [TenantErrorCode.CannotChangeOwnRole]: 400,
+  [TenantErrorCode.TenantSuspended]: 403,
+};
+
+export const AuthErrorHttpStatus: Record<AuthErrorCode, number> = {
+  [AuthErrorCode.InvalidCredentials]: 401,
+  [AuthErrorCode.AccountLocked]: 423,
+  [AuthErrorCode.AccountDisabled]: 403,
+  [AuthErrorCode.TokenExpired]: 401,
+  [AuthErrorCode.InvalidToken]: 401,
+  [AuthErrorCode.RefreshTokenExpired]: 401,
+  [AuthErrorCode.VerifyCodeExpired]: 400,
+  [AuthErrorCode.InvalidVerifyCode]: 400,
+  [AuthErrorCode.EmailAlreadyExists]: 409,
+  [AuthErrorCode.MobileAlreadyExists]: 409,
+  [AuthErrorCode.OAuthProviderError]: 502,
+  [AuthErrorCode.DeviceNotSupported]: 400,
+  [AuthErrorCode.PasswordTooWeak]: 400,
+  [AuthErrorCode.SuperAdminAlreadyExists]: 409,
+  [AuthErrorCode.MfaRequired]: 403,
+  [AuthErrorCode.MfaAlreadyEnabled]: 409,
+  [AuthErrorCode.MfaNotEnabled]: 400,
+  [AuthErrorCode.MfaTokenExpired]: 401,
+  [AuthErrorCode.MfaCodeInvalid]: 400,
+  [AuthErrorCode.BackupCodeInvalid]: 400,
+  [AuthErrorCode.BackupCodeAlreadyUsed]: 400,
+};
+
 export const AllErrorHttpStatus: Record<string, number> = {
   ...UserErrorHttpStatus,
   ...CommonErrorHttpStatus,
+  ...TenantErrorHttpStatus,
+  ...AuthErrorHttpStatus,
 };
 
 // ============================================================================
@@ -300,6 +429,41 @@ export function getHttpStatus(errorCode: ApiErrorCode): number {
 // ============================================================================
 
 const ErrorMessages: Record<string, Record<string, string>> = {
+  auth: {
+    invalidCredentials: 'Invalid credentials',
+    accountLocked: 'Account has been locked',
+    accountDisabled: 'Account has been disabled',
+    tokenExpired: 'Token has expired',
+    invalidToken: 'Invalid token',
+    refreshTokenExpired: 'Refresh token has expired',
+    verifyCodeExpired: 'Verification code has expired',
+    invalidVerifyCode: 'Invalid verification code',
+    emailAlreadyExists: 'Email already exists',
+    mobileAlreadyExists: 'Mobile already exists',
+    oauthProviderError: 'OAuth provider error',
+    deviceNotSupported: 'Device not supported',
+    passwordTooWeak: 'Password is too weak',
+    superAdminAlreadyExists: 'Super admin already exists',
+    mfaRequired: 'MFA verification required',
+    mfaAlreadyEnabled: 'MFA is already enabled',
+    mfaNotEnabled: 'MFA is not enabled',
+    mfaTokenExpired: 'MFA token has expired',
+    mfaCodeInvalid: 'Invalid MFA code',
+    backupCodeInvalid: 'Invalid backup code',
+    backupCodeAlreadyUsed: 'Backup code has already been used',
+  },
+  tenant: {
+    tenantNotFound: 'Tenant not found',
+    notATenantMember: 'Not a tenant member',
+    insufficientPermission: 'Insufficient permission',
+    slugAlreadyExists: 'Slug already exists',
+    memberLimitReached: 'Member limit reached',
+    invitationExpired: 'Invitation has expired',
+    invitationAlreadyAccepted: 'Invitation has already been accepted',
+    cannotRemoveOwner: 'Cannot remove owner',
+    cannotChangeOwnRole: 'Cannot change own role',
+    tenantSuspended: 'Tenant has been suspended',
+  },
   user: {
     oauthAccountAlreadyExist: 'OAuth Account Already Exists',
     userNotFound: 'User Not Found',

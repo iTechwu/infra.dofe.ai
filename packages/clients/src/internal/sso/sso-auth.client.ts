@@ -1,7 +1,7 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { Injectable, OnModuleInit } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { ConfigService } from "@nestjs/config";
+import { firstValueFrom } from "rxjs";
 
 /**
  * Internal API response wrapper type
@@ -70,7 +70,7 @@ export interface SsoUserSessionsResponse {
  */
 export interface SsoKeyInfo {
   kid: string;
-  status: 'active' | 'rotating' | 'retired';
+  status: "active" | "rotating" | "retired";
   createdAt: string;
   retiredAt?: string;
 }
@@ -113,26 +113,28 @@ export class SsoAuthClient implements OnModuleInit {
 
   onModuleInit(): void {
     // 强制要求配置环境变量，不使用默认值
-    this.ssoInternalUrl = this.configService.get<string>('SSO_INTERNAL_API_URL') ?? '';
-    this.ssoBaseUrl = this.configService.get<string>('SSO_API_URL') ?? '';
-    this.serviceToken = this.configService.get<string>('INTERNAL_API_SECRET') ?? '';
-    this.serviceName = this.configService.get<string>('SSO_SERVICE_NAME') ?? '';
+    this.ssoInternalUrl =
+      this.configService.get<string>("SSO_INTERNAL_API_URL") ?? "";
+    this.ssoBaseUrl = this.configService.get<string>("SSO_API_URL") ?? "";
+    this.serviceToken =
+      this.configService.get<string>("INTERNAL_API_SECRET") ?? "";
+    this.serviceName = this.configService.get<string>("SSO_SERVICE_NAME") ?? "";
 
     if (!this.ssoInternalUrl) {
       throw new Error(
-        'SSO_INTERNAL_API_URL is required but not configured. Please set it in environment variables.',
+        "SSO_INTERNAL_API_URL is required but not configured. Please set it in environment variables.",
       );
     }
 
     if (!this.ssoBaseUrl) {
       throw new Error(
-        'SSO_API_URL is required but not configured. Please set it in environment variables.',
+        "SSO_API_URL is required but not configured. Please set it in environment variables.",
       );
     }
 
     if (!this.serviceToken) {
       throw new Error(
-        'INTERNAL_API_SECRET is required but not configured. Please set it in environment variables.',
+        "INTERNAL_API_SECRET is required but not configured. Please set it in environment variables.",
       );
     }
 
@@ -146,8 +148,8 @@ export class SsoAuthClient implements OnModuleInit {
   private getInternalHeaders(): Record<string, string> {
     return {
       Authorization: `Bearer ${this.serviceToken}`,
-      'X-Service-Name': this.serviceName,
-      'Content-Type': 'application/json',
+      "X-Service-Name": this.serviceName,
+      "Content-Type": "application/json",
     };
   }
 
@@ -164,7 +166,9 @@ export class SsoAuthClient implements OnModuleInit {
     expiresAt?: number;
   }> {
     const response = await firstValueFrom(
-      this.httpService.post<ApiResponse<{ valid: boolean; userId?: string; expiresAt?: number }>>(
+      this.httpService.post<
+        ApiResponse<{ valid: boolean; userId?: string; expiresAt?: number }>
+      >(
         `${this.ssoInternalUrl}/internal/verify-token`,
         { token: accessToken },
         {
@@ -200,7 +204,9 @@ export class SsoAuthClient implements OnModuleInit {
    * 批量获取用户信息
    * @param userIds - 用户 ID 数组（最多 100 个）
    */
-  async batchGetUsers(userIds: string[]): Promise<Record<string, SsoInternalUser>> {
+  async batchGetUsers(
+    userIds: string[],
+  ): Promise<Record<string, SsoInternalUser>> {
     const response = await firstValueFrom(
       this.httpService.post<ApiResponse<Record<string, SsoInternalUser>>>(
         `${this.ssoInternalUrl}/internal/users/batch`,
@@ -244,7 +250,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async getSession(cookieHeader?: string): Promise<unknown> {
     const headers: Record<string, string> = {};
-    if (cookieHeader) headers['Cookie'] = cookieHeader;
+    if (cookieHeader) headers["Cookie"] = cookieHeader;
 
     const response = await firstValueFrom(
       this.httpService.get(`${this.ssoBaseUrl}/auth/session`, {
@@ -274,7 +280,10 @@ export class SsoAuthClient implements OnModuleInit {
   /**
    * 撤销用户特定 OIDC 会话
    */
-  async revokeSession(userId: string, clientId: string): Promise<{ success: boolean }> {
+  async revokeSession(
+    userId: string,
+    clientId: string,
+  ): Promise<{ success: boolean }> {
     const response = await firstValueFrom(
       this.httpService.post<ApiResponse<{ success: boolean }>>(
         `${this.ssoInternalUrl}/internal/users/${userId}/sessions/${clientId}/revoke`,

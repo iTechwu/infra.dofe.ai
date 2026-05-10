@@ -25,11 +25,23 @@ export interface IOrganizationPermissionService {
     resourceType: string;
     isSystemAdmin: boolean;
   }): Promise<any>;
+  hasPermission(params: {
+    userId: string;
+    tenantId: string;
+    permission: string;
+    isSystemAdmin?: boolean;
+  }): Promise<boolean>;
+  hasAnyPermission(params: {
+    userId: string;
+    tenantId: string;
+    permissions: string[];
+    isSystemAdmin?: boolean;
+  }): Promise<boolean>;
   hasAllPermissions(params: {
     userId: string;
     tenantId: string;
-    permissions: any[];
-    isSystemAdmin: boolean;
+    permissions: string[];
+    isSystemAdmin?: boolean;
   }): Promise<boolean>;
 }
 
