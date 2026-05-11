@@ -48,7 +48,7 @@ export { default as bigintUtil } from './bigint.util';
 export { default as bcryptUtil } from './bcrypt.util';
 export { default as jsonUtil } from './json.util';
 export { default as objectUtil } from './object.util';
-export { default as serializeUtil } from './serialize.util';
+
 export { default as stringUtil } from './string.util';
 export { default as timerUtil } from './timer.util';
 export { default as urlencodeUtil } from './urlencode.util';

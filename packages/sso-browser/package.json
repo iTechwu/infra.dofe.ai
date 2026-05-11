@@ -1,6 +1,6 @@
 {
   "name": "@dofe/sso-browser",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -11,6 +11,10 @@
     "./sso-session": {
       "types": "./dist/sso-session.d.ts",
       "default": "./dist/sso-session.js"
+    },
+    "./use-sso-logout-sync": {
+      "types": "./dist/use-sso-logout-sync.d.ts",
+      "default": "./dist/use-sso-logout-sync.js"
     }
   },
   "scripts": {
@@ -18,7 +22,12 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },
+  "peerDependencies": {
+    "react": ">=18"
+  },
   "devDependencies": {
+    "@types/react": "^19.2.14",
+    "react": "^19.2.6",
     "rimraf": "^6.1.3",
     "typescript": "^6.0.3"
   },

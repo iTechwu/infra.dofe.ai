@@ -54,7 +54,10 @@ const DEFAULT_TIMEOUT_MS = 5000;
 export async function checkSsoSession(
   config: SsoSessionConfig,
 ): Promise<SsoSessionData | null> {
-  const { ssoBaseUrl } = config;
+  const { ssoBaseUrl, timeoutMs = DEFAULT_TIMEOUT_MS } = config;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(`${ssoBaseUrl}/auth/session`, {
@@ -62,6 +65,7 @@ export async function checkSsoSession(
       credentials: 'include',
       cache: 'no-store',
       mode: 'cors',
+      signal: controller.signal,
     });
 
     if (!res.ok) return null;
@@ -71,8 +75,10 @@ export async function checkSsoSession(
 
     return body.data as SsoSessionData;
   } catch {
-    // Network error or CORS blocked — fall through to next layer
+    // Network error, timeout, or CORS blocked — fall through to next layer
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

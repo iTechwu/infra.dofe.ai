@@ -32,7 +32,7 @@ export async function validateRedisVersion(redisUrl: string): Promise<void> {
           `Redis version ${version} is too old. BullMQ requires Redis >= ${MIN_REDIS_VERSION}.0.0. Please upgrade Redis server.`,
         );
       }
-      if (process.env.NODE_ENV !== 'production') {
+      if (!process.env.NODE_ENV?.startsWith('prod')) {
         console.log(`✓ Redis 版本检查通过: ${version}`);
       }
     }

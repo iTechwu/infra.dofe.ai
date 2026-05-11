@@ -1,5 +1,5 @@
 /**
- * Re-export from environment.util.ts (canonical name).
- * Keep this alias for backward compatibility with code that imports the misspelled filename.
+ * @deprecated Use environment.util.ts (correct spelling) instead.
+ * This file is kept for backward compatibility only and will be removed.
  */
 export { default } from './environment.util';

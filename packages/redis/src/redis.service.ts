@@ -6,10 +6,12 @@ import { ConfigService } from '@nestjs/config';
 import type { Logger } from 'winston';
 
 /**
- * Check if running in production environment
+ * Check if running in production environment.
+ * Uses startsWith('prod') to cover: prod, production, produs, prodap.
+ * @see @dofe/infra-utils environmentUtil.isProduction() for the canonical implementation.
  */
 function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production';
+  return process.env.NODE_ENV?.startsWith('prod') ?? false;
 }
 
 /**
