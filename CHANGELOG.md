@@ -1,3 +1,7 @@
+## [0.1.46] - 2026-05-11
+- feat: implement SSO logout synchronization using BroadcastChannel and enhance production environment checks
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.45] - 2026-05-11
 - feat: add SSO RBAC client and update module exports for role management
 - fix: update error message for SSO service name configuration and improve documentation for SSO RBAC client and session config

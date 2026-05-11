@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-utils",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -113,10 +113,6 @@
     "./sensitive-data-masker.util": {
       "types": "./dist/sensitive-data-masker.util.d.ts",
       "default": "./dist/sensitive-data-masker.util.js"
-    },
-    "./serialize.util": {
-      "types": "./dist/serialize.util.d.ts",
-      "default": "./dist/serialize.util.js"
     },
     "./skill-md-parser.util": {
       "types": "./dist/skill-md-parser.util.d.ts",
