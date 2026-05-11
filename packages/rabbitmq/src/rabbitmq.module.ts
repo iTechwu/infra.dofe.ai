@@ -35,10 +35,12 @@ const CONNECT_TIMEOUT_MS = 5000;
             `Attempting to connect to RabbitMQ host---${rabbitmqUrl}`,
           );
 
+          const urlWithHeartbeat = rabbitmqUrl.includes('?')
+            ? `${rabbitmqUrl}&heartbeat=60`
+            : `${rabbitmqUrl}?heartbeat=60`;
+
           connectPromise = Promise.race([
-            Rabbitmq.connect(rabbitmqUrl, {
-              heartbeat: 60,
-            }),
+            Rabbitmq.connect(urlWithHeartbeat),
             new Promise<never>((_, reject) => {
               setTimeout(() => {
                 reject(

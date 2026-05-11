@@ -37,11 +37,12 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
               `[Events] Attempting to connect to RabbitMQ Events (attempt ${attempt}/${maxRetries})`,
             );
 
-            const connection = await Rabbitmq.connect(rabbitmqEventsUrl, {
-              heartbeat: 60,
-              reconnect: true,
-              reconnectBackoffStrategy: 'linear',
-              reconnectBackoffTime: 1000,
+            const urlWithHeartbeat = rabbitmqEventsUrl.includes('?')
+              ? `${rabbitmqEventsUrl}&heartbeat=60`
+              : `${rabbitmqEventsUrl}?heartbeat=60`;
+
+            const connection = await Rabbitmq.connect(urlWithHeartbeat, {
+              recovery: true,
             });
 
             if (environment.isProduction()) {

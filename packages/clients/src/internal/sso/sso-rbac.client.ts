@@ -46,7 +46,7 @@ export interface SsoUserPermissions {
 /**
  * SSO RBAC 客户端
  *
- * 通过 sso.dofe.ai Internal API 操作权限、自定义角色、成员角色分配和审批工作流。
+ * 通过 SSO Internal API 操作权限、自定义角色、成员角色分配和审批工作流。
  * 与 SsoAuthClient 使用相同的认证头 (Bearer + X-Service-Name)。
  */
 @Injectable()

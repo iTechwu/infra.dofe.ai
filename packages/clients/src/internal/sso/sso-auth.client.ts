@@ -140,7 +140,7 @@ export class SsoAuthClient implements OnModuleInit {
 
     if (!this.serviceName) {
       throw new Error(
-        'SSO_SERVICE_NAME is required but not configured. Please set it in environment variables (e.g., "models.dofe.ai" or "agents.dofe.ai").',
+        'SSO_SERVICE_NAME is required but not configured. Please set it in environment variables (e.g., "my-service").',
       );
     }
   }

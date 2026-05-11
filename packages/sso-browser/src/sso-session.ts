@@ -35,7 +35,7 @@ export interface SsoSessionData {
  * Configuration for SSO session detection.
  */
 export interface SsoSessionConfig {
-  /** SSO base URL (e.g., 'https://sso.dofe.ai') */
+  /** SSO base URL */
   ssoBaseUrl: string;
   /** Timeout in milliseconds for silent check (default: 5000) */
   timeoutMs?: number;
