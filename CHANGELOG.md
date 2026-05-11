@@ -1,3 +1,7 @@
+## [0.1.44] - 2026-05-11
+- feat: add SSO RBAC client and update module exports for role management
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.43] - 2026-05-10
 - feat: refactor SSO client and message proxy for improved code consistency and readability; add new auth and tenant error codes
 - feat: update integration status for Phase 7-9 and add usage examples for SSO components
