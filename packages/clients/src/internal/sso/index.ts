@@ -13,3 +13,10 @@ export {
   SsoKeyRotateResponse,
   SsoKeyPurgeResponse,
 } from './sso-auth.client';
+export {
+  SsoRbacClient,
+  SsoPermission,
+  SsoCustomRole,
+  SsoMemberRoleAssignment,
+  SsoUserPermissions,
+} from './sso-rbac.client';

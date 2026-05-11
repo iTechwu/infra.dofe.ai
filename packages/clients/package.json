@@ -384,6 +384,10 @@
       "types": "./dist/internal/sso/sso-message.client.d.ts",
       "default": "./dist/internal/sso/sso-message.client.js"
     },
+    "./sso/sso-rbac.client": {
+      "types": "./dist/internal/sso/sso-rbac.client.d.ts",
+      "default": "./dist/internal/sso/sso-rbac.client.js"
+    },
     "./sso/sso.module": {
       "types": "./dist/internal/sso/sso.module.d.ts",
       "default": "./dist/internal/sso/sso.module.js"
