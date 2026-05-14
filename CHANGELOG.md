@@ -1,3 +1,7 @@
+## [0.1.47] - 2026-05-14
+- feat: 添加 baseUrl、frontendUrl 和 frontendPort 字段到 appConfigSchema
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.46] - 2026-05-11
 - feat: implement SSO logout synchronization using BroadcastChannel and enhance production environment checks
 - Refactor code structure for improved readability and maintainability
