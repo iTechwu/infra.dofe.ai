@@ -45,6 +45,12 @@ export const appConfigSchema = microServiceSchema.extend({
   domain: z.string().min(1),
   subDomain: z.string().optional().default('www'),
   apiSubDomain: z.string().optional().default('api'),
+  /** API 访问地址（显式覆盖，不配则从 domain/subDomain/port 自动推导） */
+  baseUrl: z.string().url().optional(),
+  /** 前端访问地址（显式覆盖，不配则从 domain/subDomain/frontendPort 自动推导） */
+  frontendUrl: z.string().url().optional(),
+  /** 前端开发服务器端口（仅 dev 环境使用，默认 3000） */
+  frontendPort: z.number().int().positive().max(65535).optional(),
   MaxPageSize: z.number().int().positive().default(500),
   defaultPageSize: z.number().int().positive().default(100),
   defaultMiniPageSize: z.number().int().positive().default(30),
