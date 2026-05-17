@@ -15,6 +15,10 @@
     "./use-sso-logout-sync": {
       "types": "./dist/use-sso-logout-sync.d.ts",
       "default": "./dist/use-sso-logout-sync.js"
+    },
+    "./token-manager": {
+      "types": "./dist/token-manager.d.ts",
+      "default": "./dist/token-manager.js"
     }
   },
   "scripts": {
