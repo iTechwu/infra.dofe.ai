@@ -14,7 +14,24 @@
     "clean": "pnpm -r --stream run clean",
     "lint": "eslint 'packages/*/src/**/*.ts' --fix",
     "typecheck": "pnpm -r --stream run typecheck",
-    "publish:all": "bash scripts/publish-all.sh"
+    "publish:all": "bash scripts/publish-all.sh",
+    "publish": "bash scripts/publish-single.sh",
+    "publish:clients": "bash scripts/publish-single.sh clients",
+    "publish:common": "bash scripts/publish-single.sh common",
+    "publish:contracts": "bash scripts/publish-single.sh contracts",
+    "publish:contracts-base": "bash scripts/publish-single.sh contracts-base",
+    "publish:docker": "bash scripts/publish-single.sh docker",
+    "publish:i18n": "bash scripts/publish-single.sh i18n",
+    "publish:jwt": "bash scripts/publish-single.sh jwt",
+    "publish:module-registry": "bash scripts/publish-single.sh module-registry",
+    "publish:prisma": "bash scripts/publish-single.sh prisma",
+    "publish:rabbitmq": "bash scripts/publish-single.sh rabbitmq",
+    "publish:redis": "bash scripts/publish-single.sh redis",
+    "publish:shared-db": "bash scripts/publish-single.sh shared-db",
+    "publish:shared-services": "bash scripts/publish-single.sh shared-services",
+    "publish:sso-browser": "bash scripts/publish-single.sh sso-browser",
+    "publish:utils": "bash scripts/publish-single.sh utils",
+    "publish:vector": "bash scripts/publish-single.sh vector"
   },
   "pnpm": {
     "peerDependencyRules": {
