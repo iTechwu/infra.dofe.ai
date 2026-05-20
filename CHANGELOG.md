@@ -1,3 +1,6 @@
+## [0.1.50] - 2026-05-20
+- feat(encryption): implement AES-256-GCM encryption and decryption methods
+
 ## [0.1.49] - 2026-05-20
 - Refactor code structure for improved readability and maintainability
 
