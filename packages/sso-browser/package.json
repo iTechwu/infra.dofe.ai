@@ -1,6 +1,6 @@
 {
   "name": "@dofe/sso-browser",
-  "version": "0.1.50",
+  "version": "0.1.48",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -12,13 +12,13 @@
       "types": "./dist/sso-session.d.ts",
       "default": "./dist/sso-session.js"
     },
-    "./use-sso-logout-sync": {
-      "types": "./dist/use-sso-logout-sync.d.ts",
-      "default": "./dist/use-sso-logout-sync.js"
-    },
     "./token-manager": {
       "types": "./dist/token-manager.d.ts",
       "default": "./dist/token-manager.js"
+    },
+    "./use-sso-logout-sync": {
+      "types": "./dist/use-sso-logout-sync.d.ts",
+      "default": "./dist/use-sso-logout-sync.js"
     }
   },
   "scripts": {

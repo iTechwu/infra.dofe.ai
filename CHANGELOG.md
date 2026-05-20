@@ -1,3 +1,5 @@
+## [0.1.48] - 2026-05-20
+
 ## [0.1.47] - 2026-05-14
 - feat: 添加 baseUrl、frontendUrl 和 frontendPort 字段到 appConfigSchema
 - Refactor code structure for improved readability and maintainability
