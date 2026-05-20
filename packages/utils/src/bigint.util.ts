@@ -32,6 +32,11 @@ export default {
         if (obj instanceof Date) {
           return obj;
         }
+        // Preserve Buffer/Uint8Array types (important for Prisma Bytes fields)
+        // Buffer extends Uint8Array, so this check covers both
+        if (obj instanceof Uint8Array) {
+          return obj;
+        }
         if (Array.isArray(obj)) {
           seen.add(obj);
           const result = obj.map((value) => this.serialize(value, seen));
