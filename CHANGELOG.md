@@ -1,3 +1,6 @@
+## [0.1.49] - 2026-05-20
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.48] - 2026-05-20
 
 ## [0.1.47] - 2026-05-14
