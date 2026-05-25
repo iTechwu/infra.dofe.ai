@@ -1,3 +1,6 @@
+## [0.1.51] - 2026-05-25
+- feat(sso): add tenant information to SSO session data
+
 ## [0.1.50] - 2026-05-20
 - feat(encryption): implement AES-256-GCM encryption and decryption methods
 
