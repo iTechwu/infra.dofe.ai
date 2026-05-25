@@ -21,6 +21,26 @@ export interface SsoUserInfo {
 }
 
 /**
+ * Tenant information returned from SSO session.
+ */
+export interface SsoTenantInfo {
+  id: string;
+  name: string | null;
+  slug: string | null;
+}
+
+/**
+ * Tenant item in user's tenant list.
+ */
+export interface SsoTenantItem {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'PERSONAL' | 'TEAM';
+  role: 'OWNER' | 'ADMIN' | 'MEMBER';
+}
+
+/**
  * Session data returned from SSO.
  */
 export interface SsoSessionData {
@@ -29,6 +49,10 @@ export interface SsoSessionData {
   refresh: string;
   accessExpire: number;
   expire: number;
+  /** Current tenant for the user */
+  currentTenant?: SsoTenantInfo;
+  /** List of tenants the user can access */
+  tenants?: SsoTenantItem[];
 }
 
 /**
