@@ -1,3 +1,6 @@
+## [0.1.52] - 2026-05-25
+- feat(sso): add isAdmin flag to SsoUserInfo interface for super admin permissions
+
 ## [0.1.51] - 2026-05-25
 - feat(sso): add tenant information to SSO session data
 
