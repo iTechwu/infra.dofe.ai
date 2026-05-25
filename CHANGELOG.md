@@ -1,3 +1,5 @@
+## [0.1.53] - 2026-05-25
+
 ## [0.1.52] - 2026-05-25
 - feat(sso): add isAdmin flag to SsoUserInfo interface for super admin permissions
 
