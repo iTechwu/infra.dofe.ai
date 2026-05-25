@@ -18,6 +18,8 @@ export interface SsoUserInfo {
   nickname?: string;
   avatar?: string;
   tenantId?: string;
+  /** Super admin flag - user with isAdmin=true in SSO has full permissions across all tenants */
+  isAdmin?: boolean;
 }
 
 /**
