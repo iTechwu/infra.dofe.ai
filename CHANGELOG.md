@@ -1,3 +1,6 @@
+## [0.1.54] - 2026-05-26
+- fix(sso): set basePath versioned parameter to false for correct URL generation
+
 ## [0.1.53] - 2026-05-25
 
 ## [0.1.52] - 2026-05-25
