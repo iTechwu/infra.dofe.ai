@@ -92,7 +92,7 @@ export class SsoRbacClient implements OnModuleInit {
     };
   }
 
-  private basePath(versioned = true) {
+  private basePath(versioned = false): string {
     return `${this.ssoInternalUrl}/internal${versioned ? "/v1" : ""}`;
   }
 
