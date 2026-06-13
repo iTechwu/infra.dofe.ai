@@ -273,12 +273,14 @@ export const featureFlagsConfigSchema = z
  * 慢查询阈值配置
  */
 export const slowQueryThresholdsSchema = z.object({
-  /** INFO level threshold in ms (default: 100) */
+  /** Slow query info threshold in ms (default: 100) */
   info: z.number().int().positive().default(100),
-  /** WARN level threshold in ms (default: 500) */
+  /** Slow query warning threshold in ms (default: 500) */
   warn: z.number().int().positive().default(500),
-  /** ERROR level threshold in ms (default: 1000) */
-  error: z.number().int().positive().default(1000),
+  /** Critical slow query threshold in ms (default: 1000) */
+  critical: z.number().int().positive().default(1000),
+  /** @deprecated Use critical instead. */
+  error: z.number().int().positive().optional(),
 });
 
 /**
@@ -288,11 +290,11 @@ export const slowQueryThresholdsSchema = z.object({
 export const dbMetricsConfigSchema = z.object({
   /** Enable/disable database metrics (default: true) */
   enabled: z.boolean().default(true),
-  /** Slow query thresholds by log level */
+  /** Slow query thresholds by severity */
   slowQueryThresholds: slowQueryThresholdsSchema.default({
     info: 100,
     warn: 500,
-    error: 1000,
+    critical: 1000,
   }),
   /** Log query parameters (default: true) */
   logQueryParams: z.boolean().default(true),

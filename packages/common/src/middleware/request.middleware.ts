@@ -19,8 +19,29 @@ import enviroment from '@dofe/infra-utils/environment.util';
 // Trace ID 请求头名称
 export const TRACE_ID_HEADER = 'x-trace-id';
 
+export interface RequestDbOperationStats {
+  model: string;
+  action: string;
+  dbType: 'read' | 'write';
+  count: number;
+  totalDurationMs: number;
+  maxDurationMs: number;
+  slowCount: number;
+  errorCount: number;
+}
+
+export interface RequestDbSummary {
+  totalQueries: number;
+  totalDurationMs: number;
+  maxDurationMs: number;
+  slowQueryCount: number;
+  errorCount: number;
+  operations: Map<string, RequestDbOperationStats>;
+}
+
 export interface RequestContext {
   traceID: string;
+  dbSummary?: RequestDbSummary;
 }
 
 export const asyncLocalStorage = new AsyncLocalStorage<RequestContext>();
@@ -45,6 +66,87 @@ function getOrCreateTraceId(req: IncomingMessage | FastifyRequest): string {
     return headerTraceId;
   }
   return uuidv4();
+}
+
+function createRequestDbSummary(): RequestDbSummary {
+  return {
+    totalQueries: 0,
+    totalDurationMs: 0,
+    maxDurationMs: 0,
+    slowQueryCount: 0,
+    errorCount: 0,
+    operations: new Map<string, RequestDbOperationStats>(),
+  };
+}
+
+export interface RecordRequestDbOperationParams {
+  model: string;
+  action: string;
+  dbType: 'read' | 'write';
+  durationMs: number;
+  status: 'success' | 'error';
+  isSlowQuery: boolean;
+}
+
+export function recordRequestDbOperation(
+  params: RecordRequestDbOperationParams,
+): void {
+  const store = asyncLocalStorage.getStore();
+  if (!store) return;
+
+  const summary = store.dbSummary ?? createRequestDbSummary();
+  store.dbSummary = summary;
+
+  const key = `${params.dbType}.${params.model}.${params.action}`;
+  const operation = summary.operations.get(key) ?? {
+    model: params.model,
+    action: params.action,
+    dbType: params.dbType,
+    count: 0,
+    totalDurationMs: 0,
+    maxDurationMs: 0,
+    slowCount: 0,
+    errorCount: 0,
+  };
+
+  operation.count += 1;
+  operation.totalDurationMs += params.durationMs;
+  operation.maxDurationMs = Math.max(operation.maxDurationMs, params.durationMs);
+  if (params.isSlowQuery) operation.slowCount += 1;
+  if (params.status === 'error') operation.errorCount += 1;
+
+  summary.totalQueries += 1;
+  summary.totalDurationMs += params.durationMs;
+  summary.maxDurationMs = Math.max(summary.maxDurationMs, params.durationMs);
+  if (params.isSlowQuery) summary.slowQueryCount += 1;
+  if (params.status === 'error') summary.errorCount += 1;
+  summary.operations.set(key, operation);
+}
+
+function getRequestDbSummaryLogData(
+  summary: RequestDbSummary | undefined,
+): Record<string, unknown> | null {
+  if (!summary || summary.totalQueries === 0) return null;
+
+  const operations = Array.from(summary.operations.values())
+    .map((operation) => ({
+      ...operation,
+      averageDurationMs: Number(
+        (operation.totalDurationMs / operation.count).toFixed(2),
+      ),
+    }))
+    .sort((a, b) => b.totalDurationMs - a.totalDurationMs);
+
+  return {
+    category: 'db',
+    event: 'request-db-summary',
+    totalQueries: summary.totalQueries,
+    totalDurationMs: summary.totalDurationMs,
+    maxDurationMs: summary.maxDurationMs,
+    slowQueryCount: summary.slowQueryCount,
+    errorCount: summary.errorCount,
+    operations,
+  };
 }
 
 /**
@@ -99,17 +201,35 @@ export default class RequestMiddleware implements NestMiddleware<
     const realIp = ipUtil.extractIp(req as any);
     (req as any).realIp = realIp;
 
-    asyncLocalStorage.run({ traceID: traceId }, () => {
-      next();
-      // 记录日志 (包含 traceId)
-      // 注意：getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
-      // 使用类型断言以兼容现有函数
-      if (enviroment.isProduction()) {
-        this.logger.info('RequestMiddleware', {
-          traceId,
-          ...getReqMainInfo(req as any, res as any),
+    asyncLocalStorage.run(
+      { traceID: traceId, dbSummary: createRequestDbSummary() },
+      () => {
+        const store = asyncLocalStorage.getStore();
+
+        res.once('finish', () => {
+          const dbSummary = getRequestDbSummaryLogData(store?.dbSummary);
+          if (dbSummary) {
+            this.logger.info('Request DB Summary', {
+              traceId,
+              method: req.method,
+              url: req.url,
+              statusCode: res.statusCode,
+              ...dbSummary,
+            });
+          }
         });
-      }
-    });
+
+        next();
+        // 记录日志 (包含 traceId)
+        // 注意：getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
+        // 使用类型断言以兼容现有函数
+        if (enviroment.isProduction()) {
+          this.logger.info('RequestMiddleware', {
+            traceId,
+            ...getReqMainInfo(req as any, res as any),
+          });
+        }
+      },
+    );
   }
 }

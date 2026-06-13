@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-common",
-  "version": "0.1.54",
+  "version": "0.1.55",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -406,7 +406,7 @@
   },
   "dependencies": {
     "@dofe/infra-i18n": "^0.1.48",
-    "@dofe/infra-utils": "^0.1.48"
+    "@dofe/infra-utils": "workspace:^"
   },
   "devDependencies": {
     "@types/accept-language-parser": "^1.5.8",

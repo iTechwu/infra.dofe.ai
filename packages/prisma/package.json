@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-prisma",
-  "version": "0.1.54",
+  "version": "0.1.55",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -96,9 +96,9 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.48",
+    "@dofe/infra-common": "workspace:^",
     "@dofe/infra-redis": "^0.1.48",
-    "@dofe/infra-utils": "^0.1.48"
+    "@dofe/infra-utils": "workspace:^"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

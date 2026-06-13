@@ -27,6 +27,39 @@ function getProjectRoot(): string {
 /** 日志输出模式类型 */
 export type LogOutputMode = 'console' | 'file' | 'both';
 
+function isDbLog(info: winston.Logform.TransformableInfo): boolean {
+  return info.category === 'db';
+}
+
+function isDbInfoLog(info: winston.Logform.TransformableInfo): boolean {
+  return (
+    isDbLog(info) &&
+    (info.event === 'query' || info.event === 'request-db-summary')
+  );
+}
+
+function isDbSlowQueryLog(info: winston.Logform.TransformableInfo): boolean {
+  return isDbLog(info) && info.event === 'slow-query';
+}
+
+function isDbErrorLog(info: winston.Logform.TransformableInfo): boolean {
+  return isDbLog(info) && info.event === 'query-error';
+}
+
+function isRuntimeInfoOrWarnLog(info: winston.Logform.TransformableInfo): boolean {
+  return !isDbLog(info);
+}
+
+function isRuntimeErrorLog(info: winston.Logform.TransformableInfo): boolean {
+  return !isDbLog(info) || isDbErrorLog(info);
+}
+
+function withFilter(
+  predicate: (info: winston.Logform.TransformableInfo) => boolean,
+): winston.Logform.Format {
+  return winston.format((info) => (predicate(info) ? info : false))();
+}
+
 /**
  * 生成 winston 配置
  * @param output 日志输出模式 (从 YAML config.app.nestLogOutput 获取)
@@ -46,6 +79,7 @@ export function getWinstonConfig(output: LogOutputMode = 'file'): {
         dirname: logsDir,
         filename: `${process.env.MICRO_SERVER_NAME}-%DATE%-info.log`,
         level: 'info',
+        format: withFilter(isRuntimeInfoOrWarnLog),
         zippedArchive: true,
         datePattern: 'YYYY-MM-DD',
         maxSize: '20m',
@@ -55,6 +89,7 @@ export function getWinstonConfig(output: LogOutputMode = 'file'): {
         dirname: logsDir,
         filename: `${process.env.MICRO_SERVER_NAME}-%DATE%-error.log`,
         level: 'error',
+        format: withFilter(isRuntimeErrorLog),
         zippedArchive: true,
         datePattern: 'YYYY-MM-DD',
         maxSize: '20m',
@@ -64,6 +99,37 @@ export function getWinstonConfig(output: LogOutputMode = 'file'): {
         dirname: logsDir,
         filename: `${process.env.MICRO_SERVER_NAME}-%DATE%-warn.log`,
         level: 'warn',
+        format: withFilter(isRuntimeInfoOrWarnLog),
+        zippedArchive: true,
+        datePattern: 'YYYY-MM-DD',
+        maxSize: '20m',
+        maxFiles: '14d',
+      }),
+      new DailyRotateFile({
+        dirname: logsDir,
+        filename: `${process.env.MICRO_SERVER_NAME}-%DATE%-db-info.log`,
+        level: 'debug',
+        format: withFilter(isDbInfoLog),
+        zippedArchive: true,
+        datePattern: 'YYYY-MM-DD',
+        maxSize: '20m',
+        maxFiles: '14d',
+      }),
+      new DailyRotateFile({
+        dirname: logsDir,
+        filename: `${process.env.MICRO_SERVER_NAME}-%DATE%-db-slow-query.log`,
+        level: 'info',
+        format: withFilter(isDbSlowQueryLog),
+        zippedArchive: true,
+        datePattern: 'YYYY-MM-DD',
+        maxSize: '20m',
+        maxFiles: '14d',
+      }),
+      new DailyRotateFile({
+        dirname: logsDir,
+        filename: `${process.env.MICRO_SERVER_NAME}-%DATE%-db-error.log`,
+        level: 'error',
+        format: withFilter(isDbErrorLog),
         zippedArchive: true,
         datePattern: 'YYYY-MM-DD',
         maxSize: '20m',

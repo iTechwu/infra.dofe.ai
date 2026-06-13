@@ -7,28 +7,54 @@ import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { asyncLocalStorage } from '@dofe/infra-common';
 import enviroment from '@dofe/infra-utils/environment.util';
 
+interface RequestDbOperationStats {
+  model: string;
+  action: string;
+  dbType: 'read' | 'write';
+  count: number;
+  totalDurationMs: number;
+  maxDurationMs: number;
+  slowCount: number;
+  errorCount: number;
+}
+
+interface RequestDbSummary {
+  totalQueries: number;
+  totalDurationMs: number;
+  maxDurationMs: number;
+  slowQueryCount: number;
+  errorCount: number;
+  operations: Map<string, RequestDbOperationStats>;
+}
+
 /**
  * Slow query threshold levels
  * 慢查询阈值级别
  */
 export interface SlowQueryThresholds {
   /**
-   * Queries >= info threshold will be logged at INFO level (ms)
-   * 达到此阈值的查询将以 INFO 级别记录
+   * Queries >= info threshold are treated as slow query info events (ms)
+   * 达到此阈值的查询将记录为慢查询信息事件
    */
   info: number;
 
   /**
-   * Queries >= warn threshold will be logged at WARN level (ms)
-   * 达到此阈值的查询将以 WARN 级别记录
+   * Queries >= warn threshold are treated as slow query warning events (ms)
+   * 达到此阈值的查询将记录为慢查询告警事件
    */
   warn: number;
 
   /**
-   * Queries >= error threshold will be logged at ERROR level (ms)
-   * 达到此阈值的查询将以 ERROR 级别记录
+   * Queries >= critical threshold are treated as critical slow query events (ms)
+   * 达到此阈值的查询将记录为严重慢查询事件
    */
-  error: number;
+  critical: number;
+
+  /**
+   * @deprecated Use critical instead. Kept for backward compatibility with old YAML.
+   * @deprecated 请使用 critical。保留该字段用于兼容旧 YAML。
+   */
+  error?: number;
 }
 
 /**
@@ -76,7 +102,7 @@ const DEFAULT_CONFIG: DbMetricsConfig = {
   slowQueryThresholds: {
     info: 100,
     warn: 500,
-    error: 1000,
+    critical: 1000,
   },
   logQueryParams: true,
   logQueryResult: false,
@@ -167,7 +193,7 @@ export class DbMetricsService implements OnModuleInit {
   onModuleInit() {
     const config = this.configService?.get<DbMetricsConfig>('dbMetrics');
     if (config) {
-      this.config = { ...DEFAULT_CONFIG, ...config };
+      this.config = this.normalizeConfig(config);
     }
     if (enviroment.isProduction()) {
       this.logger?.info('DbMetricsService module initialized', {
@@ -247,6 +273,13 @@ export class DbMetricsService implements OnModuleInit {
       });
     }
 
+    this.recordRequestDbOperation(
+      { model, action, dbType },
+      duration,
+      status,
+      thresholdLevel !== null,
+    );
+
     // Log query information
     this.logQuery(
       ctx.traceId,
@@ -265,9 +298,9 @@ export class DbMetricsService implements OnModuleInit {
    */
   private getThresholdLevel(
     duration: number,
-  ): 'info' | 'warn' | 'error' | null {
+  ): 'info' | 'warn' | 'critical' | null {
     const { slowQueryThresholds } = this.config;
-    if (duration >= slowQueryThresholds.error) return 'error';
+    if (duration >= slowQueryThresholds.critical) return 'critical';
     if (duration >= slowQueryThresholds.warn) return 'warn';
     if (duration >= slowQueryThresholds.info) return 'info';
     return null;
@@ -287,6 +320,7 @@ export class DbMetricsService implements OnModuleInit {
     thresholdLevel?: string | null,
   ): void {
     const logData: Record<string, unknown> = {
+      category: 'db',
       traceId,
       duration: `${duration}ms`,
       model: params.model,
@@ -308,17 +342,38 @@ export class DbMetricsService implements OnModuleInit {
       logData.error = { name: error.name, message: error.message };
     }
 
-    // Log based on threshold level
-    if (thresholdLevel === 'error') {
-      this.logger?.error('Slow Query [CRITICAL]', logData);
+    if (status === 'error') {
+      this.logger?.error('Query Error', {
+        ...logData,
+        event: 'query-error',
+        slowQueryLevel: thresholdLevel ?? undefined,
+      });
+      return;
+    }
+
+    if (thresholdLevel === 'critical') {
+      this.logger?.warn('Slow Query [CRITICAL]', {
+        ...logData,
+        event: 'slow-query',
+        slowQueryLevel: thresholdLevel,
+      });
     } else if (thresholdLevel === 'warn') {
-      this.logger?.warn('Slow Query [WARNING]', logData);
+      this.logger?.warn('Slow Query [WARNING]', {
+        ...logData,
+        event: 'slow-query',
+        slowQueryLevel: thresholdLevel,
+      });
     } else if (thresholdLevel === 'info') {
-      this.logger?.info('Slow Query [INFO]', logData);
-    } else if (status === 'error') {
-      this.logger?.error('Query Error', logData);
+      this.logger?.info('Slow Query [INFO]', {
+        ...logData,
+        event: 'slow-query',
+        slowQueryLevel: thresholdLevel,
+      });
     } else {
-      this.logger?.debug('Query Executed', logData);
+      this.logger?.debug('Query Executed', {
+        ...logData,
+        event: 'query',
+      });
     }
   }
 
@@ -427,6 +482,83 @@ export class DbMetricsService implements OnModuleInit {
     } catch {
       return 'unknown';
     }
+  }
+
+  /**
+   * Record query stats into the current request async context when available.
+   * 可用时将查询统计写入当前请求 async context。
+   */
+  private recordRequestDbOperation(
+    params: QueryParams,
+    durationMs: number,
+    status: 'success' | 'error',
+    isSlowQuery: boolean,
+  ): void {
+    const store = asyncLocalStorage.getStore() as
+      | { dbSummary?: RequestDbSummary }
+      | undefined;
+    if (!store) return;
+
+    const summary =
+      store.dbSummary ??
+      ({
+        totalQueries: 0,
+        totalDurationMs: 0,
+        maxDurationMs: 0,
+        slowQueryCount: 0,
+        errorCount: 0,
+        operations: new Map<string, RequestDbOperationStats>(),
+      } satisfies RequestDbSummary);
+    store.dbSummary = summary;
+
+    const key = `${params.dbType}.${params.model}.${params.action}`;
+    const operation = summary.operations.get(key) ?? {
+      model: params.model,
+      action: params.action,
+      dbType: params.dbType,
+      count: 0,
+      totalDurationMs: 0,
+      maxDurationMs: 0,
+      slowCount: 0,
+      errorCount: 0,
+    };
+
+    operation.count += 1;
+    operation.totalDurationMs += durationMs;
+    operation.maxDurationMs = Math.max(operation.maxDurationMs, durationMs);
+    if (isSlowQuery) operation.slowCount += 1;
+    if (status === 'error') operation.errorCount += 1;
+
+    summary.totalQueries += 1;
+    summary.totalDurationMs += durationMs;
+    summary.maxDurationMs = Math.max(summary.maxDurationMs, durationMs);
+    if (isSlowQuery) summary.slowQueryCount += 1;
+    if (status === 'error') summary.errorCount += 1;
+    summary.operations.set(key, operation);
+  }
+
+  /**
+   * Normalize DB metrics config and support legacy slowQueryThresholds.error.
+   * 规范化 DB metrics 配置，并兼容旧的 slowQueryThresholds.error。
+   */
+  private normalizeConfig(config: DbMetricsConfig): DbMetricsConfig {
+    const mergedThresholds = {
+      ...DEFAULT_CONFIG.slowQueryThresholds,
+      ...config.slowQueryThresholds,
+    };
+
+    if (
+      config.slowQueryThresholds?.critical === undefined &&
+      config.slowQueryThresholds?.error !== undefined
+    ) {
+      mergedThresholds.critical = config.slowQueryThresholds.error;
+    }
+
+    return {
+      ...DEFAULT_CONFIG,
+      ...config,
+      slowQueryThresholds: mergedThresholds,
+    };
   }
 
   /**
