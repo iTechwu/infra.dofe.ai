@@ -1,3 +1,6 @@
+## [0.1.56] - 2026-06-19
+- chore: update package versions to 0.1.55 and add storage feature boundary check script
+
 ## [0.1.55] - 2026-06-13
 - chore: bump package versions to 0.1.55 and update dependencies to use workspace references
 
