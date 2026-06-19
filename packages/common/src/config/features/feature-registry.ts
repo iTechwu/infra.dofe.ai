@@ -72,7 +72,11 @@ export const FEATURE_REGISTRY: Record<string, FeatureDescriptor> = {
   // ── 存储 ──
   storage: {
     name: 'storage',
-    description: '对象存储',
+    description: '文件能力入口（推荐通过 sso.dofe.ai 文件服务访问）',
+  },
+  'storage-client': {
+    name: 'storage-client',
+    description: '对象存储直连客户端',
     requiredYamlPaths: ['buckets'],
     requiredKeysPaths: ['storage'],
   },

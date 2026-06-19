@@ -33,9 +33,21 @@ export const microServiceSchema = z.object({
 export const zoneSchema = z.object({
   zone: z.string().min(1),
   locale: z.enum(['zh-CN', 'en']),
-  defaultPrivateBucket: z.string().min(1),
-  defaultPublicBucket: z.string().min(1),
-  transcodeBucket: z.string().min(1),
+  /**
+   * @deprecated Only storage-client/transcode deployments should configure
+   * physical buckets. Business services must use sso.dofe.ai file SDK.
+   */
+  defaultPrivateBucket: z.string().min(1).optional(),
+  /**
+   * @deprecated Only storage-client/transcode deployments should configure
+   * physical buckets. Business services must use sso.dofe.ai file SDK.
+   */
+  defaultPublicBucket: z.string().min(1).optional(),
+  /**
+   * @deprecated Only storage-client/transcode deployments should configure
+   * physical buckets. Business services must use sso.dofe.ai file SDK.
+   */
+  transcodeBucket: z.string().min(1).optional(),
 });
 
 /**

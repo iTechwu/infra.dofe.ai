@@ -67,16 +67,21 @@ export class VolcengineTtsClient {
       | StorageCredentialsConfig
       | undefined;
 
-    // 从 buckets 配置中读取 TOS bucket 信息
+    // Direct TOS access is a storage-client capability; SSO-only consumers do
+    // not need buckets.
     const bucketConfigs =
-      this.configService.getOrThrow<YamlConfig['buckets']>('buckets');
+      this.configService.get<YamlConfig['buckets']>('buckets') ?? [];
+    if (bucketConfigs.length === 0) {
+      throw new FeatureNotConfiguredError('storage-client', 'buckets');
+    }
+
     const tosBucket = bucketConfigs.find(
       (b) => b.vendor === 'tos' && b.bucket === volcengineConfig.bucket,
     );
 
     if (!tosBucket) {
       throw new Error(
-        `TOS bucket "${volcengineConfig.bucket}" not found in buckets configuration`,
+        `TOS bucket "${volcengineConfig.bucket}" not found in storage-client buckets configuration`,
       );
     }
 

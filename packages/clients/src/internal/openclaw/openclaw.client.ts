@@ -112,6 +112,8 @@ export interface OpenClawChatOptions {
    * 推荐使用: botId 或自定义 Agent 标识
    */
   agentId?: string;
+  /** AbortSignal for cancelling the WebSocket chat request */
+  signal?: AbortSignal;
 }
 
 /**
@@ -227,6 +229,7 @@ export class OpenClawClient {
         options?.context,
         options?.sessionKey,
         options?.agentId,
+        options?.signal,
       );
 
       this.logger.info('OpenClawClient: 收到 AI 响应', {
@@ -532,6 +535,7 @@ export class OpenClawClient {
     _context?: OpenClawMessage[],
     sessionKey: string = 'main',
     agentId?: string,
+    signal?: AbortSignal,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       // OpenClaw gateway WebSocket 端点（使用 GATEWAY_HOST 环境变量）
@@ -561,13 +565,33 @@ export class OpenClawClient {
 
       const generateId = () => `req-${++requestId}-${randomUUID().slice(0, 8)}`;
 
+      // Resolve once, closing the WebSocket and clearing the timeout
+      const finalize = (err?: Error) => {
+        if (isResolved) return;
+        isResolved = true;
+        clearTimeout(timeoutId);
+        if (abortListener) signal?.removeEventListener('abort', abortListener);
+        ws.close();
+        if (err) reject(err);
+      };
+
       const timeoutId = setTimeout(() => {
-        if (!isResolved) {
-          isResolved = true;
-          ws.close();
-          reject(new Error('WebSocket 响应超时'));
-        }
+        finalize(new Error('WebSocket 响应超时'));
       }, this.wsTimeout);
+
+      // Wire AbortSignal so external cancellation closes the WebSocket
+      let abortListener: (() => void) | undefined;
+      if (signal) {
+        if (signal.aborted) {
+          finalize(new Error('Request aborted'));
+          return;
+        }
+        abortListener = () => {
+          this.logger.info('OpenClawClient: 请求被取消', { port });
+          finalize(new Error('Request aborted'));
+        };
+        signal.addEventListener('abort', abortListener, { once: true });
+      }
 
       // 发送请求帧
       const sendRequest = (method: string, params: unknown) => {
@@ -666,12 +690,7 @@ export class OpenClawClient {
               this.logger.error('OpenClawClient: 请求失败', {
                 error: frame.error,
               });
-              if (!isResolved) {
-                isResolved = true;
-                clearTimeout(timeoutId);
-                ws.close();
-                reject(new Error(frame.error.message || 'Request failed'));
-              }
+              finalize(new Error(frame.error.message || 'Request failed'));
             }
             return;
           }
@@ -758,6 +777,7 @@ export class OpenClawClient {
                 if (!isResolved) {
                   isResolved = true;
                   clearTimeout(timeoutId);
+                  if (abortListener) signal?.removeEventListener('abort', abortListener);
                   ws.close();
                   resolve(responseText);
                 }
@@ -780,6 +800,7 @@ export class OpenClawClient {
                 if (!isResolved) {
                   isResolved = true;
                   clearTimeout(timeoutId);
+                  if (abortListener) signal?.removeEventListener('abort', abortListener);
                   ws.close();
                   resolve(responseText);
                 }
@@ -788,12 +809,7 @@ export class OpenClawClient {
                 this.logger.error('OpenClawClient: 聊天错误', {
                   errorMessage,
                 });
-                if (!isResolved) {
-                  isResolved = true;
-                  clearTimeout(timeoutId);
-                  ws.close();
-                  reject(new Error(errorMessage));
-                }
+                finalize(new Error(errorMessage));
               }
             }
             return;
@@ -811,11 +827,7 @@ export class OpenClawClient {
           port,
           error: error.message,
         });
-        if (!isResolved) {
-          isResolved = true;
-          clearTimeout(timeoutId);
-          reject(error);
-        }
+        finalize(error);
       });
 
       ws.on('close', (code: number, reason: Buffer) => {
@@ -829,6 +841,7 @@ export class OpenClawClient {
         if (!isResolved) {
           isResolved = true;
           clearTimeout(timeoutId);
+          if (abortListener) signal?.removeEventListener('abort', abortListener);
 
           // 如果有响应文本，返回它
           if (responseText) {

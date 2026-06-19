@@ -12,7 +12,11 @@ import {
     ImageInfo,
 } from '@prisma/client';
 import { getKeysConfig } from '@dofe/infra-common';
-import { TranscodeConfig, AppConfig } from '@dofe/infra-common';
+import {
+    TranscodeConfig,
+    AppConfig,
+    FeatureNotConfiguredError,
+} from '@dofe/infra-common';
 import { FileStorageService } from '../../../file-storage/file-storage.service';
 import { DoFeUploader } from '../../../file-storage';
 import { arrayUtil } from '@dofe/infra-utils';
@@ -230,13 +234,19 @@ export class VolcengineTosTranscodeClient {
     ): Promise<boolean> {
         // 需要 bucket 参数，但这里没有提供，尝试从配置中获取默认 bucket
         const bucketConfigs =
-            this.configService.getOrThrow<DoFeUploader.Config[]>('buckets');
+            this.configService.get<DoFeUploader.Config[]>('buckets') ?? [];
+        if (bucketConfigs.length === 0) {
+            throw new FeatureNotConfiguredError('storage-client', 'buckets');
+        }
+
         const defaultBucketConfig = bucketConfigs.find(
             (config) => config.vendor === 'tos',
         );
 
         if (!defaultBucketConfig) {
-            throw new Error('No TOS bucket configured');
+            throw new Error(
+                'No TOS bucket configured in storage-client buckets',
+            );
         }
 
         return this.cancelTask(vendor, defaultBucketConfig.bucket, taskId);

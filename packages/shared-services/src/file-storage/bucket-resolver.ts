@@ -17,7 +17,7 @@ import { FileBucketVendor } from '@prisma/client';
 
 import { DoFeUploader } from '@dofe/infra-clients/file-storage';
 import { IpGeoService } from '../ip-geo/ip-geo.service';
-import { AppConfig } from '@dofe/infra-common';
+import { AppConfig, FeatureNotConfiguredError } from '@dofe/infra-common';
 import arrayUtil from '@dofe/infra-utils/array.util';
 import enviromentUtil from '@dofe/infra-utils/environment.util';
 import { BucketLookupOptions } from './types';
@@ -98,7 +98,7 @@ export class BucketResolver {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
     this.bucketConfigs =
-      configService.getOrThrow<DoFeUploader.Config[]>('buckets');
+      configService.get<DoFeUploader.Config[]>('buckets') ?? [];
     this.appConfig = configService.getOrThrow<AppConfig>('app');
     this.defaultVendor = this.appConfig.defaultVendor;
   }
@@ -133,6 +133,8 @@ export class BucketResolver {
 
     // 确定供应商
     const finalVendor = vendor ?? this.defaultVendor;
+
+    this.assertStorageConfigured();
 
     // 如果明确指定了 bucket，验证并返回
     if (bucket) {
@@ -268,6 +270,8 @@ export class BucketResolver {
    * @returns {DoFeUploader.Config[]} 匹配的配置列表
    */
   filterBuckets(filter: Partial<DoFeUploader.Config>): DoFeUploader.Config[] {
+    this.assertStorageConfigured();
+
     return this.bucketConfigs.filter((config) => {
       for (const [key, value] of Object.entries(filter)) {
         if ((config as Record<string, unknown>)[key] !== value) {
@@ -276,6 +280,16 @@ export class BucketResolver {
       }
       return true;
     });
+  }
+
+  private assertStorageConfigured(): void {
+    if (this.bucketConfigs.length > 0) return;
+
+    throw new FeatureNotConfiguredError(
+      'storage-client',
+      'buckets',
+      '对象存储直连未配置：config.local.yaml 缺少 buckets。业务项目应通过 sso.dofe.ai file SDK/internal API 访问文件；只有明确需要直连对象存储的服务才应启用 storage-client。',
+    );
   }
 
   /**

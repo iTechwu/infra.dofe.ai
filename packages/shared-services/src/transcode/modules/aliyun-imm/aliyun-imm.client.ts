@@ -18,7 +18,11 @@ import { AliyunOssTranscodeConfig } from '../../config/aliyun-oss.config';
 import { DoFeUploader } from '../../../file-storage';
 import { arrayUtil } from '@dofe/infra-utils';
 import { getKeysConfig } from '@dofe/infra-common';
-import { StorageCredentialsConfig, AppConfig } from '@dofe/infra-common';
+import {
+    StorageCredentialsConfig,
+    AppConfig,
+    FeatureNotConfiguredError,
+} from '@dofe/infra-common';
 import { fileUtil } from '@dofe/infra-utils';
 
 export interface MediaMetaResult {
@@ -95,13 +99,19 @@ export class AliyunImmClient {
             throw new Error(`Unsupported vendor: ${vendor}`);
         }
         const bucketConfigs =
-            this.configService.getOrThrow<DoFeUploader.Config[]>('buckets');
+            this.configService.get<DoFeUploader.Config[]>('buckets') ?? [];
+        if (bucketConfigs.length === 0) {
+            throw new FeatureNotConfiguredError('storage-client', 'buckets');
+        }
+
         const bucketConfig = arrayUtil.findOne(bucketConfigs, {
             bucket,
             vendor,
         });
         if (!bucketConfig) {
-            throw new Error(`Bucket config not found: ${bucket}`);
+            throw new Error(
+                `Bucket config not found in storage-client buckets: ${bucket}`,
+            );
         }
 
         // 从配置中获取阿里云 OSS 配置

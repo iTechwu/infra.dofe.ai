@@ -26,7 +26,7 @@ import {
   DoFeUploader,
 } from '@dofe/infra-clients/file-storage';
 import { RedisService } from '@dofe/infra-redis';
-import { getKeysConfig } from '@dofe/infra-common';
+import { FeatureNotConfiguredError, getKeysConfig } from '@dofe/infra-common';
 import { AppConfig, StorageCredentialsConfig } from '@dofe/infra-common';
 import { CommonErrorCode } from '@dofe/infra-contracts';
 import { apiError } from '@dofe/infra-common';
@@ -149,7 +149,7 @@ export class FileStorageClientFactory {
   ) {
     // 加载配置
     this.bucketConfigs =
-      configService.getOrThrow<DoFeUploader.Config[]>('buckets');
+      configService.get<DoFeUploader.Config[]>('buckets') ?? [];
     this.appConfig = configService.getOrThrow<AppConfig>('app');
     this.defaultVendor = this.appConfig.defaultVendor;
     this.storageCredentials =
@@ -247,6 +247,8 @@ export class FileStorageClientFactory {
     vendor: FileBucketVendor,
     bucket: string,
   ): FileStorageInterface | undefined {
+    this.assertStorageConfigured();
+
     const key = buildStorageClientKey(vendor, bucket);
     return this.clients.get(key);
   }
@@ -305,6 +307,8 @@ export class FileStorageClientFactory {
     vendor: FileBucketVendor,
     bucket: string,
   ): DoFeUploader.Config | undefined {
+    this.assertStorageConfigured();
+
     return this.bucketConfigs.find(
       (config) =>
         config.bucket === bucket &&
@@ -346,5 +350,15 @@ export class FileStorageClientFactory {
    */
   getClientKeys(): StorageClientKey[] {
     return [...this.clients.keys()];
+  }
+
+  private assertStorageConfigured(): void {
+    if (this.bucketConfigs.length > 0) return;
+
+    throw new FeatureNotConfiguredError(
+      'storage-client',
+      'buckets',
+      '对象存储直连未配置：config.local.yaml 缺少 buckets。业务项目应通过 sso.dofe.ai file SDK/internal API 访问文件；只有明确需要直连对象存储的服务才应启用 storage-client。',
+    );
   }
 }
