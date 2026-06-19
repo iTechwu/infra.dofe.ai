@@ -1,0 +1,35 @@
+name: Storage Feature Boundary
+
+# Verifies that infra storage packages honor the storage-feature boundary:
+# the `storage` feature must NOT require `buckets`/yaml paths (so projects that
+# don't use direct object storage can boot without bucket config), while only
+# `storage-client` requires `buckets`. See scripts/check-storage-feature-boundary.mjs.
+#
+# This guard was previously executed only via sso.dofe.ai's cross-repo
+# verify-storage-sso-boundary.sh aggregator. It now runs in infra's own CI so
+# that infra storage boundary regressions are caught here regardless of callers.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  storage-feature-boundary:
+    name: Storage Feature Boundary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify storage feature boundary
+        run: node scripts/check-storage-feature-boundary.mjs
