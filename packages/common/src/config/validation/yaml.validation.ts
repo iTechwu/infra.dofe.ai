@@ -96,7 +96,17 @@ export const appConfigSchema = microServiceSchema.extend({
     }),
 
   admin: microServiceSchema.optional(),
-  zones: z.array(zoneSchema).min(1),
+  /**
+   * 区域配置（区域、locale、物理存储桶默认值）。
+   *
+   * 可选：只有需要「直连对象存储 / 转码」的服务（如 sso.dofe.ai、storage-client、
+   * transcode 部署）才需要配置。普通业务服务通过 sso.dofe.ai file SDK / internal API
+   * 访问文件，登录与文件上传的唯一源是 sso.dofe.ai，无需在本地配置 zones。
+   *
+   * 运行时：未配置时由各 feature（file-storage / transcode）按需校验并抛出
+   * FeatureNotConfiguredError，启动期不再强制要求。
+   */
+  zones: z.array(zoneSchema).optional(),
 });
 
 /**

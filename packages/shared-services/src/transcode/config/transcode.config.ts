@@ -73,15 +73,18 @@ export class TranscodeConfigManager {
         this.appConfig = this.configService.getOrThrow<AppConfig>('app');
 
         // 获取中国区域配置
-        const cnZone = this.appConfig.zones.find(
-            (zone) => zone.zone === 'cn',
-        );
+        // app.zones 为可选项：只有 storage-client / transcode 部署才需要配置。
+        // 转码功能必须依赖 cn 区域配置，未配置时给出明确错误而非崩溃。
+        const zones = this.appConfig.zones ?? [];
+        const cnZone = zones.find((zone) => zone.zone === 'cn');
 
-        this.cnZoneConfig = cnZone!;
-
-        if (!this.cnZoneConfig) {
-            throw new Error('CN zone configuration not found');
+        if (!cnZone) {
+            throw new Error(
+                'CN zone configuration not found: 转码功能要求在 config.local.yaml 的 app.zones 中配置 zone: cn',
+            );
         }
+
+        this.cnZoneConfig = cnZone;
     }
 
     /**
@@ -102,14 +105,16 @@ export class TranscodeConfigManager {
      * 获取区域配置列表
      */
     getAllZones(): ZoneConfig[] {
-        return this.appConfig.zones;
+        return this.appConfig.zones ?? [];
     }
 
     /**
      * 根据区域名获取配置
      */
     getZoneConfig(zoneName: string): ZoneConfig | undefined {
-        return this.appConfig.zones.find((zone) => zone.zone === zoneName);
+        return (this.appConfig.zones ?? []).find(
+            (zone) => zone.zone === zoneName,
+        );
     }
 
     /**

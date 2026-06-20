@@ -63,6 +63,22 @@ for (const field of [
   assert(pattern.test(yamlValidation), `${field} must be optional in zoneSchema`);
 }
 
+// app.zones / uploadConfig / cdn 仅在 storage-client / transcode 等 feature 中需要，
+// 不得在 appConfigSchema / yamlConfigSchema 中被强制为必填，否则普通业务服务会被迫配置。
+assert(
+  /zones:\s*z\.array\(zoneSchema\)\.optional\(\)/.test(yamlValidation) &&
+    !/zones:\s*z\.array\(zoneSchema\)\.min\(\d+\)/.test(yamlValidation),
+  'app.zones must be optional (business services access files via sso.dofe.ai SDK)',
+);
+assert(
+  /uploadConfig:\s*uploadConfigSchema\.optional\(\)/.test(yamlValidation),
+  'uploadConfig must be optional in yamlConfigSchema',
+);
+assert(
+  /cdn:\s*cdnConfigSchema\.optional\(\)/.test(yamlValidation),
+  'cdn must be optional in yamlConfigSchema',
+);
+
 function* walk(dir) {
   for (const entry of readdirSync(dir)) {
     if (['node_modules', 'dist', 'coverage'].includes(entry)) {
