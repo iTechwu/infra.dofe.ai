@@ -1,3 +1,7 @@
+## [0.1.57] - 2026-06-20
+- chore: update appConfigSchema and validation checks for optional zones and uploadConfig
+- chore: add storage feature boundary verification workflow
+
 ## [0.1.56] - 2026-06-19
 - chore: update package versions to 0.1.55 and add storage feature boundary check script
 
