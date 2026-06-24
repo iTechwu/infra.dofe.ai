@@ -36,5 +36,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@dofe/infra-contracts-base": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.4"
   }
 }
