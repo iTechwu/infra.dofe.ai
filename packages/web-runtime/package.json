@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-web-runtime",
-  "version": "0.1.59",
+  "version": "0.1.60",
   "description": "Shared browser runtime utilities for dofe.ai frontend applications",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

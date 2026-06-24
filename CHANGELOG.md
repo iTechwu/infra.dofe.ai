@@ -1,3 +1,8 @@
+## [0.1.60] - 2026-06-24
+- feat: add shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects
+- chore: bump version to 0.1.59 and update changelog with new features
+- chore: bump version to 0.1.58 and update changelog with new features
+
 ## [0.1.59] - 2026-06-24
 - feat: add shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects
 - chore: bump version to 0.1.58 and update changelog with new features
