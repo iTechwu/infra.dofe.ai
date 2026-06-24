@@ -1,0 +1,52 @@
+{
+  "name": "@dofe/infra-config",
+  "version": "0.1.0",
+  "description": "Shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./eslint/next-js": "./eslint.config.mjs",
+    "./eslint/nest-js": "./eslint.nestjs.config.mjs",
+    "./eslint/base": "./eslint/base.js",
+    "./eslint/next": "./eslint/next.js",
+    "./eslint/react-internal": "./eslint/react-internal.js",
+    "./prettier": "./prettier.config.mjs",
+    "./postcss": "./postcss.config.mjs",
+    "./typescript/base": "./typescript/base.json",
+    "./typescript/nextjs": "./typescript/nextjs.json",
+    "./typescript/react-library": "./typescript/react-library.json",
+    "./tsconfig": "./tsconfig.json"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "*.mjs",
+    "*.js",
+    "*.json",
+    "*.ts",
+    "eslint/",
+    "typescript/",
+    "index.ts"
+  ],
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "@eslint/js": ">=9",
+    "eslint": ">=9",
+    "eslint-config-next": ">=16",
+    "eslint-plugin-react": ">=7",
+    "prettier": ">=3",
+    "typescript": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "eslint-config-next": { "optional": true },
+    "eslint-plugin-react": { "optional": true }
+  }
+}

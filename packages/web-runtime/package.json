@@ -1,0 +1,61 @@
+{
+  "name": "@dofe/infra-web-runtime",
+  "version": "0.1.0",
+  "description": "Shared browser runtime utilities for dofe.ai frontend applications",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./cn": {
+      "types": "./dist/cn.d.ts",
+      "default": "./dist/cn.js"
+    },
+    "./fetch": {
+      "types": "./dist/fetch/index.d.ts",
+      "default": "./dist/fetch/index.js"
+    },
+    "./version": {
+      "types": "./dist/version.d.ts",
+      "default": "./dist/version.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "default": "./dist/errors.js"
+    },
+    "./reconnect": {
+      "types": "./dist/reconnect.d.ts",
+      "default": "./dist/reconnect.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "clsx": ">=2",
+    "tailwind-merge": ">=2",
+    "@ts-rest/core": ">=3",
+    "zod": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "clsx": { "optional": true },
+    "tailwind-merge": { "optional": true },
+    "@ts-rest/core": { "optional": true },
+    "zod": { "optional": true }
+  },
+  "dependencies": {
+    "@dofe/infra-contracts-base": "workspace:*"
+  }
+}

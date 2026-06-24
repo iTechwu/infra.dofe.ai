@@ -19,6 +19,7 @@
     "publish": "bash scripts/publish-single.sh",
     "publish:clients": "bash scripts/publish-single.sh clients",
     "publish:common": "bash scripts/publish-single.sh common",
+    "publish:config": "bash scripts/publish-single.sh config",
     "publish:contracts": "bash scripts/publish-single.sh contracts",
     "publish:contracts-base": "bash scripts/publish-single.sh contracts-base",
     "publish:docker": "bash scripts/publish-single.sh docker",
@@ -26,13 +27,15 @@
     "publish:jwt": "bash scripts/publish-single.sh jwt",
     "publish:module-registry": "bash scripts/publish-single.sh module-registry",
     "publish:prisma": "bash scripts/publish-single.sh prisma",
+    "publish:prisma-crud-generator": "bash scripts/publish-single.sh prisma-crud-generator",
     "publish:rabbitmq": "bash scripts/publish-single.sh rabbitmq",
     "publish:redis": "bash scripts/publish-single.sh redis",
     "publish:shared-db": "bash scripts/publish-single.sh shared-db",
     "publish:shared-services": "bash scripts/publish-single.sh shared-services",
     "publish:sso-browser": "bash scripts/publish-single.sh sso-browser",
     "publish:utils": "bash scripts/publish-single.sh utils",
-    "publish:vector": "bash scripts/publish-single.sh vector"
+    "publish:vector": "bash scripts/publish-single.sh vector",
+    "publish:web-runtime": "bash scripts/publish-single.sh web-runtime"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -64,9 +67,9 @@
     "@dofe/infra-contracts": "workspace:*",
     "@dofe/infra-docker": "workspace:*",
     "@nestjs/config": "^4.0.4",
-    "@nestjs/core": "^11.1.21",
-    "@nestjs/platform-fastify": "^11.1.21",
-    "@types/node": "^25.9.1",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-fastify": "^11.1.27",
+    "@types/node": "^25.9.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
     "typescript": "^6.0.3",

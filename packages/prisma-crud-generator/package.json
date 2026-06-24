@@ -1,0 +1,36 @@
+{
+  "name": "@dofe/infra-prisma-crud-generator",
+  "version": "0.1.0",
+  "description": "CLI tool for generating Prisma-based CRUD modules from schema definitions",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "dofe-prisma-crud": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "default": "./dist/config.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@dofe/infra-contracts-base": "workspace:*"
+  }
+}
