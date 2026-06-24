@@ -8,7 +8,8 @@
 #   --minor          Bump minor version
 #   --major          Bump major version
 #   --version=X.Y.Z  Set exact version
-#   --otp=<code>     NPM 2FA one-time password
+#   --otp=<code>     NPM 2FA one-time password. Can also be provided with
+#                    NPM_CONFIG_OTP=<code>.
 #   --dry-run        Preview without publishing
 #   --publish-only   Skip bump/build/commit/tag — just publish current versions
 #                    (useful after a failed publish to retry)
@@ -19,6 +20,8 @@
 #   bash scripts/publish-all.sh --major             # bump major
 #   bash scripts/publish-all.sh --version=1.0.0     # set exact version
 #   bash scripts/publish-all.sh --otp=123456        # with 2FA
+#   bash scripts/publish-all.sh --publish-only --otp=123456
+#                                                     # retry after failed publish
 
 set -e
 cd "$(dirname "$0")/.."
@@ -44,6 +47,10 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
+
+if [ -z "$OTP_FLAG" ] && [ -n "${NPM_CONFIG_OTP:-}" ]; then
+  OTP_FLAG="--otp=${NPM_CONFIG_OTP}"
+fi
 
 # ──────────────────────────────────────────────────────────────────────
 # Pre-flight checks
@@ -205,12 +212,25 @@ echo "=== Publishing ==="
 if [ -z "$OTP_FLAG" ]; then
   echo "NOTE: No --otp flag provided. If your npm account has 2FA enabled for"
   echo "      writes, publish will fail with EOTP. Use --otp=<code> to provide"
-  echo "      your authenticator one-time password."
+  echo "      your authenticator one-time password, or enter a code if prompted."
   echo ""
 fi
 FAILED_PKGS=()
 PUBLISHED_COUNT=0
 SKIPPED_COUNT=0
+
+publish_package() {
+  local pkg_dir="$1"
+  local publish_log="$2"
+  local exit_code=0
+
+  set +e
+  (cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG) > "$publish_log" 2>&1
+  exit_code=$?
+  set -e
+
+  return $exit_code
+}
 
 for pkg_json in packages/*/package.json; do
   pkg_dir=$(dirname "$pkg_json")
@@ -229,9 +249,25 @@ for pkg_json in packages/*/package.json; do
     # 2. pnpm/npm may write directly to /dev/tty, bypassing pipe capture.
     PUBLISH_LOG=$(mktemp)
     set +e
-    (cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG) > "$PUBLISH_LOG" 2>&1
+    publish_package "$pkg_dir" "$PUBLISH_LOG"
     PUBLISH_EXIT=$?
     set -e
+
+    if [ $PUBLISH_EXIT -ne 0 ] && grep -qE 'npm error (code )?EOTP|npm error EOTP' "$PUBLISH_LOG"; then
+      echo "EOTP"
+      read -rsp "        Enter npm OTP to retry $pkg_name@$pkg_version: " OTP_CODE
+      echo ""
+      if [ -n "$OTP_CODE" ]; then
+        OTP_FLAG="--otp=${OTP_CODE}"
+        : > "$PUBLISH_LOG"
+        printf "        RETRY ... "
+        set +e
+        publish_package "$pkg_dir" "$PUBLISH_LOG"
+        PUBLISH_EXIT=$?
+        set -e
+      fi
+    fi
+
     if [ $PUBLISH_EXIT -eq 0 ]; then
       echo "OK"
       PUBLISHED_COUNT=$((PUBLISHED_COUNT + 1))
