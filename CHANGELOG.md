@@ -1,3 +1,8 @@
+## [0.1.71] - 2026-06-24
+- chore: export ErrorMessages and AllErrorMessages for improved accessibility and add new error messages for space, folder, file, and payment
+- chore: enhance publish-all.sh to support additional flag parsing and improve pre-flight checks
+- chore: update publish-all.sh script to enhance OTP handling and add retry mechanism
+
 ## [0.1.70] - 2026-06-24
 - chore: bump version to 0.1.69 for all packages and update changelog
 
