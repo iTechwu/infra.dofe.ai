@@ -1,3 +1,5 @@
+## [0.1.66] - 2026-06-24
+
 ## [0.1.65] - 2026-06-24
 - fix: use temp file for publish output to survive set -e, warn on missing OTP
 
