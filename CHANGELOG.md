@@ -1,3 +1,6 @@
+## [0.1.63] - 2026-06-24
+- fix: use correct stderr capture in publish loop
+
 ## [0.1.62] - 2026-06-24
 - fix: improve publish script with --publish-only flag and visible error messages
 
