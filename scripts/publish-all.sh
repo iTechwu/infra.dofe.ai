@@ -202,6 +202,12 @@ fi
 # makes the script safe to re-run after a partial publish.
 
 echo "=== Publishing ==="
+if [ -z "$OTP_FLAG" ]; then
+  echo "NOTE: No --otp flag provided. If your npm account has 2FA enabled for"
+  echo "      writes, publish will fail with EOTP. Use --otp=<code> to provide"
+  echo "      your authenticator one-time password."
+  echo ""
+fi
 FAILED_PKGS=()
 PUBLISHED_COUNT=0
 SKIPPED_COUNT=0
@@ -217,16 +223,25 @@ for pkg_json in packages/*/package.json; do
     SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
   else
     printf "  PUBLISH %s@%s ... " "$pkg_name" "$pkg_version"
-    PUBLISH_OUTPUT=$(cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG 2>&1)
-    if [ $? -eq 0 ]; then
+    # Use a temp file + set +e to avoid two issues:
+    # 1. set -e would kill the script immediately when $(...) contains a
+    #    failing command, skipping the error-handling if-block entirely.
+    # 2. pnpm/npm may write directly to /dev/tty, bypassing pipe capture.
+    PUBLISH_LOG=$(mktemp)
+    set +e
+    (cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG) > "$PUBLISH_LOG" 2>&1
+    PUBLISH_EXIT=$?
+    set -e
+    if [ $PUBLISH_EXIT -eq 0 ]; then
       echo "OK"
       PUBLISHED_COUNT=$((PUBLISHED_COUNT + 1))
     else
       echo "FAILED"
       # Show the relevant npm error lines
-      echo "$PUBLISH_OUTPUT" | grep -E 'npm error (code|EOTP|ENEEDAUTH|403|402|401)' | sed 's/^/        /' || true
+      grep -E 'npm error (code|EOTP|ENEEDAUTH|403|402|401)' "$PUBLISH_LOG" | sed 's/^/        /' || true
       FAILED_PKGS+=("$pkg_name@$pkg_version")
     fi
+    rm -f "$PUBLISH_LOG"
   fi
 done
 
