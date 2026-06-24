@@ -217,14 +217,14 @@ for pkg_json in packages/*/package.json; do
     SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
   else
     printf "  PUBLISH %s@%s ... " "$pkg_name" "$pkg_version"
-    PUBLISH_ERR=$(cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG 2>&1 >/dev/null)
+    PUBLISH_OUTPUT=$(cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG 2>&1)
     if [ $? -eq 0 ]; then
       echo "OK"
       PUBLISHED_COUNT=$((PUBLISHED_COUNT + 1))
     else
       echo "FAILED"
-      # Extract the npm error line(s) from stderr
-      echo "$PUBLISH_ERR" | grep -E 'npm error (code|403|402|401|EOTP|ENEEDAUTH)' | sed 's/^/        /' || true
+      # Show the relevant npm error lines
+      echo "$PUBLISH_OUTPUT" | grep -E 'npm error (code|EOTP|ENEEDAUTH|403|402|401)' | sed 's/^/        /' || true
       FAILED_PKGS+=("$pkg_name@$pkg_version")
     fi
   fi
