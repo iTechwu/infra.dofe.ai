@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-prisma-crud-generator",
-  "version": "0.1.63",
+  "version": "0.1.64",
   "description": "CLI tool for generating Prisma-based CRUD modules from schema definitions",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

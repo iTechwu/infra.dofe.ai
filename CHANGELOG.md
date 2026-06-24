@@ -1,3 +1,5 @@
+## [0.1.64] - 2026-06-24
+
 ## [0.1.63] - 2026-06-24
 - fix: use correct stderr capture in publish loop
 
