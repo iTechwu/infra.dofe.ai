@@ -10,6 +10,8 @@
 #   --version=X.Y.Z  Set exact version
 #   --otp=<code>     NPM 2FA one-time password
 #   --dry-run        Preview without publishing
+#   --publish-only   Skip bump/build/commit/tag — just publish current versions
+#                    (useful after a failed publish to retry)
 #
 # Examples:
 #   bash scripts/publish-all.sh                     # bump patch
@@ -28,15 +30,17 @@ BUMP_TYPE="patch"
 EXACT_VERSION=""
 OTP_FLAG=""
 DRY_RUN=false
+PUBLISH_ONLY=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --patch)    BUMP_TYPE="patch"; shift ;;
-    --minor)    BUMP_TYPE="minor"; shift ;;
-    --major)    BUMP_TYPE="major"; shift ;;
-    --version=*) EXACT_VERSION="${1#*=}"; shift ;;
-    --otp=*)    OTP_FLAG="--otp=${1#*=}"; shift ;;
-    --dry-run)  DRY_RUN=true; shift ;;
+    --patch)         BUMP_TYPE="patch"; shift ;;
+    --minor)         BUMP_TYPE="minor"; shift ;;
+    --major)         BUMP_TYPE="major"; shift ;;
+    --version=*)     EXACT_VERSION="${1#*=}"; shift ;;
+    --otp=*)         OTP_FLAG="--otp=${1#*=}"; shift ;;
+    --dry-run)       DRY_RUN=true; shift ;;
+    --publish-only)  PUBLISH_ONLY=true; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -68,118 +72,124 @@ fi
 # ──────────────────────────────────────────────────────────────────────
 CURRENT_VERSION=$(node -e "console.log(require('./packages/contracts/package.json').version)")
 
-if [ -n "$EXACT_VERSION" ]; then
-  NEW_VERSION="$EXACT_VERSION"
-else
-  IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-  case "$BUMP_TYPE" in
-    major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-    minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-    patch) PATCH=$((PATCH + 1)) ;;
-  esac
-  NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-fi
-
-if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
-  echo "Error: New version ($NEW_VERSION) is the same as current version. Nothing to bump."
-  exit 1
-fi
-
-echo "Bumping version: $CURRENT_VERSION → $NEW_VERSION"
-echo ""
-
-# ──────────────────────────────────────────────────────────────────────
-# Generate changelog entry from commits since last tag
-# ──────────────────────────────────────────────────────────────────────
-LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-TODAY=$(date +%Y-%m-%d)
-
-if [ -n "$LAST_TAG" ]; then
-  echo "Generating changelog from commits since $LAST_TAG..."
-  RANGE="${LAST_TAG}..HEAD"
-else
-  echo "Generating changelog from all commits..."
-  RANGE="HEAD"
-fi
-
-# Collect conventional commits grouped by type.
-# We format as "- %s" (subject only) then filter with grep to avoid false
-# matches from the commit body that --grep would catch.
-ALL_COMMITS=$(git log "$RANGE" --no-merges --format='- %s' 2>/dev/null || true)
-
-FEAT_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- feat(\(|:)' | sed 's/^- feat\(([^)]*)\)\?: /- /' || true)
-FIX_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- fix(\(|:)' | sed 's/^- fix\(([^)]*)\)\?: /- /' || true)
-REFACTOR_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- refactor(\(|:)' | sed 's/^- refactor\(([^)]*)\)\?: /- /' || true)
-CHORE_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- chore(\(|:)' | sed 's/^- chore\(([^)]*)\)\?: /- /' || true)
-OTHER_COMMITS=$(echo "$ALL_COMMITS" | grep -vE '^- (feat|fix|refactor|chore)\(|^- (feat|fix|refactor|chore):' || true)
-
-# Build the new changelog section
-CHANGELOG_ENTRY="## [${NEW_VERSION}] - ${TODAY}"
-
-append_section() {
-  local commits="$1"
-  if [ -n "$commits" ]; then
-    CHANGELOG_ENTRY+=$'\n'"$commits"
-  fi
-}
-
-append_section "$FEAT_COMMITS"
-append_section "$FIX_COMMITS"
-append_section "$REFACTOR_COMMITS"
-append_section "$CHORE_COMMITS"
-append_section "$OTHER_COMMITS"
-
-# Prepend to CHANGELOG.md
-if [ -f CHANGELOG.md ]; then
-  printf '%s\n\n%s\n' "$CHANGELOG_ENTRY" "$(cat CHANGELOG.md)" > CHANGELOG.md
-else
-  printf '%s\n\n' "$CHANGELOG_ENTRY" > CHANGELOG.md
-fi
-
-echo "Changelog updated."
-echo ""
-
-if $DRY_RUN; then
-  echo "=== DRY RUN - would bump to $NEW_VERSION ==="
-  echo "$CHANGELOG_ENTRY"
+if $PUBLISH_ONLY; then
+  NEW_VERSION="$CURRENT_VERSION"
+  echo "Publish-only mode: using current version $NEW_VERSION"
   echo ""
-  echo "Restoring CHANGELOG.md (dry run)..."
-  git checkout -- CHANGELOG.md
-  exit 0
+else
+  if [ -n "$EXACT_VERSION" ]; then
+    NEW_VERSION="$EXACT_VERSION"
+  else
+    IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+    case "$BUMP_TYPE" in
+      major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+      minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+      patch) PATCH=$((PATCH + 1)) ;;
+    esac
+    NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+  fi
+
+  if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
+    echo "Error: New version ($NEW_VERSION) is the same as current version. Nothing to bump."
+    exit 1
+  fi
+
+  echo "Bumping version: $CURRENT_VERSION → $NEW_VERSION"
+  echo ""
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Generate changelog entry from commits since last tag
+  # ──────────────────────────────────────────────────────────────────────
+  LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+  TODAY=$(date +%Y-%m-%d)
+
+  if [ -n "$LAST_TAG" ]; then
+    echo "Generating changelog from commits since $LAST_TAG..."
+    RANGE="${LAST_TAG}..HEAD"
+  else
+    echo "Generating changelog from all commits..."
+    RANGE="HEAD"
+  fi
+
+  # Collect conventional commits grouped by type.
+  # We format as "- %s" (subject only) then filter with grep to avoid false
+  # matches from the commit body that --grep would catch.
+  ALL_COMMITS=$(git log "$RANGE" --no-merges --format='- %s' 2>/dev/null || true)
+
+  FEAT_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- feat(\(|:)' | sed 's/^- feat\(([^)]*)\)\?: /- /' || true)
+  FIX_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- fix(\(|:)' | sed 's/^- fix\(([^)]*)\)\?: /- /' || true)
+  REFACTOR_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- refactor(\(|:)' | sed 's/^- refactor\(([^)]*)\)\?: /- /' || true)
+  CHORE_COMMITS=$(echo "$ALL_COMMITS" | grep -E '^- chore(\(|:)' | sed 's/^- chore\(([^)]*)\)\?: /- /' || true)
+  OTHER_COMMITS=$(echo "$ALL_COMMITS" | grep -vE '^- (feat|fix|refactor|chore)\(|^- (feat|fix|refactor|chore):' || true)
+
+  # Build the new changelog section
+  CHANGELOG_ENTRY="## [${NEW_VERSION}] - ${TODAY}"
+
+  append_section() {
+    local commits="$1"
+    if [ -n "$commits" ]; then
+      CHANGELOG_ENTRY+=$'\n'"$commits"
+    fi
+  }
+
+  append_section "$FEAT_COMMITS"
+  append_section "$FIX_COMMITS"
+  append_section "$REFACTOR_COMMITS"
+  append_section "$CHORE_COMMITS"
+  append_section "$OTHER_COMMITS"
+
+  # Prepend to CHANGELOG.md
+  if [ -f CHANGELOG.md ]; then
+    printf '%s\n\n%s\n' "$CHANGELOG_ENTRY" "$(cat CHANGELOG.md)" > CHANGELOG.md
+  else
+    printf '%s\n\n' "$CHANGELOG_ENTRY" > CHANGELOG.md
+  fi
+
+  echo "Changelog updated."
+  echo ""
+
+  if $DRY_RUN; then
+    echo "=== DRY RUN - would bump to $NEW_VERSION ==="
+    echo "$CHANGELOG_ENTRY"
+    echo ""
+    echo "Restoring CHANGELOG.md (dry run)..."
+    git checkout -- CHANGELOG.md
+    exit 0
+  fi
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Bump version in all package.json files
+  # ──────────────────────────────────────────────────────────────────────
+  echo "Bumping version in all package.json files..."
+  for pkg_json in packages/*/package.json; do
+    node -e "
+      const pkg = require('./$pkg_json');
+      pkg.version = '$NEW_VERSION';
+      require('fs').writeFileSync('$pkg_json', JSON.stringify(pkg, null, 2) + '\n');
+    "
+  done
+  echo "  All packages bumped to $NEW_VERSION."
+  echo ""
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Build
+  # ──────────────────────────────────────────────────────────────────────
+  echo "Building all packages..."
+  bash scripts/build-all.sh
+  echo ""
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Commit & tag
+  # ──────────────────────────────────────────────────────────────────────
+  echo "Committing version bump and changelog..."
+  git add packages/*/package.json CHANGELOG.md
+  git commit -m "chore: bump all packages to ${NEW_VERSION}"
+
+  echo "Creating tag v${NEW_VERSION}..."
+  git tag "v${NEW_VERSION}"
+
+  echo ""
 fi
-
-# ──────────────────────────────────────────────────────────────────────
-# Bump version in all package.json files
-# ──────────────────────────────────────────────────────────────────────
-echo "Bumping version in all package.json files..."
-for pkg_json in packages/*/package.json; do
-  node -e "
-    const pkg = require('./$pkg_json');
-    pkg.version = '$NEW_VERSION';
-    require('fs').writeFileSync('$pkg_json', JSON.stringify(pkg, null, 2) + '\n');
-  "
-done
-echo "  All packages bumped to $NEW_VERSION."
-echo ""
-
-# ──────────────────────────────────────────────────────────────────────
-# Build
-# ──────────────────────────────────────────────────────────────────────
-echo "Building all packages..."
-bash scripts/build-all.sh
-echo ""
-
-# ──────────────────────────────────────────────────────────────────────
-# Commit & tag
-# ──────────────────────────────────────────────────────────────────────
-echo "Committing version bump and changelog..."
-git add packages/*/package.json CHANGELOG.md
-git commit -m "chore: bump all packages to ${NEW_VERSION}"
-
-echo "Creating tag v${NEW_VERSION}..."
-git tag "v${NEW_VERSION}"
-
-echo ""
 
 # ──────────────────────────────────────────────────────────────────────
 # Publish
@@ -207,11 +217,14 @@ for pkg_json in packages/*/package.json; do
     SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
   else
     printf "  PUBLISH %s@%s ... " "$pkg_name" "$pkg_version"
-    if (cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG) > /dev/null 2>&1; then
+    PUBLISH_ERR=$(cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG 2>&1 >/dev/null)
+    if [ $? -eq 0 ]; then
       echo "OK"
       PUBLISHED_COUNT=$((PUBLISHED_COUNT + 1))
     else
       echo "FAILED"
+      # Extract the npm error line(s) from stderr
+      echo "$PUBLISH_ERR" | grep -E 'npm error (code|403|402|401|EOTP|ENEEDAUTH)' | sed 's/^/        /' || true
       FAILED_PKGS+=("$pkg_name@$pkg_version")
     fi
   fi
