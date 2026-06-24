@@ -10,3 +10,9 @@ packages/*/src/**/*.js
 packages/*/src/**/*.d.ts
 !packages/*/src/**/*.stub.d.ts
 packages/*/src/**/*.js.map
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Config package build output (lives at package root, not src/)
+packages/config/index.js

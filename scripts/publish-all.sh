@@ -186,13 +186,46 @@ echo ""
 # ──────────────────────────────────────────────────────────────────────
 # Note: pnpm automatically converts workspace:* to actual version during publish
 # No need to manually replace workspace:* or restore package.json after publish
+#
+# We publish packages one-by-one instead of using `-r` so that a 403 on an
+# already-published package doesn't block the remaining packages.  This also
+# makes the script safe to re-run after a partial publish.
 
 echo "=== Publishing ==="
-PUBLISH_ARGS=(-r --access public --no-git-checks)
-if [ -n "$OTP_FLAG" ]; then
-  PUBLISH_ARGS+=("$OTP_FLAG")
+FAILED_PKGS=()
+PUBLISHED_COUNT=0
+SKIPPED_COUNT=0
+
+for pkg_json in packages/*/package.json; do
+  pkg_dir=$(dirname "$pkg_json")
+  pkg_name=$(node -e "console.log(require('./$pkg_json').name)")
+  pkg_version=$(node -e "console.log(require('./$pkg_json').version)")
+  npm_version=$(npm view "$pkg_name" version 2>/dev/null || echo "0.0.0")
+
+  if [ "$npm_version" = "$pkg_version" ]; then
+    echo "  SKIP $pkg_name@$pkg_version (already on npm)"
+    SKIPPED_COUNT=$((SKIPPED_COUNT + 1))
+  else
+    printf "  PUBLISH %s@%s ... " "$pkg_name" "$pkg_version"
+    if (cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG) > /dev/null 2>&1; then
+      echo "OK"
+      PUBLISHED_COUNT=$((PUBLISHED_COUNT + 1))
+    else
+      echo "FAILED"
+      FAILED_PKGS+=("$pkg_name@$pkg_version")
+    fi
+  fi
+done
+
+echo ""
+echo "Published: $PUBLISHED_COUNT  Skipped: $SKIPPED_COUNT  Failed: ${#FAILED_PKGS[@]}"
+if [ ${#FAILED_PKGS[@]} -gt 0 ]; then
+  echo "Failed packages:"
+  for p in "${FAILED_PKGS[@]}"; do
+    echo "  - $p"
+  done
+  exit 1
 fi
-pnpm publish "${PUBLISH_ARGS[@]}" || true
 
 echo ""
 echo "Done. Published ${NEW_VERSION}."
