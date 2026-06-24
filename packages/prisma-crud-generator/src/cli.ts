@@ -59,7 +59,7 @@ async function runGenerate(generateArgs: string[]) {
       process.exit(1);
     }
     const content = fs.readFileSync(resolved, 'utf-8');
-    const { parsePrismaSchema } = await import('./index');
+    const { parsePrismaSchema } = await import('./index.js');
     const models = parsePrismaSchema(content);
     console.log(`\nFound ${models.length} models:`);
     for (const model of models) {

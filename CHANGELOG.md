@@ -1,3 +1,6 @@
+## [0.1.58] - 2026-06-24
+- feat: add shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects
+
 ## [0.1.57] - 2026-06-20
 - chore: update appConfigSchema and validation checks for optional zones and uploadConfig
 - chore: add storage feature boundary verification workflow

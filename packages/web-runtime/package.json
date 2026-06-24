@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-web-runtime",
-  "version": "0.1.0",
+  "version": "0.1.58",
   "description": "Shared browser runtime utilities for dofe.ai frontend applications",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -50,10 +50,18 @@
     "zod": ">=4"
   },
   "peerDependenciesMeta": {
-    "clsx": { "optional": true },
-    "tailwind-merge": { "optional": true },
-    "@ts-rest/core": { "optional": true },
-    "zod": { "optional": true }
+    "clsx": {
+      "optional": true
+    },
+    "tailwind-merge": {
+      "optional": true
+    },
+    "@ts-rest/core": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@dofe/infra-contracts-base": "workspace:*"

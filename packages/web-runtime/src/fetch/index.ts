@@ -127,7 +127,7 @@ export function createDofeApiClient<T extends AppRouter>(
     baseUrl,
     baseHeaders: {
       'Content-Type': 'application/json',
-      ...(getBaseHeaders?.() ?? {}),
+      ...(getBaseHeaders?.() as Record<string, string> | undefined ?? {}),
     },
     api: async (args) => {
       // Ensure fresh token before non-refresh requests
@@ -155,7 +155,7 @@ export function createDofeApiClient<T extends AppRouter>(
       // Add extra headers
       if (getExtraHeaders) {
         const extra = await getExtraHeaders(args.path);
-        args.headers = { ...args.headers, ...extra };
+        args.headers = { ...args.headers, ...(extra as Record<string, string>) };
       }
 
       // Perform the fetch

@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-config",
-  "version": "0.1.0",
+  "version": "0.1.58",
   "description": "Shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects",
   "main": "./index.ts",
   "types": "./index.ts",
@@ -46,7 +46,11 @@
     "typescript": ">=5"
   },
   "peerDependenciesMeta": {
-    "eslint-config-next": { "optional": true },
-    "eslint-plugin-react": { "optional": true }
+    "eslint-config-next": {
+      "optional": true
+    },
+    "eslint-plugin-react": {
+      "optional": true
+    }
   }
 }
