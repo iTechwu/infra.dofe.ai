@@ -31,7 +31,11 @@ cp -r packages/i18n/src/zh-CN packages/i18n/dist/zh-CN 2>/dev/null || true
 echo "Generating exports..."
 for pkg in packages/*/; do
   name=$(basename "$pkg")
-  (cd "$pkg" && node ../../scripts/generate-exports.mjs)
+  if [ -d "$pkg/dist" ]; then
+    (cd "$pkg" && node ../../scripts/generate-exports.mjs)
+  else
+    echo "[generate-exports] @dofe/infra-$name: no dist/ — skipping (config-only package)"
+  fi
 done
 
 echo "Done. All packages built successfully."

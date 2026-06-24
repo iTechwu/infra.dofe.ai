@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-web-runtime",
-  "version": "0.1.58",
+  "version": "0.1.59",
   "description": "Shared browser runtime utilities for dofe.ai frontend applications",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,21 +13,21 @@
       "types": "./dist/cn.d.ts",
       "default": "./dist/cn.js"
     },
-    "./fetch": {
-      "types": "./dist/fetch/index.d.ts",
-      "default": "./dist/fetch/index.js"
-    },
-    "./version": {
-      "types": "./dist/version.d.ts",
-      "default": "./dist/version.js"
-    },
     "./errors": {
       "types": "./dist/errors.d.ts",
       "default": "./dist/errors.js"
     },
+    "./fetch": {
+      "types": "./dist/fetch/index.d.ts",
+      "default": "./dist/fetch/index.js"
+    },
     "./reconnect": {
       "types": "./dist/reconnect.d.ts",
       "default": "./dist/reconnect.js"
+    },
+    "./version": {
+      "types": "./dist/version.d.ts",
+      "default": "./dist/version.js"
     }
   },
   "scripts": {

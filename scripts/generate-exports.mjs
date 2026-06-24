@@ -16,8 +16,8 @@ const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
 const distDir = join(pkgDir, 'dist');
 
 if (!existsSync(distDir)) {
-  console.error('dist/ directory not found — run build first');
-  process.exit(1);
+  console.warn(`[generate-exports] ${pkg.name}: no dist/ — skipping (config-only package)`);
+  process.exit(0);
 }
 
 /**
