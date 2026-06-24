@@ -1,3 +1,6 @@
+## [0.1.62] - 2026-06-24
+- fix: improve publish script with --publish-only flag and visible error messages
+
 ## [0.1.61] - 2026-06-24
 - fix: handle config package in build and improve publish robustness
 - chore: add @types/node to devDependencies and update tsconfig for ignoreDeprecations
