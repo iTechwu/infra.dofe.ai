@@ -1,3 +1,7 @@
+## [0.1.61] - 2026-06-24
+- fix: handle config package in build and improve publish robustness
+- chore: add @types/node to devDependencies and update tsconfig for ignoreDeprecations
+
 ## [0.1.60] - 2026-06-24
 - feat: add shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects
 - chore: bump version to 0.1.59 and update changelog with new features
