@@ -37,6 +37,7 @@ PUBLISH_ONLY=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --)              shift ;;
     --patch)         BUMP_TYPE="patch"; shift ;;
     --minor)         BUMP_TYPE="minor"; shift ;;
     --major)         BUMP_TYPE="major"; shift ;;
@@ -56,8 +57,9 @@ fi
 # Pre-flight checks
 # ──────────────────────────────────────────────────────────────────────
 
-# Check working tree is clean
-if [ -n "$(git status --porcelain)" ]; then
+# Check working tree is clean before creating a new release commit. Publish-only
+# mode is used to resume a failed publish for the already-committed version.
+if ! $PUBLISH_ONLY && [ -n "$(git status --porcelain)" ]; then
   echo "Error: Working tree is not clean. Please commit or stash changes first."
   git status --short
   exit 1
@@ -224,10 +226,8 @@ publish_package() {
   local publish_log="$2"
   local exit_code=0
 
-  set +e
   (cd "$pkg_dir" && pnpm publish --access public --no-git-checks $OTP_FLAG) > "$publish_log" 2>&1
   exit_code=$?
-  set -e
 
   return $exit_code
 }
