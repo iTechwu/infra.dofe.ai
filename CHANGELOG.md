@@ -1,3 +1,6 @@
+## [0.1.72] - 2026-06-25
+- chore: enhance cli.ts and index.ts for improved CRUD and enum generation functionality
+
 ## [0.1.71] - 2026-06-24
 - chore: export ErrorMessages and AllErrorMessages for improved accessibility and add new error messages for space, folder, file, and payment
 - chore: enhance publish-all.sh to support additional flag parsing and improve pre-flight checks
