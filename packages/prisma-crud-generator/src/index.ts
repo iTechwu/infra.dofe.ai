@@ -108,6 +108,44 @@ function findMatchingBrace(content: string, start: number): number {
   return i - 1;
 }
 
+/** Extract annotation tokens robustly, handling arbitrarily nested parentheses */
+function extractAnnotations(rest: string): string {
+  // Collect annotation tokens like @id, @unique, @default(...), @db.Xxx, @map("..."), @relation(...)
+  // Uses a character-by-character approach to handle nested parens
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < rest.length) {
+    // Skip whitespace
+    while (i < rest.length && rest[i] === ' ') i++;
+    if (i >= rest.length) break;
+
+    if (rest[i] === '@') {
+      let token = '@';
+      i++;
+      // Read the annotation name: @[\w.]+
+      while (i < rest.length && /[\w.]/.test(rest[i]!)) { token += rest[i]; i++; }
+      // If followed by '(', consume balanced parentheses
+      if (i < rest.length && rest[i] === '(') {
+        let depth = 1;
+        token += '(';
+        i++;
+        while (i < rest.length && depth > 0) {
+          if (rest[i] === '(') depth++;
+          else if (rest[i] === ')') depth--;
+          token += rest[i];
+          i++;
+        }
+      }
+      tokens.push(token);
+    } else if (rest[i] === '?') {
+      i++; // consume optional marker, not an annotation
+    } else {
+      i++; // skip unexpected chars
+    }
+  }
+  return tokens.join(' ');
+}
+
 function parseFields(body: string, modelNames: Set<string>): ParsedField[] {
   const fields: ParsedField[] = [];
   const lines = body.split('\n');
@@ -116,14 +154,16 @@ function parseFields(body: string, modelNames: Set<string>): ParsedField[] {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('@@')) continue;
 
+    // Match: name type[?][[]] [annotations] [//comment]
     const fieldMatch = trimmed.match(
-      /^(\w+)\s+(\w+)\??(\[\])?\s*((?:@[\w.]+(?:\((?:[^()]|\([^()]*\))*\))?\s*)*)(?:\/\/.*)?$/,
+      /^(\w+)\s+(\w+)(\?)?(\[\])?(?:\s+(.+))?$/,
     );
     if (!fieldMatch) continue;
 
-    const [, name, type, listMarker, annotations] = fieldMatch;
+    const [, name, type, optionalMarker, listMarker, rest] = fieldMatch;
     const isList = !!listMarker;
-    const isRequired = !trimmed.includes('?') && !isList;
+    const isRequired = !optionalMarker && !isList;
+    const annotations = rest ? extractAnnotations(rest) : '';
     const isId = annotations?.includes('@id') ?? false;
     const isUnique = annotations?.includes('@unique') ?? false;
     const hasRelation = (annotations?.includes('@relation') ?? false) || (type ? modelNames.has(type) : false);

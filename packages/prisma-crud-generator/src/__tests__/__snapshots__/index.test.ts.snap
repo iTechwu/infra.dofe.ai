@@ -1,0 +1,153 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateEnumSchemas > enum snapshot is stable 1`] = `
+"/**
+ * Generated Prisma Enum Zod Schemas
+ * DO NOT EDIT MANUALLY
+ */
+
+import { z } from 'zod';
+
+// dotted annotations (@db.Xxx), nested parens, @map, enums
+export const UserRoleSchema = z.enum(["ADMIN", "EDITOR", "VIEWER"]);
+export type UserRole = z.infer<typeof UserRoleSchema>;
+export const UserRoleValues = UserRoleSchema.options;
+export const isUserRole = (value: unknown): value is UserRole => {
+  return UserRoleSchema.safeParse(value).success;
+};
+
+export const ContentStatusSchema = z.enum(["draft", "published", "archived"]);
+export type ContentStatus = z.infer<typeof ContentStatusSchema>;
+export const ContentStatusValues = ContentStatusSchema.options;
+export const isContentStatus = (value: unknown): value is ContentStatus => {
+  return ContentStatusSchema.safeParse(value).success;
+};
+
+"
+`;
+
+exports[`generateModule > module snapshot is stable 1`] = `
+"import { Module } from '@nestjs/common';
+import { PrismaModule } from '@dofe/infra-prisma';
+import { UserService } from './user.service';
+
+@Module({
+  imports: [PrismaModule],
+  providers: [UserService],
+  exports: [UserService],
+})
+export class UserModule {}
+"
+`;
+
+exports[`generateService > service snapshot is stable 1`] = `
+"import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PAGINATION } from '@dofe/infra-contracts';
+import { HandlePrismaError } from '@dofe/infra-common';
+import { TransactionalServiceBase } from '@dofe/infra-shared-db';
+import { PrismaService } from '@dofe/infra-prisma';
+
+@Injectable()
+export class UserService extends TransactionalServiceBase {
+  private readonly logger = new Logger(UserService.name);
+
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
+
+  @HandlePrismaError('query')
+  async get(where: Prisma.UserWhereInput, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
+    const query: any = { where: { ...where, isDeleted: false } };
+    if (additional) Object.assign(query, additional);
+    return this.getReadClient().user.findFirst(query);
+  }
+
+  @HandlePrismaError('query')
+  async getById(id: string, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
+    const where: any = { id: id, isDeleted: false };
+    return this.getReadClient().user.findUnique({ where, ...(additional || {}) });
+  }
+
+  @HandlePrismaError('query')
+  async getByEmail(value: string, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
+    return this.getReadClient().user.findUnique({ where: { email: value }, ...(additional || {}) });
+  }
+
+  @HandlePrismaError('query')
+  async list(
+    where?: Prisma.UserWhereInput,
+    pagination?: { page?: number; limit?: number; sort?: string; asc?: 'asc' | 'desc' },
+    additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude },
+  ) {
+    const page = pagination?.page ?? PAGINATION.DEFAULT_PAGE;
+    const limit = Math.min(pagination?.limit ?? PAGINATION.DEFAULT_PAGE_SIZE, PAGINATION.MAX_PAGE_SIZE);
+    const orderBy = pagination?.sort ? { [pagination.sort]: pagination.asc ?? 'desc' } : { createdAt: 'desc' as const };
+    const query: any = {
+      where: { ...(where || {}), isDeleted: false },
+      orderBy,
+      skip: (page - 1) * limit,
+      take: limit,
+    };
+    if (additional) Object.assign(query, additional);
+    const [list, total] = await Promise.all([
+      this.getReadClient().user.findMany(query),
+      this.getReadClient().user.count({ where: query.where }),
+    ]);
+    return { list, total, page, limit };
+  }
+
+  @HandlePrismaError('query')
+  async count(where?: Prisma.UserWhereInput) {
+    return this.getReadClient().user.count({
+      where: { ...(where || {}), isDeleted: false },
+    });
+  }
+
+  @HandlePrismaError('create')
+  async create(data: Prisma.UserCreateInput, additional?: { select?: Prisma.UserSelect }) {
+    return this.getWriteClient().user.create({ data, ...(additional || {}) });
+  }
+
+  @HandlePrismaError('update')
+  async update(where: Prisma.UserWhereUniqueInput, data: Prisma.UserUpdateInput, additional?: { select?: Prisma.UserSelect }) {
+    return this.getWriteClient().user.update({ where, data, ...(additional || {}) });
+  }
+
+  @HandlePrismaError('delete')
+  async delete(where: Prisma.UserWhereUniqueInput) {
+    return this.getWriteClient().user.delete({ where });
+  }
+
+  @HandlePrismaError('update')
+  async softDelete(where: Prisma.UserWhereUniqueInput) {
+    return this.getWriteClient().user.update({
+      where,
+      data: { isDeleted: true },
+    });
+  }
+
+  @HandlePrismaError('create')
+  async createMany(data: Prisma.UserCreateManyInput[]) {
+    return this.getWriteClient().user.createMany({ data });
+  }
+
+  @HandlePrismaError('update')
+  async updateMany(where: Prisma.UserWhereInput, data: Prisma.UserUpdateManyMutationInput) {
+    return this.getWriteClient().user.updateMany({ where, data });
+  }
+
+  @HandlePrismaError('create')
+  async upsert(args: Prisma.UserUpsertArgs) {
+    return this.getWriteClient().user.upsert(args);
+  }
+
+  @HandlePrismaError('query')
+  async getOrThrow(where: Prisma.UserWhereInput, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
+    const record = await this.get(where, additional);
+    if (!record) throw new Error('User not found');
+    return record;
+  }
+}
+"
+`;
