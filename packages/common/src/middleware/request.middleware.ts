@@ -14,7 +14,7 @@ import { Logger } from 'winston';
 import { getReqMainInfo } from '@dofe/infra-utils';
 import * as parser from 'accept-language-parser';
 import ipUtil from '@dofe/infra-utils/ip.util';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 
 // Trace ID 请求头名称
 export const TRACE_ID_HEADER = 'x-trace-id';
@@ -223,7 +223,7 @@ export default class RequestMiddleware implements NestMiddleware<
         // 记录日志 (包含 traceId)
         // 注意：getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
         // 使用类型断言以兼容现有函数
-        if (enviroment.isProduction()) {
+        if (environment.isProduction()) {
           this.logger.info('RequestMiddleware', {
             traceId,
             ...getReqMainInfo(req as any, res as any),

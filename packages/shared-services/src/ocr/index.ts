@@ -8,7 +8,7 @@
  * @example
  * ```typescript
  * // 导入模块
- * import { OcrModule, OcrService } from '@app/shared-services/ocr';
+ * import { OcrModule, OcrService } from '@dofe/infra-shared-services/ocr';
  *
  * // 在 NestJS 模块中使用
  * @Module({

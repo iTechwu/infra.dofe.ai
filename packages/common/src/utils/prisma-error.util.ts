@@ -2,6 +2,10 @@
  * Prisma Error Handler Utility
  * 统一处理 Prisma 数据库操作错误
  *
+ * @boundary-violation: This Prisma-specific utility logically belongs in @dofe/infra-prisma.
+ * It resides in @dofe/infra-common for historical reasons.
+ * Migration target: @dofe/infra-prisma (with compat re-export in common until 2027-06-30).
+ *
  * 使用四种错误码区分操作类型：
  * - DbCreateError: 创建操作失败
  * - DbUpdateError: 更新操作失败

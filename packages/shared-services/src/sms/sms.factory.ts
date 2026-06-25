@@ -1,6 +1,6 @@
 /**
  * @fileoverview SMS Client Factory
- * @module @app/shared-services/sms/sms.factory
+ * @module @dofe/infra-shared-services/sms
  *
  * 负责创建和管理 SMS 客户端实例
  *
@@ -50,7 +50,7 @@ import {
   VerifyCodeCheckResult,
   SmsVolcengineTemplate,
 } from './types';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // SMS Client Factory
@@ -126,7 +126,7 @@ export class SmsClientFactory {
       const name = meta.name || 'default';
       this.templates[name] = template;
     });
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info(
         `SMS templates initialized: ${Object.keys(this.templates).join(', ')}`,
       );
@@ -139,7 +139,7 @@ export class SmsClientFactory {
   private createClient(provider: SmsProviderConfig): ISmsClient {
     const vendor = provider.vendor as SmsVendor;
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info(
         `Creating SMS client for vendor: ${SMS_VENDOR_NAMES[vendor] || vendor}`,
       );

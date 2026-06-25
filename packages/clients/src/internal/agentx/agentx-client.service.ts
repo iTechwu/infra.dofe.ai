@@ -15,7 +15,7 @@ import {
 import { getKeysConfig } from '@dofe/infra-common';
 import { AgentXConfigHelper } from '@dofe/infra-common';
 import type { AgentXConfig } from '@dofe/infra-common';
-import { environmentUtil as enviromentUtil } from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 
 // ============================================================================
 // Types - 协同过滤推荐
@@ -181,7 +181,7 @@ export class AgentXClient implements OnModuleInit {
     }
 
     // 初始化 internalApiUrl 用于 callback
-    this.internalApiUrl = enviromentUtil
+    this.internalApiUrl = environmentUtil
       .generateEnvironmentUrls()
       .internalApi.replace(/\/+$/, ''); // 去除末尾斜杠
 

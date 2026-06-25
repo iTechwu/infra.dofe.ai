@@ -59,7 +59,7 @@ file-storage/
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { FileStorageServiceModule } from '@app/shared-services/file-storage';
+import { FileStorageServiceModule } from '@dofe/infra-shared-services/file-storage';
 
 @Module({
   imports: [FileStorageServiceModule],
@@ -71,7 +71,7 @@ export class VideoModule {}
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { FileStorageService } from '@app/shared-services/file-storage';
+import { FileStorageService } from '@dofe/infra-shared-services/file-storage';
 import { FileBucketVendor } from '@prisma/client';
 
 @Injectable()
@@ -244,7 +244,7 @@ const audioInfo = await fileStorage.getAudioInfo('oss', 'bucket', 'audio.mp3');
 用于高级场景，直接操作存储客户端。
 
 ```typescript
-import { FileStorageClientFactory } from '@app/shared-services/file-storage';
+import { FileStorageClientFactory } from '@dofe/infra-shared-services/file-storage';
 
 // 获取客户端
 const client = factory.getClient('oss', 'my-bucket');
@@ -267,7 +267,7 @@ const configs = factory.getAllBucketConfigs();
 用于存储桶解析的高级场景。
 
 ```typescript
-import { BucketResolver } from '@app/shared-services/file-storage';
+import { BucketResolver } from '@dofe/infra-shared-services/file-storage';
 
 // 解析存储桶
 const result = await resolver.resolve({

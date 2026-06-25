@@ -61,7 +61,7 @@ const nestjsConfig = tseslint.config(
         "error",
         {
           selector: "ExportAllDeclaration[source.value=/\\.module['\"]?$/]",
-          message: "🚫 禁止重导出 Module 类。请使用显式导入：import { XxxModule } from '@app/xxx/xxx-module'",
+          message: "🚫 禁止重导出 Module 类。请使用显式导入：import { XxxModule } from '@dofe/infra-xxx/xxx-module'",
         },
       ],
     },

@@ -5,7 +5,7 @@
  * Ensures all required application settings are correctly configured.
  */
 import { z } from 'zod';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 import { createContextLogger } from '@dofe/infra-utils';
 
 const logger = createContextLogger('YamlValidation');
@@ -692,7 +692,7 @@ export function validateYamlConfig(config: unknown): YamlConfig {
     throw new Error(`YAML configuration validation failed:\n${errorMessages}`);
   }
 
-  if (enviroment.isProduction()) {
+  if (environment.isProduction()) {
     logger.info('YAML configuration validated successfully');
   }
   return result.data;

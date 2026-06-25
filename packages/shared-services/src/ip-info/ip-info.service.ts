@@ -22,7 +22,7 @@ import ipUtil, { MinimalIpRequest } from '@dofe/infra-utils/ip.util';
 import validateUtil from '@dofe/infra-utils/validate.util';
 import { PardxApp } from '@dofe/infra-common';
 import { IpInfoConfig } from '@dofe/infra-common';
-import enviromentUtil from '@dofe/infra-utils/environment.util';
+import environmentUtil from '@dofe/infra-utils/environment.util';
 import { CountryCodeService } from '@dofe/infra-shared-db';
 import { IpInfoClient } from './ip-info.client';
 
@@ -61,7 +61,7 @@ export class IpInfoService {
    */
   async getIpInfo(ip: string): Promise<Partial<PardxApp.IPInfo>> {
     // 1. CN 环境默认值
-    if (enviromentUtil.getBaseZone() === 'cn') {
+    if (environmentUtil.getBaseZone() === 'cn') {
       return this.getDefaultIpInfo(ip, 'CN', 'Beijing', 'Asia/Shanghai');
     }
 
@@ -146,7 +146,7 @@ export class IpInfoService {
       ip,
       countryCode,
     });
-    return enviromentUtil.getBaseZone();
+    return environmentUtil.getBaseZone();
   }
 
   /**

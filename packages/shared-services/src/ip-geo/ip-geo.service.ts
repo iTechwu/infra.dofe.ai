@@ -18,7 +18,7 @@ import { RedisService } from '@dofe/infra-redis';
 import ipUtil, { MinimalIpRequest } from '@dofe/infra-utils/ip.util';
 import validateUtil from '@dofe/infra-utils/validate.util';
 import { PardxApp } from '@dofe/infra-common';
-import enviromentUtil from '@dofe/infra-utils/environment.util';
+import environmentUtil from '@dofe/infra-utils/environment.util';
 import { getContinentByCountry, Continent } from './continent-mapping';
 import { IpInfoClient, IpInfoResponse } from '../ip-info-client';
 
@@ -50,7 +50,7 @@ export class IpGeoService {
    * 获取 IP 信息
    */
   async getIpInfo(ip: string): Promise<Partial<PardxApp.IPInfo>> {
-    if (enviromentUtil.getBaseZone() === 'cn') {
+    if (environmentUtil.getBaseZone() === 'cn') {
       return {
         ip,
         country: 'CN',
@@ -120,7 +120,7 @@ export class IpGeoService {
    */
   async getContinent(ip: string): Promise<Continent> {
     const countryCode = await this.getIpCountry(ip);
-    const defaultZone = enviromentUtil.getBaseZone() as Continent;
+    const defaultZone = environmentUtil.getBaseZone() as Continent;
     return getContinentByCountry(countryCode, defaultZone);
   }
 

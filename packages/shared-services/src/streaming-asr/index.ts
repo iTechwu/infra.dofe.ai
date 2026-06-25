@@ -17,7 +17,7 @@
  * import {
  *   StreamingAsrServiceModule,
  *   StreamingAsrService,
- * } from '@app/shared-services/streaming-asr';
+ * } from '@dofe/infra-shared-services/streaming-asr';
  *
  * // 在 NestJS 模块中使用
  * @Module({

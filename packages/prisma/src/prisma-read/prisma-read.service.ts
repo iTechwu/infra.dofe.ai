@@ -14,7 +14,7 @@ import { Logger } from 'winston';
 import {
   DbMetricsService,
   QueryContext,
-} from '../db-metrics/src/db-metrics.service';
+} from '../db-metrics/db-metrics.service';
 import { setupSoftDeleteMiddleware } from '../middleware/soft-delete.middleware';
 import { getConfig } from '@dofe/infra-common';
 

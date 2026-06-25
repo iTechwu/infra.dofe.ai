@@ -1,3 +1,10 @@
+/**
+ * @boundary-violation: This file is a duplicate of clients/src/internal/agentx/agentx-client.service.ts.
+ * The canonical version is in @dofe/infra-clients.
+ * This copy exists in shared-services for backward compatibility.
+ * Migration: consumers should import from @dofe/infra-clients/agentx.
+ * This copy will be replaced with a re-export by 2027-06-30.
+ */
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -15,7 +22,7 @@ import {
 import { getKeysConfig } from '@dofe/infra-common';
 import { AgentXConfigHelper } from '@dofe/infra-common';
 import type { AgentXConfig } from '@dofe/infra-common';
-import { environmentUtil as enviromentUtil } from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 
 // ============================================================================
 // Types - 协同过滤推荐
@@ -181,7 +188,7 @@ export class AgentXClient implements OnModuleInit {
     }
 
     // 初始化 internalApiUrl 用于 callback
-    this.internalApiUrl = enviromentUtil
+    this.internalApiUrl = environmentUtil
       .generateEnvironmentUrls()
       .internalApi.replace(/\/+$/, ''); // 去除末尾斜杠
 

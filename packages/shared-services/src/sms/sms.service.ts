@@ -1,6 +1,6 @@
 /**
  * @fileoverview SMS Service
- * @module @app/shared-services/sms
+ * @module @dofe/infra-shared-services/sms
  *
  * 职责：提供短信发送的业务逻辑服务
  *
@@ -49,7 +49,7 @@ import {
   DEFAULT_SEND_FREQUENCY,
   DEFAULT_CODE_EXPIRE,
 } from './types';
-import enviromentUtil from '@dofe/infra-utils/environment.util';
+import environmentUtil from '@dofe/infra-utils/environment.util';
 
 // ============================================================================
 // SMS Service
@@ -100,7 +100,7 @@ export class SmsService implements OnModuleInit {
         },
       );
 
-      if (enviromentUtil.isProduction()) {
+      if (environmentUtil.isProduction()) {
         this.logger.info(
           `SMS service initialized with vendor: ${this.factory.currentVendorName}`,
         );

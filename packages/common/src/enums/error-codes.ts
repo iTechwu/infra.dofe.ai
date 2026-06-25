@@ -2,6 +2,10 @@
  * Error Codes Bridge File
  * 错误码桥接文件
  *
+ * @boundary-violation: This file bridges @dofe/infra-contracts error codes through @dofe/infra-common.
+ * It exists for backward compatibility. New code should import directly from '@dofe/infra-contracts'.
+ * Planned removal: 2027-06-30.
+ *
  * Re-exports error codes from @repo/contracts and provides
  * backward-compatible ErrorMessageEnums for existing code.
  *

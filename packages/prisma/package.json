@@ -12,17 +12,13 @@
       "types": "./dist/db-metrics/index.d.ts",
       "default": "./dist/db-metrics/index.js"
     },
-    "./db-metrics/src": {
-      "types": "./dist/db-metrics/src/index.d.ts",
-      "default": "./dist/db-metrics/src/index.js"
+    "./db-metrics/db-metrics.module": {
+      "types": "./dist/db-metrics/db-metrics.module.d.ts",
+      "default": "./dist/db-metrics/db-metrics.module.js"
     },
-    "./db-metrics/src/db-metrics.module": {
-      "types": "./dist/db-metrics/src/db-metrics.module.d.ts",
-      "default": "./dist/db-metrics/src/db-metrics.module.js"
-    },
-    "./db-metrics/src/db-metrics.service": {
-      "types": "./dist/db-metrics/src/db-metrics.service.d.ts",
-      "default": "./dist/db-metrics/src/db-metrics.service.js"
+    "./db-metrics/db-metrics.service": {
+      "types": "./dist/db-metrics/db-metrics.service.d.ts",
+      "default": "./dist/db-metrics/db-metrics.service.js"
     },
     "./middleware/soft-delete.middleware": {
       "types": "./dist/middleware/soft-delete.middleware.d.ts",

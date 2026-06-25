@@ -1,6 +1,6 @@
 /**
  * @fileoverview SMS Service Type Definitions
- * @module @app/shared-services/sms/types
+ * @module @dofe/infra-shared-services/sms
  *
  * 定义 SMS 服务的所有类型接口，包括：
  * - 短信客户端接口

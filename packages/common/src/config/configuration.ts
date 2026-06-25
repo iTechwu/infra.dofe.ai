@@ -14,7 +14,7 @@ import {
   type YamlConfig,
   type KeysConfig,
 } from './validation';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 import { createContextLogger } from '@dofe/infra-utils';
 
 // Note: AgentXConfigHelper is exported directly from './agentx.config'
@@ -133,7 +133,7 @@ export async function initConfig() {
     // 构建配置文件路径
     const configPath = path.join(projectRoot, YAML_CONFIG_FILENAME);
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       logger.info(`Loading config from: ${configPath}`);
     }
 
@@ -146,7 +146,7 @@ export async function initConfig() {
       string,
       unknown
     >;
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       logger.info('Config loaded successfully, validating');
     }
 
@@ -219,7 +219,7 @@ export async function initConfig() {
       config = rawConfig as YamlConfig;
     }
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       logger.info('Config validation completed successfully');
     }
   } catch (error) {

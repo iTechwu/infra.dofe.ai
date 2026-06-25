@@ -5,7 +5,7 @@ import { Logger } from 'winston';
 import { Counter, Histogram, Gauge } from 'prom-client';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { asyncLocalStorage } from '@dofe/infra-common';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 
 interface RequestDbOperationStats {
   model: string;
@@ -195,7 +195,7 @@ export class DbMetricsService implements OnModuleInit {
     if (config) {
       this.config = this.normalizeConfig(config);
     }
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger?.info('DbMetricsService module initialized', {
         config: this.config,
       });

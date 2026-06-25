@@ -16,7 +16,7 @@ import { getConfig } from '@dofe/infra-common';
 import {
   DbMetricsService,
   QueryContext,
-} from '../db-metrics/src/db-metrics.service';
+} from '../db-metrics/db-metrics.service';
 
 /**
  * Prisma Write Service

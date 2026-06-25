@@ -60,6 +60,65 @@ infra 内部：
 禁止：@dofe/infra-* → domain / 项目代码
 ```
 
+### 包分层模型
+
+```
+Layer 0: 无依赖叶包
+  contracts-base, contracts, i18n, config, module-registry, prisma-crud-generator, sso-browser
+
+Layer 1: 纯工具 / 跨项目通用
+  utils (纯函数工具，无 NestJS 依赖)
+  jwt, docker, vector
+
+Layer 2: 基础设施适配层 (NestJS 模块)
+  common (装饰器、守卫、拦截器、管道、过滤器)
+  redis, prisma, rabbitmq, shared-db
+
+Layer 3: 客户端层 (第三方 SDK 封装)
+  clients (AgentX, SMS, 文件存储等 18 个客户端)
+
+Layer 4: 聚合服务层
+  shared-services (依赖多个下层包的业务复合服务)
+  web-runtime
+```
+
+规则：上层可以依赖下层，**同层之间尽量减少耦合**。下层绝不能依赖上层。
+
+### 进口规则 (Import Rules)
+
+所有跨包 import 必须使用 `@dofe/infra-*` 正式导出面：
+
+```
+✅ import { createContextLogger } from '@dofe/infra-utils';
+✅ import { DbMetricsModule } from '@dofe/infra-prisma/db-metrics';
+✅ import { FileStorageServiceModule } from '@dofe/infra-shared-services/file-storage';
+❌ import { XxxService } from '@app/shared-services/xxx';   // 禁止 @app/*
+❌ import { Xxx } from '../../dist/internal/xxx';           // 禁止深层 dist
+```
+
+### 兼容/废弃路径
+
+| 路径 | 状态 | 说明 |
+|---|---|---|
+| `@app/*` | ❌ 废弃 | 已全部迁移至 `@dofe/infra-*`，不再接受新代码 |
+| `packages/utils/src/enviroment.util.ts` | ⚠️ 过渡期 | 拼写错误兼容存根，计划 2026-12-31 移除，请使用 `environment.util.ts` |
+| `common/src/enums/error-codes.ts` | ⚠️ 过渡期 | contracts 桥接文件，计划 2027-06-30 移除，请直接从 `@dofe/infra-contracts` 导入 |
+| `common/src/utils/prisma-error.util.ts` | ⚠️ 待迁移 | Prisma 特定工具在 common 中，逻辑上属于 `@dofe/infra-prisma` |
+
+### 构建规则
+
+**必须走根构建**：`pnpm run build` 调用 `scripts/build-all.sh` 进行单次 tsc 编译。
+这处理了包之间的循环依赖（如 common ↔ redis），单独构建任何包都可能因循环依赖而失败。
+
+6 步构建流程：清理 → 单次编译 → 分发产物 → 清理临时文件 → 复制 i18n → 生成 exports。
+缺少关键产物（common, clients, utils, prisma, shared-services, contracts）时构建会显式失败。
+
+### 治理文档
+
+- [架构审查报告](docs/0625/infra-architecture-review-2026-06-25.md)
+- [架构实施路线图](docs/0625/infra-architecture-roadmap-2026-06-25.md)
+- [包边界定义](docs/0625/infra-boundaries-2026-06-25.md)
+
 ## 快速开始
 
 ### 1. 开发模式（推荐，本地 symlink）

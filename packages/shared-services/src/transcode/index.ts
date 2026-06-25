@@ -7,7 +7,7 @@
  * - AliyunOssTranscodeModule/AliyunOssTranscodeClient - 阿里云 OSS
  * - VolcengineTosTranscodeModule/VolcengineTosTranscodeClient - 火山引擎 TOS
  *
- * 注意: 业务逻辑层使用 @app/services/transcode
+ * 注意: 业务逻辑层使用 @dofe/infra-shared-services/transcode
  */
 
 // 转码策略模块 (纯 Client)

@@ -60,7 +60,7 @@ import {
     VolcengineRetrievedJobInfo,
     VolcengineCancelJobRequest,
 } from './volcengine-tos-transcode.dto';
-import { environmentUtil as enviromentUtil } from '@dofe/infra-utils';
+import { environmentUtil } from '@dofe/infra-utils';
 
 @Injectable()
 export class VolcengineTosTranscodeClient {
@@ -97,7 +97,7 @@ export class VolcengineTosTranscodeClient {
 
         this.appConfig = this.configService.getOrThrow<AppConfig>('app');
 
-        this.webhookApiBaseUrl = enviromentUtil.generateEnvironmentUrls({
+        this.webhookApiBaseUrl = environmentUtil.generateEnvironmentUrls({
             domain: this.appConfig.domain,
             subDomain: this.appConfig.subDomain,
             apiSubDomain: this.appConfig.apiSubDomain,

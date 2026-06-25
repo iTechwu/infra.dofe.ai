@@ -8,7 +8,7 @@
  * Never log or expose the actual values.
  */
 import { z } from 'zod';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 import { createContextLogger } from '@dofe/infra-utils';
 
 const logger = createContextLogger('KeysValidation');
@@ -595,7 +595,7 @@ export function validateKeysConfig(config: unknown): KeysConfig {
     throw new Error(`Keys configuration validation failed:\n${errorMessages}`);
   }
 
-  if (enviroment.isProduction()) {
+  if (environment.isProduction()) {
     logger.info('Keys configuration validated successfully');
   }
   return result.data;

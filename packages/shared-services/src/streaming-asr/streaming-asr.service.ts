@@ -31,7 +31,7 @@ import { VolcengineStreamingAsrProvider } from '../openspeech/providers/volcengi
 import { getKeysConfig } from '@dofe/infra-common';
 import { OpenSpeechConfig, JwtConfig } from '@dofe/infra-common';
 import { RedisService } from '@dofe/infra-redis';
-import enviroment from '@dofe/infra-utils/environment.util';
+import environment from '@dofe/infra-utils/environment.util';
 import {
   CreateStreamingSessionDto,
   StreamingSessionResult,
@@ -176,7 +176,7 @@ export class StreamingAsrService implements OnModuleDestroy {
   async onModuleDestroy(): Promise<void> {
     this.stopCleanupTimer();
     await this.cleanupAllSessions();
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('StreamingAsrService module destroyed');
     } else {
       this.logger.debug('StreamingAsrService module destroyed');
@@ -212,7 +212,7 @@ export class StreamingAsrService implements OnModuleDestroy {
 
     this.provider = new VolcengineStreamingAsrProvider(this.logger, config);
 
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('StreamingAsrService module initialized');
     } else {
       this.logger.debug('StreamingAsrService module initialized');
@@ -946,7 +946,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     this.cleanupTimer = setInterval(() => {
       this.checkAndCleanupSessions();
     }, SESSION_TIMEOUT_CONFIG.cleanupInterval);
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('Session cleanup timer started', {
         intervalMs: SESSION_TIMEOUT_CONFIG.cleanupInterval,
       });
@@ -1259,7 +1259,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     for (const sessionId of sessionIds) {
       await this.forceCleanupSession(sessionId);
     }
-    if (enviroment.isProduction()) {
+    if (environment.isProduction()) {
       this.logger.info('StreamingAsrService all sessions cleaned up');
     } else {
       this.logger.debug('StreamingAsrService all sessions cleaned up');

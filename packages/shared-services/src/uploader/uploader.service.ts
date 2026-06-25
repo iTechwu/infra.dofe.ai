@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { rsaDecrypt } from '@dofe/infra-utils';
 
 import { AppConfig } from '@dofe/infra-common';
-import enviromentUtil from '@dofe/infra-utils/environment.util';
+import environmentUtil from '@dofe/infra-utils/environment.util';
 import { fileUtil } from '@dofe/infra-utils';
 import { FileBucketVendor } from '@prisma/client';
 
@@ -105,7 +105,7 @@ export class UploaderService {
     const now = new Date().getTime();
     const timestamp = signatureData.timestamp ?? 0;
     if (
-      enviromentUtil.isProduction() &&
+      environmentUtil.isProduction() &&
       now - timestamp > 15 * 1000
     ) {
       this.logger.error('[Signature Validation] Timestamp expired:', {
