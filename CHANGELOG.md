@@ -1,3 +1,6 @@
+## [0.1.76] - 2026-06-25
+- feat: 深化类型安全和错误处理审计，消除 as any 使用，优化 markdownlint 规则
+
 ## [0.1.75] - 2026-06-25
 - feat: 添加包依赖全量审计和循环依赖文档化，更新边界定义
 - feat: Enhance logging and output handling across various services
