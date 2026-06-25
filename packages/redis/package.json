@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-redis",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "description": "Redis caching, distributed locks, tenant-level cache isolation, and version validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

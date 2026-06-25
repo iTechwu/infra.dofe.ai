@@ -25,6 +25,7 @@ import { SendCloudClient, PardxEmailSender } from '@dofe/infra-clients';
 type EmailTemplateValue = string | number | boolean | null | undefined;
 type EmailTemplateSubValues = Record<string, EmailTemplateValue>;
 type EmailTemplateSubstitution = Record<string, string[]>;
+type EmailTemplateConfig = NonNullable<SendCloudConfig['templates']>[number];
 
 @Injectable()
 export class EmailService implements OnModuleInit {
@@ -33,7 +34,7 @@ export class EmailService implements OnModuleInit {
   private emailCodePerDayLoggerKey = 'emailCodePerDay';
   private deviceCodePerDayLoggerKey = 'deviceCodePerDay';
   private secretConfig!: SendCloudConfig;
-  private templates: Record<string, PardxEmailSender.EmailTemplate> = {};
+  private templates: Record<string, EmailTemplateConfig> = {};
   private emailClient!: SendCloudClient;
 
   constructor(
@@ -62,7 +63,7 @@ export class EmailService implements OnModuleInit {
       this.logger,
     );
     (sendcloudConfig.templates || []).forEach((template) => {
-      this.templates[template.name] = template as PardxEmailSender.EmailTemplate;
+      this.templates[template.name] = template;
     });
   }
 
@@ -136,7 +137,7 @@ export class EmailService implements OnModuleInit {
     deviceInfo: PardxApp.HeaderData,
   ) {
     const templateName: string = 'verify';
-    const template: PardxEmailSender.EmailTemplate | undefined =
+    const template: EmailTemplateConfig | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -163,7 +164,7 @@ export class EmailService implements OnModuleInit {
     deviceInfo: PardxApp.HeaderData,
   ) {
     const templateName: string = 'resetpassword';
-    const template: PardxEmailSender.EmailTemplate | undefined =
+    const template: EmailTemplateConfig | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -194,7 +195,7 @@ export class EmailService implements OnModuleInit {
     deviceInfo: PardxApp.HeaderData,
   ) {
     const templateName: string = 'register';
-    const template: PardxEmailSender.EmailTemplate | undefined =
+    const template: EmailTemplateConfig | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -228,7 +229,7 @@ export class EmailService implements OnModuleInit {
     templateName: string,
     subValues?: EmailTemplateSubValues | null,
   ): Promise<PardxEmailSender.SignalMessage> {
-    const template: PardxEmailSender.EmailTemplate | undefined =
+    const template: EmailTemplateConfig | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
@@ -246,8 +247,7 @@ export class EmailService implements OnModuleInit {
     const sub = template.sub;
     const subVery: EmailTemplateSubstitution = {};
     if (sub && subValues) {
-      for (const key of Object.keys(sub)) {
-        const subKey = sub[key] as string;
+      for (const subKey of sub) {
         if (subKey && typeof subValues === 'object' && subKey in subValues) {
           const value = subValues[subKey];
           subVery['%' + subKey + '%'] = [value == null ? '' : String(value)];

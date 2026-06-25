@@ -1,8 +1,10 @@
 {
   "name": "@dofe/infra-clients",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "description": "Third-party SDK clients — AI, SMS, SSO, file storage, OpenClaw, Feishu, email, OCR, and more",
-  "engines": { "node": ">=20.19.0" },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

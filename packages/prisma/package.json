@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-prisma",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "description": "Prisma ORM — read/write separation, connection management, soft-delete, tenant isolation, Prometheus metrics",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

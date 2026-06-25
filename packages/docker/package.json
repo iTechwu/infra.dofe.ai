@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-docker",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "description": "Docker container management — create/start/stop containers, port allocation, orphan cleanup with grace period",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

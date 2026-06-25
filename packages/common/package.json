@@ -1,8 +1,10 @@
 {
   "name": "@dofe/infra-common",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "description": "Cross-project NestJS runtime — decorators, guards, interceptors, filters, pipes, middleware, config",
-  "engines": { "node": ">=20.19.0" },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
