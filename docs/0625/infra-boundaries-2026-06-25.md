@@ -65,6 +65,9 @@ Layer 4: 聚合服务层
 - `common/src/utils/prisma-error.util.ts` — Prisma 特定工具，逻辑上属于 `@dofe/infra-prisma`。标记为待迁移，保留兼容导出。
 - `common/src/enums/error-codes.ts` — 是 `@dofe/infra-contracts` 的桥接文件。标记为 `@deprecated`，计划迁移。
 
+**已知双向 peerDep（设计权衡）：**
+- `common` ↔ `jwt`：`common/src/guards/auth.guard.ts` 需要 `JwksClient`（from jwt），`jwt/src/jwt.module.ts` 需要 `JwtConfig`（from common）。双方均通过 `peerDependencies` 声明，由运行时环境（NestJS DI）注入，安装时不形成硬循环。
+
 ---
 
 ### `@dofe/infra-shared-services`
@@ -171,6 +174,8 @@ Layer 4: 聚合服务层
 **可以是：** JwtModule，JwksClient，token 生成/验证
 
 **不能是：** 用户认证业务逻辑，权限判定
+
+**已知双向 peerDep：** ↔ `common`（参见 common 章节说明）
 
 ---
 

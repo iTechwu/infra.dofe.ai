@@ -431,6 +431,17 @@
   - `@boundary-violation` 计数: 2 处源码标记 ✅ 与实际情况一致
   - `@boundary-violation` 计数: 原有 roadmap 记录 "3 处" 含 1 处已完成的 agentx 收口 ≠ 当前活跃违规数
 
+#### Round 11: 包依赖全量审计 + 循环依赖文档化 (2026-06-25) ✅
+
+- ✅ [C1] 文档化 `common` ↔ `jwt` 双向 peerDep 循环：
+  - 在 `infra-boundaries-*.md` 的 common 和 jwt 章节均添加已知双向 peerDep 说明
+  - 通过 peerDependencies 缓解（安装时不形成硬循环，运行时由 NestJS DI 注入）
+- ✅ [C2] `docker` 包依赖审计：8 项源码 import 全部匹配声明 peerDeps + 3 项 NestJS 标准运行时 ✅
+- ✅ [C3] `contracts`/`contracts-base` 依赖审计：contracts 纯类型零依赖、contracts-base imports 均匹配 peers ✅
+- ✅ [C4] 零内部消费者包 CI 覆盖验证：18/19 包通过 tsconfig 覆盖、config 包无 src 无需编译 ✅
+- 📋 **全仓依赖审计结论**：19/19 包源码 import ↔ 声明关系一致，无遗漏依赖，无幻影依赖
+- 📋 **循环依赖**：仅 1 处已知双向 peerDep（common↔jwt），已文档化缓解策略
+
 ---
 
 ## 最终验收口径
