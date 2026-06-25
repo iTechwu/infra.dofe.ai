@@ -82,16 +82,13 @@ export class SseClient {
         this.sseChannelKey,
         `old-${clientId}`,
       );
-      // console.log('techwu subscribe', oldMessage, newMessage)
       if (objectUtil.isEqual(newMessage, oldMessage)) {
-        // console.log('techwu ping')
         return {
           t: 'p',
           data: { timestamp: new Date().toISOString() },
           needDeleteClient: false,
         };
       } else {
-        // console.log('techwu message')
         await this.redis.saveData(
           this.sseChannelKey,
           `old-${clientId}`,

@@ -360,6 +360,10 @@
       "types": "./dist/ts-rest/response.helper.d.ts",
       "default": "./dist/ts-rest/response.helper.js"
     },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    },
     "./utils/audit-log-helper.util": {
       "types": "./dist/utils/audit-log-helper.util.d.ts",
       "default": "./dist/utils/audit-log-helper.util.js"

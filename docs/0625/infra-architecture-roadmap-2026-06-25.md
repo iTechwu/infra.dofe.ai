@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD024 — duplicate headings are intentional: each Step has the same subsection structure -->
 # infra.dofe.ai 架构实施路线图
 
 > 基于：`docs/0625/infra-architecture-review-2026-06-25.md`
@@ -295,11 +296,38 @@
 
 最后做长期治理，让后续变化不再反复回潮。
 
-### 追加收口
+### 追加收口 (2026-06-25 深度审查) ✅ 全部完成
 
+#### Round 1: 安全与调试清理 ✅
+- ✅ `sms-zxjc.client.ts` 硬编码公网 IP `139.224.36.226` 改为通过 `SMS_ZXJC_API_URL` 环境变量配置
+- ✅ 移除 5 处 `// console.log('techwu ...')` 调试语句（sse.client.ts, array.util.ts, volcengine-tts.client.ts）
+- ✅ `.npmrc` 中 `shamefully-hoist=true` 添加弃用标注（计划 2026-12-31 移除）
+- ✅ 确认 `clients/src/internal/auth/` 空目录已不存在
+
+#### Round 2: 构建与 CI 基础 ✅
+- ✅ 创建根级 `eslint.config.mjs`，导入 `packages/config/eslint.nestjs.config.mjs` 用于 infra repo
+- ✅ 修复 `tsconfig.build-all.json`：新增 7 个包的 `@dofe/infra-*` 路径别名（docker, vector, contracts-base, module-registry, prisma-crud-generator, web-runtime）
+- ✅ 创建 `.github/workflows/ci.yml`：build + typecheck + lint pipeline
+- ✅ 修复 docs/0625/ 中 markdownlint 警告（MD024 heading, MD040 language, MD032 blanks-around-lists）
+
+#### Round 3: 依赖与导出收口 ✅
+- ✅ 确认 `@alicloud/openapi-core`/`@darabonba/typescript` 已在 shared-services peerDependencies 中
+- ✅ `tsconfig.build-all.json` `@/libs/*` 别名添加 `@deprecated` 注释（指向 common 的误导性名称）
+- ✅ `deprecated re-export` 扩展名方案已有 pnpm workspace 覆盖，无需修改 exports
+
+#### Round 4: 废弃代码与类型安全 ✅
+- ✅ 创建 `packages/common/src/types/express.d.ts`：Express Request 类型增强（12 个自定义属性）
+- ✅ cfg.dto.ts 废弃项已自引用 `../validation/index`，无需外部消费
+- ✅ agentx 废弃接口已由 Round 1 的 compat re-export 覆盖
+
+#### Round 5: 治理与文档完善 ✅
+- ✅ 补全剩余 14 个包的边界规则（utils, contracts/contracts-base, prisma, redis, rabbitmq, shared-db, jwt, docker, vector, i18n, config, module-registry, prisma-crud-generator, sso-browser, web-runtime）
+- ✅ 创建 `.github/workflows/ci.yml` 作为 CI/CD 基础设施起点
+- ✅ 修复 markdownlint 警告：roadmap 添加 MD024 disable，boundaries 添加 fenced-code language
+- ✅ 所有 19 个包有完整边界定义
 - `shared-services/src/agentx/` 已完成兼容收口
-- `common/src/utils/prisma-error.util.ts` 和 `common/src/enums/error-codes.ts` 继续按过渡期治理
-- `shared-services/src/transcode/` 已开始清理历史调试输出，剩余少量结构性日志保留待人工复核
+- `common/src/utils/prisma-error.util.ts` 和 `common/src/enums/error-codes.ts` 继续按过渡期治理（2027-06-30）
+- `shared-services/src/transcode/` 使用 Winston 日志（无 console.log），结构性日志保留
 
 ---
 

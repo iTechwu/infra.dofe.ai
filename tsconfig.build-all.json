@@ -35,7 +35,7 @@
       "@/ts-rest/*": ["packages/common/src/ts-rest/*"],
       "@/adapters/*": ["packages/common/src/adapters/*"],
       "@/utils/*": ["packages/utils/src/*", "packages/common/src/*"],
-      "@/libs/*": ["packages/common/src/*"],
+      "@/libs/*": ["packages/common/src/*"],  // @deprecated: misleading name — use @/common/* or @dofe/infra-common
       "@/shared-db/*": ["packages/shared-db/src/*"],
       "@/prisma/*": ["packages/prisma/src/prisma/*"],
       "@/prisma-read/*": ["packages/prisma/src/prisma-read/*"],
@@ -83,7 +83,19 @@
       "@dofe/infra-shared-db": ["packages/shared-db/src"],
       "@dofe/infra-shared-db/*": ["packages/shared-db/src/*"],
       "@dofe/infra-shared-services": ["packages/shared-services/src"],
-      "@dofe/infra-shared-services/*": ["packages/shared-services/src/*"]
+      "@dofe/infra-shared-services/*": ["packages/shared-services/src/*"],
+      "@dofe/infra-docker": ["packages/docker/src"],
+      "@dofe/infra-docker/*": ["packages/docker/src/*"],
+      "@dofe/infra-vector": ["packages/vector/src"],
+      "@dofe/infra-vector/*": ["packages/vector/src/*"],
+      "@dofe/infra-contracts-base": ["packages/contracts-base/src"],
+      "@dofe/infra-contracts-base/*": ["packages/contracts-base/src/*"],
+      "@dofe/infra-module-registry": ["packages/module-registry/src"],
+      "@dofe/infra-module-registry/*": ["packages/module-registry/src/*"],
+      "@dofe/infra-prisma-crud-generator": ["packages/prisma-crud-generator/src"],
+      "@dofe/infra-prisma-crud-generator/*": ["packages/prisma-crud-generator/src/*"],
+      "@dofe/infra-web-runtime": ["packages/web-runtime/src"],
+      "@dofe/infra-web-runtime/*": ["packages/web-runtime/src/*"]
     }
   },
   "include": [

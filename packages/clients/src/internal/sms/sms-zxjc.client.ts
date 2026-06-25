@@ -28,7 +28,7 @@ export class SmsZxjcClient {
     };
     this.logger.info('发送内容：', sendContent);
 
-    const url = 'http://139.224.36.226:382/wgws/OrderServlet4J';
+    const url = process.env.SMS_ZXJC_API_URL || 'http://139.224.36.226:382/wgws/OrderServlet4J';
     try {
       const response = await firstValueFrom(
         this.httpService.post(url, sendContent, {

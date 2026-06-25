@@ -41,7 +41,6 @@ export default {
     conditions: { [key: string]: any },
     defaultValue: any = '',
   ): any | null {
-    // console.log('techwu findOne' , array ,conditions )
     // 如果数组不为null，则开始查找
     return array
       ? array.find((item: any) => {

@@ -13,7 +13,7 @@
 
 ## 包分层
 
-```
+```text
 Layer 0: 无依赖叶包
   infra-contracts-base, infra-contracts, infra-i18n, infra-config,
   infra-module-registry, infra-prisma-crud-generator, sso-browser
@@ -100,6 +100,156 @@ Layer 4: 聚合服务层
 **设计约束：**
 - `clients/src/internal/` 前缀在源码中保留，但在 exports 中剥离（由 `generate-exports.mjs` 处理）
 - 每个客户端应该是独立的，不依赖其他客户端
+
+---
+
+### `@dofe/infra-utils`
+
+**职责：** 纯函数工具，零 NestJS 依赖。可被任何包安全依赖。
+
+**可以是：** 字符串/数组/对象/JSON 操作，加密/哈希，文件系统，HTTP 客户端封装，环境变量读取，分页工具
+
+**不能是：** NestJS 装饰器/模块，数据库操作，需要 DI 注入的服务
+
+---
+
+### `@dofe/infra-contracts` / `@dofe/infra-contracts-base`
+
+**职责：** 跨项目共享的类型定义、DTO、错误码、ts-rest contracts。
+
+**可以是：** Zod/ts-rest schema，错误码枚举，共享 DTO 类型，API contract 定义
+
+**不能是：** 运行时实现，NestJS 模块，数据库 schema
+
+---
+
+### `@dofe/infra-prisma`
+
+**职责：** Prisma ORM 封装（读写分离、连接管理、指标、中间件）。
+
+**可以是：** PrismaService/PrismaReadService/PrismaWriteService，soft-delete 中间件，tenant-isolation，Prometheus 指标
+
+**不能是：** 非 Prisma 的数据库操作，业务查询逻辑，第三方 API 调用
+
+---
+
+### `@dofe/infra-redis`
+
+**职责：** Redis 缓存、分布式锁、租户级缓存隔离。
+
+**可以是：** CacheService，RedisLockService，TenantRedisService，pipeline 操作
+
+**不能是：** 数据库 ORM 操作，业务数据序列化逻辑
+
+---
+
+### `@dofe/infra-rabbitmq`
+
+**职责：** RabbitMQ 消息队列封装。
+
+**可以是：** RabbitmqModule，RabbitmqEventsModule，消息发布/订阅
+
+**不能是：** 业务消息处理逻辑，非 RabbitMQ 的消息系统
+
+---
+
+### `@dofe/infra-shared-db`
+
+**职责：** 事务管理、UnitOfWork、AsyncLocalStorage 上下文传递。
+
+**可以是：** TransactionalServiceBase，@Transactional 装饰器，事务传播
+
+**不能是：** 具体数据库操作，ORM 封装（应在 prisma）
+
+---
+
+### `@dofe/infra-jwt`
+
+**职责：** JWT 签发/校验、JWKS 客户端。
+
+**可以是：** JwtModule，JwksClient，token 生成/验证
+
+**不能是：** 用户认证业务逻辑，权限判定
+
+---
+
+### `@dofe/infra-docker`
+
+**职责：** Docker 容器管理。
+
+**可以是：** DockerService（创建/启动/停止容器），端口分配，孤儿清理
+
+**不能是：** 业务容器编排，CI/CD pipeline 逻辑
+
+---
+
+### `@dofe/infra-vector`
+
+**职责：** 向量数据库客户端。
+
+**可以是：** VikingDB 客户端，Embedding 服务，知识库管理
+
+**不能是：** 业务 RAG 逻辑，业务知识库组织
+
+---
+
+### `@dofe/infra-i18n`
+
+**职责：** 国际化 JSON 资源文件。
+
+**可以是：** en/zh-CN locale JSON，类型安全的 key 定义
+
+**不能是：** 运行时翻译逻辑（应在 common）
+
+---
+
+### `@dofe/infra-config`
+
+**职责：** 共享的 ESLint/Prettier/TypeScript/PostCSS/Tailwind 配置。
+
+**可以是：** 所有 `packages/config/` 下的配置文件
+
+**不能是：** 运行时代码（无 `src/` 目录，不编译）
+
+---
+
+### `@dofe/infra-module-registry`
+
+**职责：** 动态模块注册与依赖解析。
+
+**可以是：** @RegisterModule 装饰器，自动扫描，动态特性模块
+
+**不能是：** 业务模块定义
+
+---
+
+### `@dofe/infra-prisma-crud-generator`
+
+**职责：** Prisma schema → CRUD 代码生成 CLI 工具。
+
+**可以是：** 代码生成逻辑，CLI 入口，模板引擎
+
+**不能是：** 运行时 ORM 操作（应在 prisma），NestJS 模块
+
+---
+
+### `@dofe/sso-browser`
+
+**职责：** 浏览器端 SSO 认证工具。
+
+**可以是：** 浏览器 OAuth/OIDC 流程，token 管理
+
+**不能是：** 服务端认证逻辑（应在 jwt）
+
+---
+
+### `@dofe/infra-web-runtime`
+
+**职责：** 浏览器运行时能力。
+
+**可以是：** fetch 封装，重连逻辑，版本检测，CN 环境适配
+
+**不能是：** React 组件，业务状态管理
 
 ---
 
