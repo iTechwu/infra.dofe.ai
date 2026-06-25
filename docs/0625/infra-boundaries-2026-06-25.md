@@ -137,7 +137,7 @@ Layer 4: 聚合服务层
 
 **职责：** Redis 缓存、分布式锁、租户级缓存隔离。
 
-**可以是：** CacheService，RedisLockService，TenantRedisService，pipeline 操作
+**可以是：** CacheService，RedisLockService，TenantRedisService，pipeline 操作，版本检查与 bootstrap 验证
 
 **不能是：** 数据库 ORM 操作，业务数据序列化逻辑
 
@@ -177,9 +177,12 @@ Layer 4: 聚合服务层
 
 **职责：** Docker 容器管理。
 
-**可以是：** DockerService（创建/启动/停止容器），端口分配，孤儿清理
+**可以是：** DockerService（创建/启动/停止容器），端口分配，孤儿清理，带观察期的孤儿清理策略
 
 **不能是：** 业务容器编排，CI/CD pipeline 逻辑
+
+**已知实现状态：**
+- `packages/docker/src/docker-orphan-cleaner.service.ts` 已实现 `gracePeriodMs`，采用“首次发现后进入观察期”的清理策略。
 
 ---
 

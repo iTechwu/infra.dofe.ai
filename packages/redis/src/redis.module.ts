@@ -14,6 +14,20 @@ function isProduction(): boolean {
   return process.env.NODE_ENV?.startsWith('prod') ?? false;
 }
 
+function logRedis(level: 'error' | 'warn' | 'info' | 'debug', message: string, meta?: unknown) {
+  if (level === 'debug' && isProduction()) {
+    return;
+  }
+
+  if (level === 'debug') {
+    console.debug(message, meta);
+    return;
+  }
+
+  const method = level === 'info' ? 'log' : level;
+  console[method](message, meta);
+}
+
 @Module({
   imports: [ConfigModule],
   providers: [
@@ -22,15 +36,15 @@ function isProduction(): boolean {
       useFactory: async () => {
         const redisUrl = process.env.REDIS_URL;
         if (!redisUrl) {
-          console.error('Redis URL not configured');
+          logRedis('error', 'Redis URL not configured');
           return null;
         }
         try {
           const client = new Redis(redisUrl, {
             retryStrategy(times) {
               if (times > 10) {
-                console.error(
-                  'Redis连接失败',
+                logRedis(
+                  'error',
                   'Redis reconnect exhausted after 10 retries.',
                 );
                 return null;
@@ -41,21 +55,21 @@ function isProduction(): boolean {
 
           client.on('connect', () => {
             if (isProduction()) {
-              console.log('Redis client connected');
+              logRedis('info', 'Redis client connected');
             }
           });
 
           client.on('error', (error) => {
             if (isProduction()) {
-              console.error('Error connecting to Redis', error);
+              logRedis('error', 'Error connecting to Redis', error);
             } else {
-              console.debug('Error connecting to Redis', error);
+              logRedis('debug', 'Error connecting to Redis', error);
             }
           });
 
           return client;
         } catch (e) {
-          console.error('Redis error', e);
+          logRedis('error', 'Redis error', e);
           return null;
         }
       },

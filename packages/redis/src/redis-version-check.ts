@@ -2,6 +2,14 @@ import Redis from 'ioredis';
 
 const MIN_REDIS_VERSION = 5;
 
+function logRedisVersion(level: 'error' | 'info', message: string): void {
+  if (level === 'info' && process.env.NODE_ENV?.startsWith('prod')) {
+    return;
+  }
+  const method = level === 'info' ? 'log' : 'error';
+  console[method](message);
+}
+
 /**
  * Validate Redis version meets BullMQ minimum requirement (>= 5.0.0).
  * Called during bootstrap before NestJS DI is available, so uses console for logging.
@@ -27,13 +35,13 @@ export async function validateRedisVersion(redisUrl: string): Promise<void> {
           `请升级 Redis 服务器。参考文档: docs/redis-version-error.md\n` +
           `升级命令 (macOS): brew upgrade redis\n` +
           `升级命令 (Linux): sudo apt update && sudo apt install redis-server`;
-        console.error(errorMsg);
+        logRedisVersion('error', errorMsg);
         throw new Error(
           `Redis version ${version} is too old. BullMQ requires Redis >= ${MIN_REDIS_VERSION}.0.0. Please upgrade Redis server.`,
         );
       }
       if (!process.env.NODE_ENV?.startsWith('prod')) {
-        console.log(`✓ Redis 版本检查通过: ${version}`);
+        logRedisVersion('info', `✓ Redis 版本检查通过: ${version}`);
       }
     }
   } finally {

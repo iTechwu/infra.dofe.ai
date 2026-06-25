@@ -72,6 +72,8 @@ export interface SandboxCleanupReport {
  * 封装孤立资源检测和清理逻辑
  */
 export class DockerOrphanCleanerService {
+  private readonly orphanFirstSeenAt = new Map<string, number>();
+
   constructor(
     private readonly docker: Docker | null,
     private readonly dataDir: string,
@@ -719,7 +721,7 @@ export class DockerOrphanCleanerService {
    */
   async cleanupOrphanedSandboxes(
     knownGatewayContainers: string[],
-    gracePeriodMs: number = 300000, // eslint-disable-line @typescript-eslint/no-unused-vars -- TODO: implement grace period logic
+    gracePeriodMs: number = 300000,
   ): Promise<SandboxCleanupReport> {
     const report: SandboxCleanupReport = {
       scanned: 0,
@@ -750,7 +752,32 @@ export class DockerOrphanCleanerService {
       `[SandboxCleanup] Scanned ${report.scanned} sandboxes, found ${report.orphansFound} orphans`,
     );
 
+    const now = Date.now();
+
     for (const orphan of orphans) {
+      const orphanKey = orphan.containerId || orphan.containerName;
+      const firstSeenAt =
+        this.orphanFirstSeenAt.get(orphanKey) ?? now;
+      this.orphanFirstSeenAt.set(orphanKey, firstSeenAt);
+
+      if (now - firstSeenAt < gracePeriodMs) {
+        report.skipped++;
+        report.details.push({
+          containerName: orphan.containerName,
+          action: 'skipped',
+          reason: `Grace period not expired (${now - firstSeenAt}ms/${gracePeriodMs}ms)`,
+        });
+        this.logFn(
+          'log',
+          `[SandboxCleanup] SKIPPED container=${orphan.containerName} reason=grace_period ageMs=${
+            now - firstSeenAt
+          } gracePeriodMs=${gracePeriodMs}`,
+        );
+        continue;
+      }
+
+      this.orphanFirstSeenAt.delete(orphanKey);
+
       // Log detection
       this.logFn(
         'log',

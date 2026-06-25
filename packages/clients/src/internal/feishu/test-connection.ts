@@ -15,22 +15,37 @@ const appId = process.env.FEISHU_APP_ID;
 const appSecret = process.env.FEISHU_APP_SECRET;
 const domain = process.env.FEISHU_DOMAIN || 'feishu'; // 'feishu' 或 'lark'
 
+function emitLine(text = ''): void {
+  console.log(text);
+}
+
+function emitBanner(title: string): void {
+  emitLine('='.repeat(60));
+  emitLine(title);
+  emitLine('='.repeat(60));
+}
+
+function emitError(title: string, detail?: string): void {
+  console.error(title);
+  if (detail) {
+    console.error(detail);
+  }
+}
+
 if (!appId || !appSecret) {
-  console.error('请设置环境变量 FEISHU_APP_ID 和 FEISHU_APP_SECRET');
-  console.error(
+  emitError('请设置环境变量 FEISHU_APP_ID 和 FEISHU_APP_SECRET');
+  emitError(
     '示例: FEISHU_APP_ID=xxx FEISHU_APP_SECRET=xxx npx ts-node test-connection.ts',
   );
   process.exit(1);
 }
 
-console.log('='.repeat(60));
-console.log('飞书长连接测试');
-console.log('='.repeat(60));
-console.log(`App ID: ${appId}`);
-console.log(`Domain: ${domain}`);
-console.log('');
-console.log('正在建立 WebSocket 连接...');
-console.log('');
+emitBanner('飞书长连接测试');
+emitLine(`App ID: ${appId}`);
+emitLine(`Domain: ${domain}`);
+emitLine('');
+emitLine('正在建立 WebSocket 连接...');
+emitLine('');
 
 const wsClient = new lark.WSClient({
   appId,
@@ -54,68 +69,61 @@ eventDispatcher.register({
       messageText = data.message?.content || '';
     }
 
-    console.log('');
-    console.log('='.repeat(60));
-    console.log('📩 收到飞书消息');
-    console.log('='.repeat(60));
-    console.log(`消息ID: ${data.message?.message_id}`);
-    console.log(`会话ID: ${data.message?.chat_id}`);
-    console.log(
+    emitLine('');
+    emitBanner('📩 收到飞书消息');
+    emitLine(`消息ID: ${data.message?.message_id}`);
+    emitLine(`会话ID: ${data.message?.chat_id}`);
+    emitLine(
       `会话类型: ${data.message?.chat_type === 'p2p' ? '私聊' : '群聊'}`,
     );
-    console.log(`消息类型: ${data.message?.message_type}`);
-    console.log(`发送者ID: ${data.sender?.sender_id?.open_id}`);
-    console.log(`发送者类型: ${data.sender?.sender_type}`);
-    console.log(`消息内容: ${messageText}`);
+    emitLine(`消息类型: ${data.message?.message_type}`);
+    emitLine(`发送者ID: ${data.sender?.sender_id?.open_id}`);
+    emitLine(`发送者类型: ${data.sender?.sender_type}`);
+    emitLine(`消息内容: ${messageText}`);
     if (data.message?.mentions?.length > 0) {
-      console.log(
+      emitLine(
         `@提及: ${data.message.mentions.map((m: any) => m.name).join(', ')}`,
       );
     }
-    console.log(
+    emitLine(
       `事件时间: ${new Date(parseInt(data.message?.create_time || '0')).toLocaleString()}`,
     );
-    console.log('='.repeat(60));
-    console.log('');
-    console.log('原始数据:');
-    console.log(JSON.stringify(data, null, 2));
-    console.log('');
+    emitBanner('');
+    emitLine('原始数据:');
+    emitLine(JSON.stringify(data, null, 2));
+    emitLine('');
   },
 });
 
 wsClient
-  .start({ eventDispatcher })
+.start({ eventDispatcher })
   .then(() => {
-    console.log('');
-    console.log('='.repeat(60));
-    console.log('✅ WebSocket 连接成功！');
-    console.log('='.repeat(60));
-    console.log('');
-    console.log('连接已建立，等待接收消息...');
-    console.log('请在飞书中向机器人发送消息进行测试');
-    console.log('');
-    console.log('按 Ctrl+C 退出');
-    console.log('');
+    emitLine('');
+    emitBanner('✅ WebSocket 连接成功！');
+    emitLine('');
+    emitLine('连接已建立，等待接收消息...');
+    emitLine('请在飞书中向机器人发送消息进行测试');
+    emitLine('');
+    emitLine('按 Ctrl+C 退出');
+    emitLine('');
   })
   .catch((error) => {
-    console.error('');
-    console.error('='.repeat(60));
-    console.error('❌ WebSocket 连接失败！');
-    console.error('='.repeat(60));
-    console.error('');
-    console.error('错误信息:', error.message || error);
-    console.error('');
-    console.error('可能的原因：');
-    console.error('1. App ID 或 App Secret 不正确');
-    console.error('2. 应用未发布或未启用');
-    console.error('3. 网络问题');
-    console.error('');
+    emitError('');
+    emitBanner('❌ WebSocket 连接失败！');
+    emitError('');
+    emitError(`错误信息: ${error.message || error}`);
+    emitError('');
+    emitError('可能的原因：');
+    emitError('1. App ID 或 App Secret 不正确');
+    emitError('2. 应用未发布或未启用');
+    emitError('3. 网络问题');
+    emitError('');
     process.exit(1);
   });
 
 // 保持进程运行
 process.on('SIGINT', () => {
-  console.log('\n正在关闭连接...');
+  emitLine('\n正在关闭连接...');
   wsClient.close();
   process.exit(0);
 });

@@ -17,6 +17,18 @@ import {
 
 export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
 
+function logEvents(level: 'error' | 'warn' | 'log', message: string, meta?: unknown) {
+  if (level === 'warn') {
+    console.warn(message, meta);
+    return;
+  }
+  if (level === 'error') {
+    console.error(message, meta);
+    return;
+  }
+  console.log(message, meta);
+}
+
 @Module({
   imports: [ConfigModule],
   providers: [
@@ -33,7 +45,8 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {
-            console.log(
+            logEvents(
+              'log',
               `[Events] Attempting to connect to RabbitMQ Events (attempt ${attempt}/${maxRetries})`,
             );
 
@@ -46,11 +59,13 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
             });
 
             if (environment.isProduction()) {
-              console.log(
+              logEvents(
+                'log',
                 '✅ [Events] RabbitMQ Events connection established successfully',
               );
             } else {
-              console.log(
+              logEvents(
+                'log',
                 `✅ [Events] RabbitMQ Events connection established: ${rabbitmqEventsUrl}`,
               );
             }
@@ -64,7 +79,7 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
             });
 
             connection.on('close', () => {
-              console.warn('⚠️  [Events] RabbitMQ Events connection closed');
+              logEvents('warn', '⚠️  [Events] RabbitMQ Events connection closed');
             });
 
             return {
@@ -72,7 +87,8 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
               close: async () => {
                 try {
                   await connection.close();
-                  console.log(
+                  logEvents(
+                    'log',
                     '✅ [Events] RabbitMQ Events connection closed gracefully',
                   );
                 } catch (error) {
@@ -83,7 +99,8 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
                       !error.message.includes('Connection closed') &&
                       !error.message.includes('IllegalOperationError'))
                   ) {
-                    console.error(
+                    logEvents(
+                      'error',
                       '❌ [Events] Error closing RabbitMQ Events connection:',
                       error,
                     );
@@ -93,32 +110,35 @@ export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
             };
           } catch (error) {
             lastError = error as Error;
-            console.error(
+            logEvents(
+              'error',
               `[Events] RabbitMQ Events connection attempt ${attempt}/${maxRetries} failed:`,
               error,
             );
 
             if (attempt < maxRetries) {
-              console.log(`[Events] Retrying in ${retryDelay}ms...`);
+              logEvents('log', `[Events] Retrying in ${retryDelay}ms...`);
               await new Promise((resolve) => setTimeout(resolve, retryDelay));
             }
           }
         }
 
-        console.error(
+        logEvents(
+          'error',
           '[Events] Failed to establish RabbitMQ Events connection after all retries',
         );
 
         // 如果连接失败,返回一个 fallback 对象而不是抛出错误
         // 这样系统可以继续运行,只是事件功能不可用
-        console.warn(
+        logEvents(
+          'warn',
           '⚠️  [Events] RabbitMQ Events service is unavailable, events will not be published',
         );
 
         return {
           connection: null as any,
           close: async () => {
-            console.log('[Events] No RabbitMQ Events connection to close');
+            logEvents('log', '[Events] No RabbitMQ Events connection to close');
           },
         };
       },

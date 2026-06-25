@@ -269,6 +269,11 @@
 - ✅ 所有 3 处 `@boundary-violation` 已标注在源码中
 - ✅ 6 处 `@deprecated` 已标注弃用截止日期
 - ✅ 4 个兼容路径有明确迁移计划
+- ✅ `packages/docker/src/docker-orphan-cleaner.service.ts` 已落地 `gracePeriodMs`，避免孤儿容器被立即清理
+- ✅ `packages/redis/src/redis.module.ts` 已收口 Redis 连接日志
+- ✅ `packages/redis/src/redis-version-check.ts` 已收口 Redis 版本检查输出
+- ✅ `packages/rabbitmq/src/rabbitmq-events.module.ts` 已收口 RabbitMQ Events 连接日志
+- ✅ `packages/clients/src/internal/feishu/test-connection.ts` 已抽出脚本输出辅助函数，便于后续区分诊断输出与运行时日志
 
 ---
 
@@ -328,6 +333,14 @@
 - `shared-services/src/agentx/` 已完成兼容收口
 - `common/src/utils/prisma-error.util.ts` 和 `common/src/enums/error-codes.ts` 继续按过渡期治理（2027-06-30）
 - `shared-services/src/transcode/` 使用 Winston 日志（无 console.log），结构性日志保留
+
+#### Round 6: 深度审查后续收口 ✅
+- ✅ `docker-orphan-cleaner.service.ts` 已实现 `gracePeriodMs` 观察期
+- ✅ `redis.module.ts` 已统一 Redis 连接日志出口
+- ✅ `redis-version-check.ts` 已统一 Redis 版本检查输出
+- ✅ `rabbitmq-events.module.ts` 已统一 RabbitMQ Events 连接日志出口
+- ✅ `clients/src/internal/feishu/test-connection.ts` 已抽出脚本输出辅助函数
+- ⏳ `clients/src/internal/openclaw/openclaw.client.ts` 仍保留批量脚本输出，需在下一轮明确哪些是 CLI、哪些是运行时日志
 
 ---
 
