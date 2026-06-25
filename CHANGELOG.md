@@ -1,3 +1,12 @@
+## [0.1.75] - 2026-06-25
+- feat: 添加包依赖全量审计和循环依赖文档化，更新边界定义
+- feat: Enhance logging and output handling across various services
+- feat: enhance logging and cleanup strategies in Docker and Redis modules; unify log outputs and implement grace period for orphan cleanup
+- feat: update configuration and documentation; remove deprecated code and improve type safety
+- feat: implement database metrics module and service
+- feat: add tests and improve parsing for Prisma schema and enums
+- refactor: migrate AgentX file and task interfaces to @dofe/infra-clients/agentx
+
 ## [0.1.74] - 2026-06-25
 - Refactor code structure for improved readability and maintainability
 
