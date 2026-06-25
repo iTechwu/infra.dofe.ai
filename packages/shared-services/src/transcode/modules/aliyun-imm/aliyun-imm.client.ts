@@ -258,7 +258,7 @@ export class AliyunImmClient {
                 qualities,
             );
             // 添加调试日志，检查URI值
-            console.log('URI values check', {
+            this.logger.debug('URI values check', {
                 sourceUri,
                 targetUri,
             });
@@ -271,7 +271,7 @@ export class AliyunImmClient {
                 throw new Error(`Target URI is empty or invalid: ${targetUri}`);
             }
 
-            console.log('Creating media convert task', {
+            this.logger.debug('Creating media convert task', {
                 vendor,
                 bucket,
                 key,
@@ -299,7 +299,7 @@ export class AliyunImmClient {
                     key,
                     quality,
                 );
-                console.log('buildTarget', {
+                this.logger.debug('buildTarget', {
                     video: this.buildTargetVideo(quality),
                     audio: this.buildTargetAudio(quality),
                 });
@@ -370,10 +370,11 @@ export class AliyunImmClient {
                 requestId: response.body.requestId,
             };
 
-            console.log(
-                'Media convert task created successfully 111',
-                response?.body,
-            );
+            this.logger.info('Media convert task created successfully', {
+                taskId: result.taskId,
+                requestId: result.requestId,
+                eventId: result.eventId,
+            });
 
             return result;
         } catch (error) {

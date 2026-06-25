@@ -80,7 +80,7 @@ Layer 4: 聚合服务层
 - 可以独立作为客户端使用的原子能力
 
 **已知待治理项：**
-- `shared-services/src/agentx/agentx-client.service.ts` — 与 `clients/src/internal/agentx/agentx-client.service.ts` 完全重复。应只保留 `clients` 版本，`shared-services` 改为 re-export。
+- `shared-services/src/agentx/` — 已改为兼容 re-export，canonical 实现位于 `@dofe/infra-clients/agentx`。
 - `shared-services/src/transcode/` — 转码层与 `clients` 中的转码客户端有重叠，需要明确：clients 负责原子 SDK 调用，shared-services 负责编排。
 
 ---

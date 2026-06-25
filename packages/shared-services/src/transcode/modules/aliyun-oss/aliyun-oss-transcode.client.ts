@@ -225,7 +225,7 @@ export class AliyunOssTranscodeClient {
         try {
             const ossClient = this.getOssClient(bucket);
 
-            console.log('Executing OSS process with client', {
+            this.logger.debug('Executing OSS process with client', {
                 bucket,
                 key,
                 process,
@@ -445,10 +445,11 @@ export class AliyunOssTranscodeClient {
                 index,
             );
 
-            console.log(
-                'Video transcode task created successfully using IMM',
-                result,
-            );
+            this.logger.info('Video transcode task created successfully using IMM', {
+                taskId: result.taskId,
+                requestId: result.requestId,
+                eventId: result.eventId,
+            });
 
             return result;
         } catch (error: unknown) {
@@ -1230,7 +1231,7 @@ export class AliyunOssTranscodeClient {
                 process,
             );
 
-            console.log('Sprite generation initiated', {
+            this.logger.debug('Sprite generation initiated', {
                 spriteKey,
                 process,
                 options,
@@ -1432,11 +1433,11 @@ export class AliyunOssTranscodeClient {
             );
 
             const process = filteredParams.join(',');
-            console.log('process', process);
+            this.logger.debug('OSS process key', { process });
 
             // 生成截图文件名
             const snapshotKey = this.generateSnapshotKey(key, time, format);
-            console.log('snapshotKey', snapshotKey);
+            this.logger.debug('Snapshot key generated', { snapshotKey });
 
             // 使用 ali-oss 直接处理，而不是构建URL
             const result = await this.executeOssProcessWithClient(
@@ -1447,7 +1448,7 @@ export class AliyunOssTranscodeClient {
                 snapshotKey,
             );
 
-            console.log('Snapshot generated successfully', {
+            this.logger.info('Snapshot generated successfully', {
                 snapshotKey,
                 process,
                 time: timeInMs,

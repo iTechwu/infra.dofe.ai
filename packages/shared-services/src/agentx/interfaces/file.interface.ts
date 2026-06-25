@@ -1,24 +1,12 @@
-import { z } from 'zod';
-
 /**
- * 文件上传请求 Schema
+ * @deprecated Import AgentX file interfaces from `@dofe/infra-clients/agentx`.
+ * This compatibility export will be removed after 2027-06-30.
  */
-export const FileUploadRequestSchema = z.object({
-  file: z.instanceof(Buffer),
-  filename: z.string(),
-  ext: z.string(),
-});
-
-export type FileUploadRequest = z.infer<typeof FileUploadRequestSchema>;
-
-/**
- * 文件上传响应 Schema
- */
-export const FileUploadResponseSchema = z.object({
-  url: z.string().url(),
-  bucket: z.string().optional(),
-  key: z.string().optional(),
-  size: z.number().optional(),
-});
-
-export type FileUploadResponse = z.infer<typeof FileUploadResponseSchema>;
+export {
+  FileUploadRequestSchema,
+  FileUploadResponseSchema,
+} from '@dofe/infra-clients/agentx';
+export type {
+  FileUploadRequest,
+  FileUploadResponse,
+} from '@dofe/infra-clients/agentx';

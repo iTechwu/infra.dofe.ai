@@ -190,9 +190,9 @@
 - ✅ 标记 3 处已知边界违规：
   - `common/src/utils/prisma-error.util.ts` — Prisma 特定代码在 common 中（`@boundary-violation`）
   - `common/src/enums/error-codes.ts` — contracts 桥接文件（`@boundary-violation`）
-  - `shared-services/src/agentx/` — 与 clients 完全重复（`@boundary-violation`）
+- ✅ `shared-services/src/agentx/` 已收口为兼容 re-export，canonical 实现位于 `@dofe/infra-clients/agentx`
 - ✅ 每个违规项标注了迁移计划截止日期（2027-06-30）
-- ✅ 确认 agentx-client.service.ts 在 shared-services 和 clients 中完全相同
+- ✅ 确认并移除 shared-services 中的 agentx 重复实现
 
 ---
 
@@ -294,6 +294,12 @@
 - Step 7
 
 最后做长期治理，让后续变化不再反复回潮。
+
+### 追加收口
+
+- `shared-services/src/agentx/` 已完成兼容收口
+- `common/src/utils/prisma-error.util.ts` 和 `common/src/enums/error-codes.ts` 继续按过渡期治理
+- `shared-services/src/transcode/` 已开始清理历史调试输出，剩余少量结构性日志保留待人工复核
 
 ---
 

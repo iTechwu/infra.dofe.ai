@@ -4,7 +4,8 @@
  *
  * @boundary-violation: This Prisma-specific utility logically belongs in @dofe/infra-prisma.
  * It resides in @dofe/infra-common for historical reasons.
- * Migration target: @dofe/infra-prisma (with compat re-export in common until 2027-06-30).
+ * Migration target: @dofe/infra-prisma (with compat re-export in common).
+ * Planned removal: 2027-06-30.
  *
  * 使用四种错误码区分操作类型：
  * - DbCreateError: 创建操作失败

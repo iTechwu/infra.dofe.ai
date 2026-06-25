@@ -129,7 +129,7 @@ export class VolcengineTosTranscodeClient {
         type?: 'oss' | 'imm',
     ): Promise<Partial<VideoInfo> & any> {
         const videoInfo = await this.fileApi.getVideoInfo(vendor, bucket, key);
-        console.log('techwu getVideoInfo', vendor, bucket, key, videoInfo);
+        this.logger.debug('Video info fetched', { vendor, bucket, key, videoInfo });
         return videoInfo;
     }
 
@@ -167,7 +167,7 @@ export class VolcengineTosTranscodeClient {
         key: string,
         options?: SnapshotOptions,
     ): Promise<string> {
-        console.log('techwu takeSnapshot', key);
+        this.logger.debug('Taking snapshot', { key });
         const {
             time = '00:00:01',
             width = 0,
@@ -361,7 +361,7 @@ export class VolcengineTosTranscodeClient {
                 accessKeyId: this.accessKey,
                 secretKey: this.secretKey,
             });
-            console.log('techwu openApiRequestData', requestParams);
+            this.logger.debug('OpenAPI request prepared', { requestParams });
             // 发送请求
             const response = await firstValueFrom(
                 this.httpService.request({
@@ -644,7 +644,11 @@ export class VolcengineTosTranscodeClient {
                 request.CallbackContentType = 'application/json';
             }
             const result = await this.submitJob(request);
-            console.log('techwu submitJob result', result);
+            this.logger.info('Transcode job submitted', {
+                taskId: result.taskId,
+                requestId: result.requestId,
+                eventId: result.eventId,
+            });
             return result;
         } catch (error) {
             const errorMessage =

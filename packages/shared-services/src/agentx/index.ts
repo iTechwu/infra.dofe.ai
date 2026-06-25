@@ -1,8 +1,8 @@
 /**
- * AgentX Client 模块导出
+ * AgentX compatibility exports.
+ *
+ * Canonical implementation lives in `@dofe/infra-clients/agentx`.
+ * This package keeps the old shared-services import path available while
+ * avoiding a second implementation.
  */
-export { AgentXClientModule } from './agentx-client.module';
-export * from './agentx-client.service';
-export * from './agentx-file-client.service';
-export * from './interfaces/task.interface';
-export * from './interfaces/file.interface';
+export * from '@dofe/infra-clients/agentx';
