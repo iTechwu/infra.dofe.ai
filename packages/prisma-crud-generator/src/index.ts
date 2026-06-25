@@ -117,7 +117,7 @@ function parseFields(body: string, modelNames: Set<string>): ParsedField[] {
     if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('@@')) continue;
 
     const fieldMatch = trimmed.match(
-      /^(\w+)\s+(\w+)(\[\])?\s*((?:@\w+(?:\([^)]*\))?\s*)*)(?:\/\/.*)?$/,
+      /^(\w+)\s+(\w+)\??(\[\])?\s*((?:@[\w.]+(?:\((?:[^()]|\([^()]*\))*\))?\s*)*)(?:\/\/.*)?$/,
     );
     if (!fieldMatch) continue;
 
@@ -226,7 +226,9 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   const cfg = { ...DEFAULT_GEN_CONFIG, ...config };
   const kebab = model.kebab;
   const pascal = model.name;
-  const idField = model.idField!;
+  // Use @id field if present, otherwise fall back to first @unique field
+  const idField = model.idField || model.uniqueFields[0];
+  if (!idField) throw new Error(`Model ${model.name} has no @id or @unique field - should have been skipped by CLI`);
   const softDeleteField = cfg.softDeleteField || 'isDeleted';
   const orderField = model.hasCreatedAt ? 'createdAt' : idField.name;
   const orderDir = cfg.defaultOrderBy?.[orderField] ?? 'desc';
@@ -265,11 +267,16 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   out += `    return this.getReadClient().${kebab}.findFirst(query);\n`;
   out += `  }\n\n`;
 
-  // getById
-  out += `  @HandlePrismaError('query')\n`;
-  out += `  async getById(id: string, ${addTypeClean}) {\n`;
-  out += `    return this.getReadClient().${kebab}.findUnique({ where: { ${idField.name}: id }, ...(additional || {}) });\n`;
-  out += `  }\n\n`;
+  // getById (only when model has @id)
+  if (model.idField) {
+    out += `  @HandlePrismaError('query')\n`;
+    out += `  async getById(id: string, ${addTypeClean}) {\n`;
+    out += `    const where: any = { ${model.idField.name}: id`;
+    if (model.hasIsDeleted) out += `, ${softDeleteField}: false`;
+    out += ` };\n`;
+    out += `    return this.getReadClient().${kebab}.findUnique({ where, ...(additional || {}) });\n`;
+    out += `  }\n\n`;
+  }
 
   // getByXxx per unique field
   for (const uf of model.uniqueFields) {
@@ -318,14 +325,14 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
 
   // create
   out += `  @HandlePrismaError('create')\n`;
-  out += `  async create(data: Prisma.${pascal}CreateInput) {\n`;
-  out += `    return this.getWriteClient().${kebab}.create({ data });\n`;
+  out += `  async create(data: Prisma.${pascal}CreateInput, additional?: { select?: Prisma.${pascal}Select }) {\n`;
+  out += `    return this.getWriteClient().${kebab}.create({ data, ...(additional || {}) });\n`;
   out += `  }\n\n`;
 
   // update
   out += `  @HandlePrismaError('update')\n`;
-  out += `  async update(where: Prisma.${pascal}WhereUniqueInput, data: Prisma.${pascal}UpdateInput) {\n`;
-  out += `    return this.getWriteClient().${kebab}.update({ where, data });\n`;
+  out += `  async update(where: Prisma.${pascal}WhereUniqueInput, data: Prisma.${pascal}UpdateInput, additional?: { select?: Prisma.${pascal}Select }) {\n`;
+  out += `    return this.getWriteClient().${kebab}.update({ where, data, ...(additional || {}) });\n`;
   out += `  }\n\n`;
 
   // delete
