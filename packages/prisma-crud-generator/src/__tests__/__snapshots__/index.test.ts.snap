@@ -41,7 +41,8 @@ export class UserModule {}
 `;
 
 exports[`generateService > service snapshot is stable 1`] = `
-"import { Injectable, Logger } from '@nestjs/common';
+"import { Injectable, NotFoundException } from '@nestjs/common';
+import type { User } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import { PAGINATION } from '@dofe/infra-contracts';
 import { HandlePrismaError } from '@dofe/infra-common';
@@ -50,7 +51,6 @@ import { PrismaService } from '@dofe/infra-prisma';
 
 @Injectable()
 export class UserService extends TransactionalServiceBase {
-  private readonly logger = new Logger(UserService.name);
 
   constructor(prisma: PrismaService) {
     super(prisma);
@@ -66,23 +66,23 @@ export class UserService extends TransactionalServiceBase {
   @HandlePrismaError('query')
   async getById(id: string, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
     const where: any = { id: id, isDeleted: false };
-    return this.getReadClient().user.findUnique({ where, ...(additional || {}) });
+    return this.getReadClient().user.findFirst({ where, ...(additional || {}) });
   }
 
   @HandlePrismaError('query')
   async getByEmail(value: string, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
-    return this.getReadClient().user.findUnique({ where: { email: value }, ...(additional || {}) });
+    return this.getReadClient().user.findFirst({ where: { email: value, isDeleted: false }, ...(additional || {}) });
   }
 
   @HandlePrismaError('query')
   async list(
     where?: Prisma.UserWhereInput,
-    pagination?: { page?: number; limit?: number; sort?: string; asc?: 'asc' | 'desc' },
+    pagination?: { page?: number; limit?: number; orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[] },
     additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude },
   ) {
     const page = pagination?.page ?? PAGINATION.DEFAULT_PAGE;
     const limit = Math.min(pagination?.limit ?? PAGINATION.DEFAULT_PAGE_SIZE, PAGINATION.MAX_PAGE_SIZE);
-    const orderBy = pagination?.sort ? { [pagination.sort]: pagination.asc ?? 'desc' } : { createdAt: 'desc' as const };
+    const orderBy = pagination?.orderBy ?? { createdAt: 'desc' as const };
     const query: any = {
       where: { ...(where || {}), isDeleted: false },
       orderBy,
@@ -143,9 +143,10 @@ export class UserService extends TransactionalServiceBase {
   }
 
   @HandlePrismaError('query')
-  async getOrThrow(where: Prisma.UserWhereInput, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
-    const record = await this.get(where, additional);
-    if (!record) throw new Error('User not found');
+  async getOrThrow(id: string, additional?: { select?: Prisma.UserSelect; include?: Prisma.UserInclude }) {
+    const where: any = { id: id, isDeleted: false };
+    const record = await this.getReadClient().user.findFirst({ where, ...(additional || {}) });
+    if (!record) throw new NotFoundException(\`User \${id} not found\`);
     return record;
   }
 }

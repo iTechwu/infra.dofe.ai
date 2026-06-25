@@ -15,7 +15,7 @@ export interface DofePrismaCrudGeneratorConfig {
   /** Models to exclude from generation. */
   excludeModels?: string[];
 
-  /** Field name for soft-delete support (e.g., 'deletedAt'). */
+  /** Field name for soft-delete support (default: 'isDeleted'). */
   softDeleteField?: string;
 
   /** Default ordering for list queries. */
@@ -29,18 +29,31 @@ export interface DofePrismaCrudGeneratorConfig {
     prismaError: string;
     pagination: string;
   };
+
+  /** Output path for generated Prisma enum Zod schemas. */
+  enumOutputPath?: string;
+
+  /** Enum name mappings to resolve naming conflicts (e.g. { MdFileType: 'BotFocusFileType' }). */
+  enumNameMappings?: Record<string, string>;
+
+  /** Barrel index strategy: 'append' (default) or 'replace'. */
+  indexStrategy?: 'append' | 'replace';
+
+  /** Extra barrel exports to always include (used with 'replace' strategy). */
+  indexManualExports?: string[];
 }
 
 export const DEFAULT_IMPORTS = {
   prismaService: '@dofe/infra-prisma',
   prismaModule: '@dofe/infra-prisma',
   transactionalServiceBase: '@dofe/infra-shared-db',
-  prismaError: '@dofe/infra-common/utils/prisma-error.util',
-  pagination: '@dofe/infra-contracts-base',
+  prismaError: '@dofe/infra-common',
+  pagination: '@dofe/infra-contracts',
 };
 
 export const DEFAULT_CONFIG: Partial<DofePrismaCrudGeneratorConfig> = {
-  excludeModels: ['UserInfo'],
-  softDeleteField: 'deletedAt',
+  excludeModels: [],
+  softDeleteField: 'isDeleted',
   imports: DEFAULT_IMPORTS,
+  indexStrategy: 'append',
 };

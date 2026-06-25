@@ -18,6 +18,7 @@ import {
   generateModuleIndex,
   generateEnumSchemas,
   ensureExportsInIndex,
+  generateBarrelIndex,
   type GeneratorConfig,
 } from './index';
 import type { DofePrismaCrudGeneratorConfig } from './config';
@@ -183,11 +184,14 @@ function runCrudGenerate(args: string[]): void {
     const indexDir = path.dirname(resolvedIndex);
     if (!dryRun && !fs.existsSync(indexDir)) fs.mkdirSync(indexDir, { recursive: true });
 
-    const newContent = ensureExportsInIndex(resolvedIndex, generatedKebabs);
+    const strategy = config?.indexStrategy ?? 'append';
+    const newContent = strategy === 'replace'
+      ? generateBarrelIndex(generatedKebabs, config?.indexManualExports ?? [])
+      : ensureExportsInIndex(resolvedIndex, generatedKebabs);
     if (!dryRun) {
       fs.writeFileSync(resolvedIndex, newContent, 'utf8');
     }
-    console.log(`\n  INDEX ${resolvedIndex} (${generatedKebabs.length} modules)`);
+    console.log(`\n  INDEX ${resolvedIndex} (${generatedKebabs.length} modules, ${strategy})`);
   }
 
   if (dryRun) console.log('\n[Dry run complete - no files written]');
@@ -202,7 +206,7 @@ function runEnumGenerate(args: string[]): void {
 
   const config = configPath ? loadConfig(configPath) : null;
   const effectiveSchemaPath = schemaPath || config?.schemaPath;
-  const effectiveOutFile = outFile || (config as any)?.enumOutputPath;
+  const effectiveOutFile = outFile || config?.enumOutputPath;
 
   if (!effectiveSchemaPath) {
     console.error('Schema path required. Use --schema <path> or --config <path>');
@@ -219,7 +223,7 @@ function runEnumGenerate(args: string[]): void {
     process.exit(1);
   }
 
-  const nameMappings = (config as any)?.enumNameMappings ?? {};
+  const nameMappings = config?.enumNameMappings ?? {};
 
   console.log('dofe-prisma-crud generate enums');
   console.log(`  Schema: ${resolvedSchema}`);

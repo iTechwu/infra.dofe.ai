@@ -49,6 +49,11 @@ function pascalToKebab(str: string): string {
     .toLowerCase();
 }
 
+/** Convert PascalCase to camelCase (for Prisma client access: UserInfo → userInfo) */
+function pascalToCamel(str: string): string {
+  return str.charAt(0).toLowerCase() + str.slice(1);
+}
+
 /** Collect all model names for relation detection */
 function collectModelNames(schemaContent: string): Set<string> {
   const names = new Set<string>();
@@ -266,6 +271,7 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   const cfg = { ...DEFAULT_GEN_CONFIG, ...config };
   const kebab = model.kebab;
   const pascal = model.name;
+  const camelName = pascalToCamel(pascal);  // Prisma client access: UserInfo → userInfo
   // Use @id field if present, otherwise fall back to first @unique field
   const idField = model.idField || model.uniqueFields[0];
   if (!idField) throw new Error(`Model ${model.name} has no @id or @unique field - should have been skipped by CLI`);
@@ -276,7 +282,8 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   let out = '';
 
   // Imports
-  out += `import { Injectable, Logger } from '@nestjs/common';\n`;
+  out += `import { Injectable, NotFoundException } from '@nestjs/common';\n`;
+  out += `import type { ${pascal} } from '@prisma/client';\n`;
   out += `import { Prisma } from '@prisma/client';\n`;
   out += `import { PAGINATION } from '${cfg.imports!.pagination}';\n`;
   out += `import { HandlePrismaError } from '${cfg.imports!.prismaError}';\n`;
@@ -285,8 +292,7 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
 
   // Service class
   out += `@Injectable()\n`;
-  out += `export class ${pascal}Service extends TransactionalServiceBase {\n`;
-  out += `  private readonly logger = new Logger(${pascal}Service.name);\n\n`;
+  out += `export class ${pascal}Service extends TransactionalServiceBase {\n\n`;
   out += `  constructor(prisma: PrismaService) {\n`;
   out += `    super(prisma);\n`;
   out += `  }\n\n`;
@@ -297,6 +303,10 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
     : 'additional?: { select?: Prisma.XxxSelect }';
   const addTypeClean = addType.replace(/Xxx/g, pascal);
 
+  // For soft-delete models, findUnique can't filter by isDeleted (non-unique field).
+  // Use findFirst instead for getById/getByXxx when hasIsDeleted is true.
+  const findFn = model.hasIsDeleted ? 'findFirst' : 'findUnique';
+
   // get
   out += `  @HandlePrismaError('query')\n`;
   out += `  async get(where: Prisma.${pascal}WhereInput, ${addTypeClean}) {\n`;
@@ -304,7 +314,7 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   if (model.hasIsDeleted) out += `, ${softDeleteField}: false`;
   out += ` } };\n`;
   out += `    if (additional) Object.assign(query, additional);\n`;
-  out += `    return this.getReadClient().${kebab}.findFirst(query);\n`;
+  out += `    return this.getReadClient().${camelName}.findFirst(query);\n`;
   out += `  }\n\n`;
 
   // getById (only when model has @id)
@@ -314,29 +324,33 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
     out += `    const where: any = { ${model.idField.name}: id`;
     if (model.hasIsDeleted) out += `, ${softDeleteField}: false`;
     out += ` };\n`;
-    out += `    return this.getReadClient().${kebab}.findUnique({ where, ...(additional || {}) });\n`;
+    out += `    return this.getReadClient().${camelName}.${findFn}({ where, ...(additional || {}) });\n`;
     out += `  }\n\n`;
   }
 
-  // getByXxx per unique field
+  // getByXxx per unique field (with soft-delete → findFirst)
   for (const uf of model.uniqueFields) {
     const typeName = uf.type === 'String' ? 'string' : uf.type === 'Int' ? 'number' : 'string';
     out += `  @HandlePrismaError('query')\n`;
     out += `  async getBy${capitalize(uf.name)}(value: ${typeName}, ${addTypeClean}) {\n`;
-    out += `    return this.getReadClient().${kebab}.findUnique({ where: { ${uf.name}: value }, ...(additional || {}) });\n`;
+    if (model.hasIsDeleted) {
+      out += `    return this.getReadClient().${camelName}.findFirst({ where: { ${uf.name}: value, ${softDeleteField}: false }, ...(additional || {}) });\n`;
+    } else {
+      out += `    return this.getReadClient().${camelName}.findUnique({ where: { ${uf.name}: value }, ...(additional || {}) });\n`;
+    }
     out += `  }\n\n`;
   }
 
-  // list
+  // list — with project-compatible orderBy signature
   out += `  @HandlePrismaError('query')\n`;
   out += `  async list(\n`;
   out += `    where?: Prisma.${pascal}WhereInput,\n`;
-  out += `    pagination?: { page?: number; limit?: number; sort?: string; asc?: 'asc' | 'desc' },\n`;
+  out += `    pagination?: { page?: number; limit?: number; orderBy?: Prisma.${pascal}OrderByWithRelationInput | Prisma.${pascal}OrderByWithRelationInput[] },\n`;
   out += `    ${addTypeClean},\n`;
   out += `  ) {\n`;
   out += `    const page = pagination?.page ?? PAGINATION.DEFAULT_PAGE;\n`;
   out += `    const limit = Math.min(pagination?.limit ?? PAGINATION.DEFAULT_PAGE_SIZE, PAGINATION.MAX_PAGE_SIZE);\n`;
-  out += `    const orderBy = pagination?.sort ? { [pagination.sort]: pagination.asc ?? '${orderDir}' } : { ${orderField}: '${orderDir}' as const };\n`;
+  out += `    const orderBy = pagination?.orderBy ?? { ${orderField}: '${orderDir}' as const };\n`;
   out += `    const query: any = {\n`;
   out += `      where: { ...(where || {})`;
   if (model.hasIsDeleted) out += `, ${softDeleteField}: false`;
@@ -347,8 +361,8 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   out += `    };\n`;
   out += `    if (additional) Object.assign(query, additional);\n`;
   out += `    const [list, total] = await Promise.all([\n`;
-  out += `      this.getReadClient().${kebab}.findMany(query),\n`;
-  out += `      this.getReadClient().${kebab}.count({ where: query.where }),\n`;
+  out += `      this.getReadClient().${camelName}.findMany(query),\n`;
+  out += `      this.getReadClient().${camelName}.count({ where: query.where }),\n`;
   out += `    ]);\n`;
   out += `    return { list, total, page, limit };\n`;
   out += `  }\n\n`;
@@ -356,7 +370,7 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   // count
   out += `  @HandlePrismaError('query')\n`;
   out += `  async count(where?: Prisma.${pascal}WhereInput) {\n`;
-  out += `    return this.getReadClient().${kebab}.count({\n`;
+  out += `    return this.getReadClient().${camelName}.count({\n`;
   out += `      where: { ...(where || {})`;
   if (model.hasIsDeleted) out += `, ${softDeleteField}: false`;
   out += ` },\n`;
@@ -366,26 +380,26 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   // create
   out += `  @HandlePrismaError('create')\n`;
   out += `  async create(data: Prisma.${pascal}CreateInput, additional?: { select?: Prisma.${pascal}Select }) {\n`;
-  out += `    return this.getWriteClient().${kebab}.create({ data, ...(additional || {}) });\n`;
+  out += `    return this.getWriteClient().${camelName}.create({ data, ...(additional || {}) });\n`;
   out += `  }\n\n`;
 
   // update
   out += `  @HandlePrismaError('update')\n`;
   out += `  async update(where: Prisma.${pascal}WhereUniqueInput, data: Prisma.${pascal}UpdateInput, additional?: { select?: Prisma.${pascal}Select }) {\n`;
-  out += `    return this.getWriteClient().${kebab}.update({ where, data, ...(additional || {}) });\n`;
+  out += `    return this.getWriteClient().${camelName}.update({ where, data, ...(additional || {}) });\n`;
   out += `  }\n\n`;
 
   // delete
   out += `  @HandlePrismaError('delete')\n`;
   out += `  async delete(where: Prisma.${pascal}WhereUniqueInput) {\n`;
-  out += `    return this.getWriteClient().${kebab}.delete({ where });\n`;
+  out += `    return this.getWriteClient().${camelName}.delete({ where });\n`;
   out += `  }\n\n`;
 
   // softDelete (conditional)
   if (model.hasIsDeleted) {
     out += `  @HandlePrismaError('update')\n`;
     out += `  async softDelete(where: Prisma.${pascal}WhereUniqueInput) {\n`;
-    out += `    return this.getWriteClient().${kebab}.update({\n`;
+    out += `    return this.getWriteClient().${camelName}.update({\n`;
     out += `      where,\n`;
     out += `      data: { ${softDeleteField}: true },\n`;
     out += `    });\n`;
@@ -395,28 +409,34 @@ export function generateService(model: ParsedModel, config: GeneratorConfig = {}
   // createMany
   out += `  @HandlePrismaError('create')\n`;
   out += `  async createMany(data: Prisma.${pascal}CreateManyInput[]) {\n`;
-  out += `    return this.getWriteClient().${kebab}.createMany({ data });\n`;
+  out += `    return this.getWriteClient().${camelName}.createMany({ data });\n`;
   out += `  }\n\n`;
 
   // updateMany
   out += `  @HandlePrismaError('update')\n`;
   out += `  async updateMany(where: Prisma.${pascal}WhereInput, data: Prisma.${pascal}UpdateManyMutationInput) {\n`;
-  out += `    return this.getWriteClient().${kebab}.updateMany({ where, data });\n`;
+  out += `    return this.getWriteClient().${camelName}.updateMany({ where, data });\n`;
   out += `  }\n\n`;
 
   // upsert
   out += `  @HandlePrismaError('create')\n`;
   out += `  async upsert(args: Prisma.${pascal}UpsertArgs) {\n`;
-  out += `    return this.getWriteClient().${kebab}.upsert(args);\n`;
+  out += `    return this.getWriteClient().${camelName}.upsert(args);\n`;
   out += `  }\n\n`;
 
-  // getOrThrow
-  out += `  @HandlePrismaError('query')\n`;
-  out += `  async getOrThrow(where: Prisma.${pascal}WhereInput, ${addTypeClean}) {\n`;
-  out += `    const record = await this.get(where, additional);\n`;
-  out += `    if (!record) throw new Error('${pascal} not found');\n`;
-  out += `    return record;\n`;
-  out += `  }\n`;
+  // getOrThrow — use findUnique with WhereUniqueInput (requires @id)
+  if (model.idField) {
+    const idType = model.idField.type === 'String' ? 'string' : model.idField.type === 'Int' ? 'number' : 'string';
+    out += `  @HandlePrismaError('query')\n`;
+    out += `  async getOrThrow(id: ${idType}, ${addTypeClean}) {\n`;
+    out += `    const where: any = { ${model.idField.name}: id`;
+    if (model.hasIsDeleted) out += `, ${softDeleteField}: false`;
+    out += ` };\n`;
+    out += `    const record = await this.getReadClient().${camelName}.${findFn}({ where, ...(additional || {}) });\n`;
+    out += `    if (!record) throw new NotFoundException(\`${pascal} \${id} not found\`);\n`;
+    out += `    return record;\n`;
+    out += `  }\n`;
+  }
 
   out += `}\n`;
   return out;
@@ -488,7 +508,8 @@ export function ensureExportsInIndex(
 
   const existingExports = new Set<string>();
   for (const line of existingLines) {
-    const match = line.match(/export \* from '\.\/([\w-]+)\/index'/);
+    // Match both './<name>/index' and './modules/<name>' patterns
+    const match = line.match(/export \* from '\.\/(?:modules\/)?([\w-]+)(?:\/index)?'/);
     if (match) existingExports.add(match[1]!);
   }
 
@@ -503,6 +524,31 @@ export function ensureExportsInIndex(
   while (lines.length > 0 && lines[lines.length - 1]!.trim() === '') lines.pop();
   lines.push('');
 
+  return lines.join('\n');
+}
+
+/** Generate a barrel index using the 'replace' strategy — full sorted list */
+export function generateBarrelIndex(
+  generatedModules: string[],
+  manualExports: string[] = [],
+): string {
+  const sorted = [...generatedModules].sort();
+  const lines: string[] = [];
+
+  // Manual exports first (e.g., non-generated modules like 'loops')
+  for (const exp of manualExports) {
+    lines.push(`export * from './${exp}/index';`);
+  }
+  if (manualExports.length > 0) lines.push('');
+
+  // Generated modules in sorted order
+  for (const mod of sorted) {
+    if (!manualExports.includes(mod)) {
+      lines.push(`export * from './${mod}/index';`);
+    }
+  }
+
+  lines.push('');
   return lines.join('\n');
 }
 
