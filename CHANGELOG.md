@@ -1,3 +1,6 @@
+## [0.1.74] - 2026-06-25
+- Refactor code structure for improved readability and maintainability
+
 ## [0.1.73] - 2026-06-25
 - chore: update package.json to remove unused dependencies and enhance index.ts for improved CRUD operations
 

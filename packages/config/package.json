@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-config",
-  "version": "0.1.73",
+  "version": "0.1.74",
   "description": "Shared ESLint, Prettier, PostCSS, TypeScript, and Tailwind configurations for dofe.ai projects",
   "main": "./index.ts",
   "types": "./index.ts",
