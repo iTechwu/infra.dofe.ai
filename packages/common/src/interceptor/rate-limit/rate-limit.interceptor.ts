@@ -104,7 +104,7 @@ export class RateLimitInterceptor implements NestInterceptor {
       apiKey: this.extractApiKey(request),
       path: request.url,
       method: request.method,
-      traceId: (request as any).traceId || this.generateTraceId(),
+      traceId: request.traceId || this.generateTraceId(),
       request,
     };
 
@@ -221,7 +221,7 @@ export class RateLimitInterceptor implements NestInterceptor {
   private log(
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
-    meta?: Record<string, any>,
+    meta?: Record<string, unknown>,
   ): void {
     if (this.logger) {
       this.logger.log(level, message, meta);

@@ -136,17 +136,17 @@ export class ApiKeyGuard implements CanActivate {
     apiKey: string,
   ): void {
     // 标记为内部服务
-    (request as any).isInternalService = true;
+    request.isInternalService = true;
 
     // 设置服务名称
     const serviceName = request.headers[SERVICE_NAME_HEADER] as string;
-    (request as any).internalServiceName = serviceName || 'unknown';
+    request.internalServiceName = serviceName || 'unknown';
 
     // 设置 API Key 标识（用于审计）
-    (request as any).apiKeyId = this.getKeyId(apiKey);
+    request.apiKeyId = this.getKeyId(apiKey);
 
     // 跳过租户验证（但仍需解析租户用于数据隔离）
-    (request as any).skipTenantCheck = true;
+    request.skipTenantCheck = true;
 
     // 强制要求租户 Header（防止跨租户访问）
     const headerTenantId = request.headers['x-current-tenant'] as string;

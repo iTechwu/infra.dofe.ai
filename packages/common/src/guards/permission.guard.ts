@@ -80,11 +80,11 @@ export class PermissionGuard implements CanActivate {
     }
 
     // 如果是内部服务，跳过权限检查
-    const isInternalService = (request as any).isInternalService;
+    const isInternalService = request.isInternalService;
     if (isInternalService) {
       this.logger.info('Skipping permission check for internal service', {
-        service: (request as any).internalServiceName,
-        tenantId: (request as any).tenantId,
+        service: request.internalServiceName,
+        tenantId: request.tenantId,
       });
       return true;
     }
@@ -100,9 +100,9 @@ export class PermissionGuard implements CanActivate {
       return true;
     }
 
-    let userId = (request as any).userId;
-    let isSystemAdmin = (request as any).isAdmin;
-    const tenantId = (request as any).tenantId;
+    let userId: string | undefined = request.userId;
+    let isSystemAdmin: boolean | undefined = request.isAdmin;
+    const tenantId: string | undefined = request.tenantId;
 
     // 如果 userId 不存在（没有经过 AuthGuard），尝试从 JWT token 中解析
     if (!userId) {
@@ -115,8 +115,8 @@ export class PermissionGuard implements CanActivate {
       isSystemAdmin = user.isAdmin;
 
       // 将用户信息设置到 request 中，供后续使用
-      (request as any).userId = userId;
-      (request as any).isAdmin = isSystemAdmin;
+      request.userId = userId;
+      request.isAdmin = isSystemAdmin;
     }
 
     // 检查权限
@@ -128,8 +128,8 @@ export class PermissionGuard implements CanActivate {
     });
 
     const hasPermission = await this.permissionService.hasAllPermissions({
-      userId,
-      tenantId,
+      userId: userId!,
+      tenantId: tenantId ?? '',
       permissions: requiredPermissions,
       isSystemAdmin,
     });

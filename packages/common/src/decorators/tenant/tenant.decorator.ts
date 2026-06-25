@@ -127,5 +127,5 @@ export const TeamInfo = createParamDecorator(
  * ```
  */
 export function getTeamId(request: { tenantId?: string }): string {
-  return (request as any).tenantId;
+  return request.tenantId ?? '';
 }

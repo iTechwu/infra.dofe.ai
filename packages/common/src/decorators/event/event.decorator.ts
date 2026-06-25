@@ -109,7 +109,7 @@ export interface BaseEventPayload<T = any> {
   /** 方法返回值 */
   result: T;
   /** 额外上下文 */
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 // ============================================================================

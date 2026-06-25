@@ -107,8 +107,8 @@ export class AuditLogInterceptor implements NestInterceptor {
   } {
     // 从 request 中提取用户和租户信息
     // 这些信息通常由认证中间件注入
-    const user = (request as any).user;
-    const tenantId = (request as any).tenantId;
+    const user = request.user;
+    const tenantId = request.tenantId;
     return { user, tenantId };
   }
 

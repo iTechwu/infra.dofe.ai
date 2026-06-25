@@ -97,7 +97,7 @@ export class OpenAIClient implements OnModuleInit {
   private handleError(
     operation: string,
     error: AxiosError,
-    context?: Record<string, any>,
+    context?: Record<string, unknown>,
   ): never {
     const errorMessage = this.extractErrorMessage(error);
     const statusCode = error.response?.status;

@@ -45,9 +45,9 @@ export class DataVisibilityGuard implements CanActivate {
     }
 
     // 获取用户信息
-    const userId = (request as any).userId;
-    const tenantId = (request as any).tenantId;
-    const isAdmin = (request as any).isAdmin;
+    const userId = request.userId;
+    const tenantId = request.tenantId;
+    const isAdmin = request.isAdmin;
 
     // 如果没有用户信息（公共端点），跳过可见性注入
     if (!userId || !tenantId) {
@@ -65,11 +65,11 @@ export class DataVisibilityGuard implements CanActivate {
       userId,
       tenantId,
       resourceType,
-      isSystemAdmin: isAdmin,
+      isSystemAdmin: isAdmin ?? false,
     });
 
     // 注入到请求上下文
-    (request as any).dataScope = dataScope;
+    request.dataScope = dataScope;
 
     this.logger.debug('Data visibility resolved', {
       userId,

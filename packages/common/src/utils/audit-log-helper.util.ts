@@ -18,6 +18,7 @@ import { auditConfig } from '../config/env-config.service';
 
 /** Audit log create data — uses loose typing since the Prisma schema may evolve */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AuditLogData = Record<string, any>;
 
 /**

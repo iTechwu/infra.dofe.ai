@@ -49,22 +49,22 @@ export class TenantContextGuard implements CanActivate {
     );
 
     // 如果是内部服务且跳过租户检查，直接使用 header 中的租户 ID
-    const skipTenantCheck = (request as any).skipTenantCheck;
+    const skipTenantCheck = request.skipTenantCheck;
     if (skipTenantCheck) {
       const headerTenantId = request.headers[CURRENT_TENANT_HEADER] as string;
       // 如果 header 中有租户 ID，使用它；否则使用默认租户
       const tenantId = headerTenantId || DEFAULT_TENANT_ID;
-      (request as any).tenantId = tenantId;
+      request.tenantId = tenantId;
       this.logger.debug('Using tenant ID for internal service', {
         tenantId,
-        service: (request as any).internalServiceName,
+        service: request.internalServiceName,
         fromHeader: !!headerTenantId,
       });
       // 不进行其他租户验证
       return true;
     }
 
-    const userId = (request as any).userId;
+    const userId = request.userId;
     if (!userId) {
       this.logger.warn('No userId found in request, skipping tenant context');
       return true;
@@ -80,7 +80,7 @@ export class TenantContextGuard implements CanActivate {
     );
 
     // 设置租户上下文到 request
-    (request as any).tenantId = tenantId;
+    request.tenantId = tenantId;
 
     // 如果需要租户范围但没有租户 ID，抛出明确的错误
     if (requiresTenantScope && !tenantId) {
@@ -98,7 +98,7 @@ export class TenantContextGuard implements CanActivate {
         userId,
         tenantId,
       );
-      (request as any).tenantMember = tenantMember;
+      request.tenantMember = tenantMember;
     }
 
     this.logger.debug('Tenant context resolved', {

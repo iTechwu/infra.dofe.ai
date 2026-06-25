@@ -46,6 +46,7 @@ Layer 4: 聚合服务层
 ### `@dofe/infra-common`
 
 **可以是：**
+
 - NestJS 装饰器（`@Cacheable`、`@Transactional`、`@AuditLog` 等）
 - 守卫（auth、permission、tenant-context、version）
 - 拦截器（transform、audit、rate-limit）
@@ -56,16 +57,19 @@ Layer 4: 聚合服务层
 - 通用类型定义
 
 **不能是：**
+
 - 强领域化的业务逻辑（如：特定产品的计费规则）
 - 第三方 SDK 的封装（应在 `clients`）
 - 数据库 Schema 相关工具（应在 `prisma`）
 - 消息队列逻辑（应在 `rabbitmq`）
 
 **已知待治理项：**
+
 - `common/src/utils/prisma-error.util.ts` — Prisma 特定工具，逻辑上属于 `@dofe/infra-prisma`。标记为待迁移，保留兼容导出。
 - `common/src/enums/error-codes.ts` — 是 `@dofe/infra-contracts` 的桥接文件。标记为 `@deprecated`，计划迁移。
 
 **已知双向 peerDep（设计权衡）：**
+
 - `common` ↔ `jwt`：`common/src/guards/auth.guard.ts` 需要 `JwksClient`（from jwt），`jwt/src/jwt.module.ts` 需要 `JwtConfig`（from common）。双方均通过 `peerDependencies` 声明，由运行时环境（NestJS DI）注入，安装时不形成硬循环。
 
 ---
@@ -73,16 +77,19 @@ Layer 4: 聚合服务层
 ### `@dofe/infra-shared-services`
 
 **可以是：**
+
 - 依赖多个 infra 包（prisma + redis + rabbitmq）的复合服务
 - 业务能力编排（如：文件上传 + CDN + 转码的完整流程）
 - 需要状态管理的服务链路
 
 **不能是：**
+
 - 纯第三方 SDK 封装（应在 `clients`）
 - 与具体产品强绑定的业务逻辑
 - 可以独立作为客户端使用的原子能力
 
 **已知待治理项：**
+
 - `shared-services/src/agentx/` — 已改为兼容 re-export，canonical 实现位于 `@dofe/infra-clients/agentx`。
 - `shared-services/src/transcode/` — 转码层与 `clients` 中的转码客户端有重叠，需要明确：clients 负责原子 SDK 调用，shared-services 负责编排。
 
@@ -91,16 +98,19 @@ Layer 4: 聚合服务层
 ### `@dofe/infra-clients`
 
 **可以是：**
+
 - 第三方服务 SDK 的封装（AgentX、MLflow、OpenClaw、SMS、文件存储等）
 - 纯 HTTP/API 客户端
 - 客户端配置和工厂
 
 **不能是：**
+
 - 服务编排逻辑（应在 `shared-services`）
 - NestJS 模块级能力（应在 `common`）
 - 数据库操作（应在 `prisma`）
 
 **设计约束：**
+
 - `clients/src/internal/` 前缀在源码中保留，但在 exports 中剥离（由 `generate-exports.mjs` 处理）
 - 每个客户端应该是独立的，不依赖其他客户端
 - 容器内脚本 stdout 可以作为 JSON 协议返回通道；人类可读诊断必须由宿主侧 logger 输出，不能混入 stdout
@@ -188,7 +198,8 @@ Layer 4: 聚合服务层
 **不能是：** 业务容器编排，CI/CD pipeline 逻辑
 
 **已知实现状态：**
-- `packages/docker/src/docker-orphan-cleaner.service.ts` 已实现 `gracePeriodMs`，采用“首次发现后进入观察期”的清理策略。
+
+- `packages/docker/src/docker-orphan-cleaner.service.ts` 已实现 `gracePeriodMs`，采用”首次发现后进入观察期”的清理策略。
 
 ---
 

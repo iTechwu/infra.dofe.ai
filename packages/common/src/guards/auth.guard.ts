@@ -185,7 +185,7 @@ export class AuthGuard implements CanActivate {
       }
 
       // 将 JWT payload 中的用户信息设置到 request 中
-      (request as any).userInfo = {
+      request.userInfo = {
         id: userId,
         nickname: payload?.nickname,
         code: payload?.code,
@@ -239,15 +239,15 @@ export class AuthGuard implements CanActivate {
           requestPath.replace('api/', ''),
         ),
       ) &&
-      (request as any).isAnonymity
+      request.isAnonymity
     ) {
       throw apiError(CommonErrorCode.UnAuthorized);
     }
 
     // 将用户信息设置到request对象中
-    (request as any).userId = userId;
-    (request as any).isAnonymity = isAnonymity;
-    (request as any).isAdmin = isAdmin;
+    request.userId = userId;
+    request.isAnonymity = isAnonymity;
+    request.isAdmin = isAdmin;
 
     return true;
   }

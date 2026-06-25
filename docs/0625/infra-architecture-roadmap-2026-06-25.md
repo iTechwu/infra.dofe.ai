@@ -442,6 +442,34 @@
 - 📋 **全仓依赖审计结论**：19/19 包源码 import ↔ 声明关系一致，无遗漏依赖，无幻影依赖
 - 📋 **循环依赖**：仅 1 处已知双向 peerDep（common↔jwt），已文档化缓解策略
 
+#### Round 12: 类型安全 + 错误处理 + markdownlint 修复 (2026-06-25) ✅
+
+- ✅ [C1] `infra-boundaries-*.md` — 修复 12 处 MD032 列表空行警告
+- ✅ [C2] 错误吞噬模式审计：15 文件审查，全部 re-throw 或转换为返回值，0 处静默吞噬
+- ✅ [C3] `email.service.ts` 非空断言：2 处 DI 模式 ✅，6 处值级（依赖上游 validation guard）
+- ✅ [C4] `sso-auth/sso-rbac` 非空断言：全部 7 处为 DI 延迟初始化模式 ✅
+- 📋 **类型安全汇总**：~500 any（外部 API 边界）、~500 as（数据转换边界）、~50 ! 值级 + DI 初始化
+
+#### Round 13: 类型安全深度优化——as any 全量消除 (2026-06-25) ✅
+
+- ✅ [C1] 创建 `packages/common/src/types/fastify.d.ts` — FastifyRequest 自定义属性类型增强：
+  - 定义 12 个自定义请求属性（userId/isAdmin/isInternalService/tenantId/dataScope 等）
+  - 涵盖全部 7 个 guard/interceptor/decorator 文件的属性写入/读取
+- ✅ [C2] `Record<string, any>` → `Record<string, unknown>` 收窄（3/5 成功）：
+  - ✅ `openai.client.ts` — `context?: Record<string, unknown>`
+  - ✅ `event.decorator.ts` — `context?: Record<string, unknown>`
+  - ✅ `rate-limit.interceptor.ts` — `meta?: Record<string, unknown>`
+  - ⏳ `audit-log-helper.util.ts` — 需要 Prisma 动态类型访问（保留 `any` + eslint 说明）
+  - ⏳ `email.service.ts` — 需要混合值类型（保留 `any`）
+- ✅ [C3] `permission.guard.ts` — **7 处** `(request as any)` → 直接属性访问
+- ✅ [C4] 其余 7 文件 — **25 处** `(request as any)` → 直接属性访问：
+  - `api-key.guard.ts`（4）、`auth.guard.ts`（5）、`tenant-context.guard.ts`（5）
+  - `data-visibility.guard.ts`（4）、`audit-log.interceptor.ts`（2）
+  - `rate-limit.interceptor.ts`（1）、`tenant.decorator.ts`（1）
+- 📋 **as any 消除汇总**：**32 → 0**（全仓零 `(request as any)` 残留）
+- 📋 **附带修复**：3 处可选属性空值处理（`?? ''` / `?? false`），类型系统揭示了之前 `as any` 掩盖的潜在 NPE
+- 📋 **构建验证**：TypeScript 零类型错误通过
+
 ---
 
 ## 最终验收口径
