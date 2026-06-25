@@ -22,6 +22,10 @@ import { getKeysConfig } from '@dofe/infra-common';
 
 import { SendCloudClient, PardxEmailSender } from '@dofe/infra-clients';
 
+type EmailTemplateValue = string | number | boolean | null | undefined;
+type EmailTemplateSubValues = Record<string, EmailTemplateValue>;
+type EmailTemplateSubstitution = Record<string, string[]>;
+
 @Injectable()
 export class EmailService implements OnModuleInit {
   private deviceSendLoggerKey = 'emailCodeDevice';
@@ -57,9 +61,8 @@ export class EmailService implements OnModuleInit {
       this.httpService,
       this.logger,
     );
-    (sendcloudConfig.templates || []).forEach((template: any) => {
-      this.templates[template.name] =
-        template as PardxEmailSender.EmailTemplate;
+    (sendcloudConfig.templates || []).forEach((template) => {
+      this.templates[template.name] = template as PardxEmailSender.EmailTemplate;
     });
   }
 
@@ -116,7 +119,7 @@ export class EmailService implements OnModuleInit {
     user: { email: string; nickname?: string; name?: string },
     deviceInfo: PardxApp.HeaderData,
     templateName: string,
-    subValues?: any | null,
+    subValues?: EmailTemplateSubValues | null,
   ) {
     const message: PardxEmailSender.SignalMessage = await this.getEmailContent(
       user,
@@ -138,17 +141,21 @@ export class EmailService implements OnModuleInit {
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
     }
-    await this.checkSendEmailTooFrequent(deviceInfo.deviceid, userInfo.email!);
-    const to: string = userInfo.email!;
+    const email = userInfo.email;
+    if (!email) {
+      throw apiError(CommonErrorCode.InvalidParameters, 'User email is required');
+    }
+    await this.checkSendEmailTooFrequent(deviceInfo.deviceid, email);
+    const to: string = email;
     const code: string = await this.verify.generateEmailCode(
       to,
       template.codeExpire,
     );
     const subValues: PardxEmailSender.RegisterEmailSub = {
-      name: userInfo.nickname!,
+      name: userInfo.nickname ?? userInfo.name ?? '',
       code: code,
     };
-    return this.processingEmail({ email: userInfo.email!, nickname: userInfo.nickname ?? undefined, name: userInfo.name ?? undefined }, deviceInfo, templateName, subValues);
+    return this.processingEmail({ email, nickname: userInfo.nickname ?? undefined, name: userInfo.name ?? undefined }, deviceInfo, templateName, subValues);
   }
 
   async processingSendResetPasswordeEmail(
@@ -219,26 +226,31 @@ export class EmailService implements OnModuleInit {
     user: { email: string; nickname?: string; name?: string },
     deviceInfo: PardxApp.HeaderData,
     templateName: string,
-    subValues?: any | null,
+    subValues?: EmailTemplateSubValues | null,
   ): Promise<PardxEmailSender.SignalMessage> {
     const template: PardxEmailSender.EmailTemplate | undefined =
       this.templates[templateName];
     if (!template) {
       throw apiError(CommonErrorCode.TemplateNotFound);
     }
-    const to: string = user.email!;
+    const email = user.email;
+    if (!email) {
+      throw apiError(CommonErrorCode.InvalidParameters, 'Recipient email is required');
+    }
+    const to: string = email;
     await this.setEmailSendLogger(
       deviceInfo.deviceid,
-      user.email!,
+      email,
       template.frequency,
     );
     const sub = template.sub;
-    const subVery: Record<string, any> = {};
+    const subVery: EmailTemplateSubstitution = {};
     if (sub && subValues) {
       for (const key of Object.keys(sub)) {
         const subKey = sub[key] as string;
         if (subKey && typeof subValues === 'object' && subKey in subValues) {
-          subVery['%' + subKey + '%'] = [subValues[subKey]];
+          const value = subValues[subKey];
+          subVery['%' + subKey + '%'] = [value == null ? '' : String(value)];
         }
       }
     }

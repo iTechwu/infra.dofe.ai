@@ -1,6 +1,7 @@
 {
   "name": "@dofe/infra-vector",
   "version": "0.1.77",
+  "description": "Vector database client — VikingDB integration, embedding service, knowledge base management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

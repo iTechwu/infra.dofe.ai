@@ -16,10 +16,24 @@ import {
 import { maskSensitiveData } from '@dofe/infra-utils';
 import { auditConfig } from '../config/env-config.service';
 
-/** Audit log create data — uses loose typing since the Prisma schema may evolve */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AuditLogData = Record<string, any>;
+interface PrismaConnectRef {
+  connect?: {
+    id?: string | null;
+  };
+}
+
+type AuditLogData = Record<string, unknown> & {
+  user?: PrismaConnectRef;
+  tenant?: PrismaConnectRef;
+  operateType?: unknown;
+  target?: unknown;
+  targetId?: unknown;
+  targetName?: unknown;
+  createdAt?: Date | string;
+  result?: unknown;
+  detail?: Prisma.InputJsonValue;
+  signature?: string | null;
+};
 
 /**
  * 从 Prisma 创建输入中提取签名载荷
@@ -32,10 +46,10 @@ function extractSignaturePayload(
     operateType: data.operateType as string,
     target: data.target as string,
     targetId: extractTargetId(data),
-    targetName: (data as any).targetName ?? null,
-    createdAt: (data as any).createdAt ?? new Date(),
+    targetName: (data.targetName as string | null | undefined) ?? null,
+    createdAt: data.createdAt ?? new Date(),
     tenantId: extractTenantId(data),
-    result: data.result ?? 'success',
+    result: (data.result as string | undefined) ?? 'success',
   };
 }
 
@@ -53,7 +67,7 @@ function extractUserId(data: AuditLogData): string {
  * 从 Prisma 关联数据中提取目标 ID
  */
 function extractTargetId(data: AuditLogData): string | null {
-  return (data as any).targetId ?? null;
+  return (data.targetId as string | null | undefined) ?? null;
 }
 
 /**
@@ -109,8 +123,7 @@ function maskDetailFields(
 export function prepareAuditLogWithSignature<T extends AuditLogData>(
   data: T,
 ): T {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payload = extractSignaturePayload(data as any);
+  const payload = extractSignaturePayload(data);
   const signature = generateAuditSignature(payload);
 
   // 脱敏 detail 字段中的敏感数据
@@ -135,7 +148,7 @@ export function verifyAuditLogSignature(
     target?: unknown;
     targetId?: unknown;
     targetName?: unknown;
-    tenant?: any;
+    tenant?: PrismaConnectRef;
     result?: unknown;
     userId: string;
     signature?: string | null;

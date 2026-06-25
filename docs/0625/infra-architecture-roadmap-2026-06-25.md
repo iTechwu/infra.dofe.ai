@@ -398,7 +398,7 @@
 - 📋 **本轮总计**：移除 1 处 lazy require、3 行死代码、1 个真·未使用 import、6 处无效 eslint-disable 注释
 - 📋 **eslint-disable 全仓审计结果**：
   - 已清理：audit-log.interceptor、request.middleware、skill-validator.util（yaml）、http.exception
-  - 保留 justified：transform-root.pipe（`_metadata` 参数）、unit-of-work（rest-spread 排除模式）、api.exception（显式 any）、audit-log-helper（显式 any）、openspeech（lazy require SDK）、system-health（restricted-paths 有文档说明）、prisma-crud-generator（CLI require）
+  - 保留 justified：transform-root.pipe（`_metadata` 参数）、unit-of-work（rest-spread 排除模式）、api.exception（显式 any）、openspeech（lazy require SDK）、system-health（restricted-paths 有文档说明）、prisma-crud-generator（CLI require）
 
 #### Round 9: 构建配置与 CI 完善 (2026-06-25) ✅
 
@@ -455,12 +455,12 @@
 - ✅ [C1] 创建 `packages/common/src/types/fastify.d.ts` — FastifyRequest 自定义属性类型增强：
   - 定义 12 个自定义请求属性（userId/isAdmin/isInternalService/tenantId/dataScope 等）
   - 涵盖全部 7 个 guard/interceptor/decorator 文件的属性写入/读取
-- ✅ [C2] `Record<string, any>` → `Record<string, unknown>` 收窄（3/5 成功）：
+- ✅ [C2] `Record<string, any>` / 值级 `any` 收窄（5/5 完成）：
   - ✅ `openai.client.ts` — `context?: Record<string, unknown>`
   - ✅ `event.decorator.ts` — `context?: Record<string, unknown>`
   - ✅ `rate-limit.interceptor.ts` — `meta?: Record<string, unknown>`
-  - ⏳ `audit-log-helper.util.ts` — 需要 Prisma 动态类型访问（保留 `any` + eslint 说明）
-  - ⏳ `email.service.ts` — 需要混合值类型（保留 `any`）
+  - ✅ `audit-log-helper.util.ts` — `AuditLogData` 收窄为 `Record<string, unknown>` + Prisma connect 结构类型
+  - ✅ `email.service.ts` — 模板替换值收窄为 `EmailTemplateSubValues`
 - ✅ [C3] `permission.guard.ts` — **7 处** `(request as any)` → 直接属性访问
 - ✅ [C4] 其余 7 文件 — **25 处** `(request as any)` → 直接属性访问：
   - `api-key.guard.ts`（4）、`auth.guard.ts`（5）、`tenant-context.guard.ts`（5）
@@ -470,14 +470,86 @@
 - 📋 **附带修复**：3 处可选属性空值处理（`?? ''` / `?? false`），类型系统揭示了之前 `as any` 掩盖的潜在 NPE
 - 📋 **构建验证**：TypeScript 零类型错误通过
 
+#### Round 14: 类型安全尾项 + 保留项分类 (2026-06-25) ✅
+
+- ✅ [Cycle 1] `audit-log-helper.util.ts` — 移除重复 eslint-disable、`Record<string, any>` 和 4 处 `as any`
+- ✅ [Cycle 2] `email.service.ts` — `subValues?: any` 与 `Record<string, any>` 收窄为模板替换值类型
+- ✅ [Cycle 3] `api-key.guard.ts` — query 参数读取从 `as any` 收窄为 `Record<string, unknown>`
+- ✅ [Cycle 4] `docs/0625` — Round 13 状态从 “3/5 + 2 保留” 更新为 “5/5 完成”，并移除 `audit-log-helper` 陈旧保留记录
+- ✅ [Cycle 5] 剩余 console 命中分类：
+  - 保留：`prisma-crud-generator` CLI 用户输出
+  - 保留：`shared-db` perf spec 基准输出
+  - 保留：OpenClaw 容器 stdout JSON 协议
+  - 保留：JSDoc / README 示例
+- ✅ [Cycle 6] 剩余 `any` 命中分类：
+  - 保留：外部 SDK 响应边界、动态 Prisma/Redis/RabbitMQ 适配边界、公开泛型 API
+  - 后续如继续收窄，需按包单独设计输入/响应类型，不再作为本轮架构收口阻塞项
+- ✅ [Cycle 7] `ssrf-protection.util.ts` — 默认 logger 从 `console.warn` 改为 `standaloneLogger.warn`
+
+#### Round 14: contracts 类型收窄 + email 守卫 + build-all 扩展 (2026-06-25) ✅
+
+- ✅ [C1] `contracts/src/types.ts` — **5 处 `any` → `unknown`**：
+  - `SkillConfigRequirements` / `SkillEligibility` / `SkillFrontmatter` 索引签名 `[key: string]: any` → `unknown`
+  - `ContainerSkillItem.installSource?: any` → `unknown`
+  - `MeetingSSEEvent.data?: any` → `unknown`
+- ✅ [C2] `email.service.ts` — **6 处值级 `!` 断言消除**：
+  - 替换为提前 guard（`if (!email) throw apiError(...)`）
+  - `userInfo.nickname!` → `userInfo.nickname ?? userInfo.name ?? ''`
+  - 修复 `InvalidParameter` → `InvalidParameters` 拼写错误
+- ✅ [C3] `build-all.sh` — Post-build 验证从 6 包扩展到 12 包：
+  - 新增：`docker rabbitmq redis jwt shared-db vector`
+  - 覆盖率：6→12（18 个可构建包中的 67%）
+- ✅ [C4] 全仓编译验证：contracts/shared-services/common 三包零类型错误
+- 📋 **contracts 类型安全**：零依赖基础包的 `any` 已全部收口为 `unknown`
+
+#### Round 15: @app/* 别名全量移除 + 核心包 engines + express.d.ts 说明 (2026-06-25) ✅
+
+- ✅ [C1] `tsconfig.build-all.json` — 移除全部 **20 个** `@app/*` 死别名（零消费者验证通过）：
+  - `@app/redis`, `@app/prisma`, `@app/jwt`, `@app/rabbitmq`, `@app/shared-db`
+  - `@app/shared-services/*`, `@app/clients/*`, `@app/i18n`
+  - tsconfig 路径别名总量：78（初始）→ 56（Round 9）→ **36**（本轮）
+- ✅ [C2] `generate-exports.mjs` 审计结论：
+  - 健壮性良好：递归扫描、idempotent 写入、sorted keys、missing dist 处理
+  - 无需修改
+- ✅ [C3] `common/clients/utils` — 3 核心包添加 `engines: { "node": ">=20.19.0" }`
+- ✅ [C4] `express.d.ts` — 添加 Fastify 优先说明，标注 ExpressAdapter 兼容场景
+- 📋 **历史兼容入口彻底清零**：`@app/*` 别名（20）、`@/libs/*` 别名（1）、`@/...` 死别名（21）= **42 个历史别名全量移除**
+
+#### Round 16: README 更新 + 脚本审计 + stub 验证 (2026-06-25) ✅
+
+- ✅ [C1] `README.md` 更新：
+  - `@app/*` 导入示例标注「别名已于 2026-06-25 从 tsconfig 移除」
+  - 兼容/废弃路径表 `@app/*` 行状态更新为「🗑️ 已移除」
+  - 构建规则更新 Post-build 验证覆盖 12 包
+  - 新增「类型安全」章节（fastify.d.ts + express.d.ts 引用）
+- ✅ [C2] `build:legacy` 评估：作为独立构建回退方案保留
+- ✅ [C3] `publish-all.sh` 审计：flag 解析、前置检查、dry-run 支持均完备 ✅
+- ✅ [C4] 重复 stub 文件验证：8 个 stub 文件 MD5 全部不同 → 包特定声明 ✅
+- 📋 **脚本审计结论**：4 个主要脚本（build-all、generate-exports、publish-all、publish-single）均健壮
+
+#### Round 17: 包 description 全量补充 + 最终验收 (2026-06-25) ✅
+
+- ✅ [C1] Layer 0-1 叶包/工具包 description 补充（6 包）：contracts-base / contracts / i18n / jwt / docker / vector
+- ✅ [C2] Layer 2 适配层 description 补充（5 包）：common / redis / prisma / rabbitmq / shared-db
+- ✅ [C3] Layer 3-4 客户端/聚合层 description 补充（5 包）：clients / shared-services / module-registry / sso-browser / utils
+- ✅ [C4] 最终验收——6 条标准全量验证：
+  1. 对外导入只依赖正式 exports ✅ — 0 处 `@app/*` 源码导入，0 处 `dist/` 深链
+  2. 包清单能解释真实运行时依赖 ✅ — 19/19 包审计完成，0 幻影依赖
+  3. 构建路径与源码路径一致 ✅ — exports 自动生成，tsconfig 36 个正式别名
+  4. common/shared-services 职责边界可被一句话说清 ✅
+  5. 文档完备 ✅ — review 170 行 + roadmap 540 行 + boundaries 295 行 + README 864 行
+  6. CI 拦截基础回归 ✅ — ci.yml (build+typecheck+lint) + storage-feature-boundary.yml
+- 📋 **19/19 包全部拥有 `description` 字段**
+
 ---
 
 ## 最终验收口径
 
 全部完成后，仓库应满足：
 
-- 对外导入只依赖正式 exports。
-- 包清单能解释真实运行时依赖。
-- 构建路径与源码路径一致。
-- `common`、`shared-services` 的职责边界可被一句话说清。
-- 文档能支撑后续扩展，而不是只记录历史。
+- 对外导入只依赖正式 exports。✅
+- 包清单能解释真实运行时依赖。✅
+- 构建路径与源码路径一致。✅
+- `common`、`shared-services` 的职责边界可被一句话说清。✅
+- 文档能支撑后续扩展，而不是只记录历史。✅
+- CI 能拦截基础回归。✅

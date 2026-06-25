@@ -1,6 +1,7 @@
 {
   "name": "@dofe/infra-contracts-base",
   "version": "0.1.77",
+  "description": "Base types and Zod schemas shared across dofe.ai infra contracts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

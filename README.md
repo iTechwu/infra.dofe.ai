@@ -92,7 +92,7 @@ Layer 4: 聚合服务层
 ✅ import { createContextLogger } from '@dofe/infra-utils';
 ✅ import { DbMetricsModule } from '@dofe/infra-prisma/db-metrics';
 ✅ import { FileStorageServiceModule } from '@dofe/infra-shared-services/file-storage';
-❌ import { XxxService } from '@app/shared-services/xxx';   // 禁止 @app/*
+❌ import { XxxService } from '@app/shared-services/xxx';   // 禁止 @app/*（别名已于 2026-06-25 从 tsconfig 移除）
 ❌ import { Xxx } from '../../dist/internal/xxx';           // 禁止深层 dist
 ```
 
@@ -100,7 +100,7 @@ Layer 4: 聚合服务层
 
 | 路径 | 状态 | 说明 |
 |---|---|---|
-| `@app/*` | ❌ 废弃 | 已全部迁移至 `@dofe/infra-*`，不再接受新代码 |
+| `@app/*` | 🗑️ 已移除 | 全部 20 个 `@app/*` 别名已于 2026-06-25 从 tsconfig 移除；`@/libs/*` 等 21 个 `@/...` 别名同步清理。仅保留 `@dofe/infra-*` 正式路径 |
 | `packages/utils/src/enviroment.util.ts` | ⚠️ 过渡期 | 拼写错误兼容存根，计划 2026-12-31 移除，请使用 `environment.util.ts` |
 | `common/src/enums/error-codes.ts` | ⚠️ 过渡期 | contracts 桥接文件，计划 2027-06-30 移除，请直接从 `@dofe/infra-contracts` 导入 |
 | `common/src/utils/prisma-error.util.ts` | ⚠️ 待迁移 | Prisma 特定工具在 common 中，逻辑上属于 `@dofe/infra-prisma` |
@@ -111,7 +111,12 @@ Layer 4: 聚合服务层
 这处理了包之间的循环依赖（如 common ↔ redis），单独构建任何包都可能因循环依赖而失败。
 
 6 步构建流程：清理 → 单次编译 → 分发产物 → 清理临时文件 → 复制 i18n → 生成 exports。
-缺少关键产物（common, clients, utils, prisma, shared-services, contracts）时构建会显式失败。
+Post-build 验证覆盖 12 个核心包（common, clients, utils, prisma, shared-services, contracts, docker, rabbitmq, redis, jwt, shared-db, vector）。
+
+### 类型安全
+
+- `packages/common/src/types/fastify.d.ts` — FastifyRequest 自定义属性类型增强（12 个属性），消除 guards/interceptors 中全部 32 处 `as any`
+- `packages/common/src/types/express.d.ts` — Express Request 类型增强（ExpressAdapter 兼容，Fastify 用户请使用 `fastify.d.ts`）
 
 ### 治理文档
 

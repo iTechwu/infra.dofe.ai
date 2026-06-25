@@ -1,6 +1,7 @@
 {
   "name": "@dofe/infra-shared-db",
   "version": "0.1.77",
+  "description": "Transaction management, UnitOfWork, AsyncLocalStorage context propagation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

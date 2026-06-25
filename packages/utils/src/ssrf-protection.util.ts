@@ -5,6 +5,7 @@
  */
 import * as net from 'net';
 import { lookup } from 'dns/promises';
+import { standaloneLogger } from './logger-standalone.util';
 
 /**
  * Default blocked IP ranges (private/internal networks)
@@ -49,7 +50,7 @@ interface SSRFLogger {
 }
 
 const defaultLogger: SSRFLogger = {
-  warn: (message, meta) => console.warn(message, meta),
+  warn: (message, meta) => standaloneLogger.warn(message, meta),
 };
 
 /**

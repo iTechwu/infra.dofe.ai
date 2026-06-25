@@ -1,6 +1,7 @@
 {
   "name": "@dofe/infra-rabbitmq",
   "version": "0.1.77",
+  "description": "RabbitMQ message queue — event bus, pub/sub messaging, independent events vhost",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

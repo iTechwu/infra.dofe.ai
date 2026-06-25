@@ -1,6 +1,7 @@
 {
   "name": "@dofe/infra-contracts",
   "version": "0.1.77",
+  "description": "Error codes, constants, providers, and shared types — zero-dependency foundation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

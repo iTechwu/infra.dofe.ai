@@ -1,6 +1,7 @@
 {
   "name": "@dofe/infra-shared-services",
   "version": "0.1.77",
+  "description": "Composite business services — orchestration across prisma/redis/rabbitmq/clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

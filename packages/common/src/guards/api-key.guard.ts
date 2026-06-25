@@ -101,8 +101,9 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     // 从 query 参数获取（不推荐，仅用于某些特殊场景）
-    const queryApiKey = (request.query as any)?.api_key as string;
-    if (queryApiKey) {
+    const query = request.query as Record<string, unknown> | undefined;
+    const queryApiKey = query?.api_key;
+    if (typeof queryApiKey === 'string' && queryApiKey) {
       return queryApiKey;
     }
 

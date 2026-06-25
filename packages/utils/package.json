@@ -1,6 +1,8 @@
 {
   "name": "@dofe/infra-utils",
   "version": "0.1.77",
+  "description": "Pure function utilities — crypto, file, string, array, object, pagination, logging; zero NestJS dependency",
+  "engines": { "node": ">=20.19.0" },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

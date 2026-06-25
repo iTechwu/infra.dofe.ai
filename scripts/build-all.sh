@@ -89,7 +89,7 @@ fi
 # Step 6: Generate package.json exports
 # ---------------------------------------------------------------------------
 echo "=== Step 6/6: Generating package.json exports ==="
-ESSENTIAL_PACKAGES="common clients utils prisma shared-services contracts"
+ESSENTIAL_PACKAGES="common clients utils prisma shared-services contracts docker rabbitmq redis jwt shared-db vector"
 FAILED_EXPORTS=""
 
 for pkg in packages/*/; do

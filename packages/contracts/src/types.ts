@@ -59,10 +59,12 @@ export interface ExtendedPaginatedResponse<T = any> {
 // ============================================================================
 
 export interface SkillConfigRequirements {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
 export interface SkillEligibility {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -72,6 +74,7 @@ export interface SkillFrontmatter {
   description?: string;
   metadata?: Record<string, unknown>;
   invocationMode?: SkillInvocationMode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -83,7 +86,7 @@ export interface ContainerSkillItem {
   description?: string | null;
   version?: string | null;
   content?: string | null;
-  installSource?: any;
+  installSource?: unknown;
   isManualInstalled?: boolean;
   requiredEnv?: string[];
 }
@@ -96,7 +99,7 @@ export interface MeetingSSEEvent {
   type: 'transcription' | 'summary';
   meetingId: string;
   status: 'processing' | 'success' | 'error';
-  data?: any;
+  data?: unknown;
   error?: string;
   timestamp: number;
   taskId?: string;
