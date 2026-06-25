@@ -34,8 +34,7 @@
     "dist"
   ],
   "license": "UNLICENSED",
-  "dependencies": {},
   "devDependencies": {
-    "vitest": "^3.0.0"
+    "vitest": "^3.2.6"
   }
 }
