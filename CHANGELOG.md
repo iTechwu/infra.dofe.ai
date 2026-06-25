@@ -1,3 +1,6 @@
+## [0.1.73] - 2026-06-25
+- chore: update package.json to remove unused dependencies and enhance index.ts for improved CRUD operations
+
 ## [0.1.72] - 2026-06-25
 - chore: enhance cli.ts and index.ts for improved CRUD and enum generation functionality
 
