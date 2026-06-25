@@ -4,6 +4,7 @@ import { Logger } from 'winston';
 import { ConfigService } from '@nestjs/config';
 import Docker from 'dockerode';
 import { isAbsolute, join } from 'node:path';
+import { Readable } from 'node:stream';
 import {
   readdir as _readdir,
   rm as _rm,
@@ -2156,7 +2157,6 @@ if auth_profiles_file:
     const container = this.docker.getContainer(containerId);
 
     // Create a readable stream from the tar buffer
-    const { Readable } = require('stream');
     const tarStream = Readable.from(tarBuffer);
 
     await container.putArchive(tarStream, { path: destPath });

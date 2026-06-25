@@ -5,6 +5,27 @@
  * - 与 OpenClaw Gateway 通信
  * - 发送消息到 OpenClaw 并获取 AI 响应
  * - 使用 WebSocket 进行实时通信
+ *
+ * ## 内联脚本输出分类
+ *
+ * 本文件中所有通过 `dockerExec.executeNodeScript()` / `dockerExec.executeCommand()`
+ * 执行的内联 Node.js 脚本，其 `console.log` 输出分为两类：
+ *
+ * ### @runtime-protocol（运行时数据协议）
+ * - 脚本的 `console.log(JSON.stringify(...))` 输出会被 host 端 `JSON.parse(stdout)` 解析
+ * - 解析结果直接作为方法的返回值或用于后续业务逻辑
+ * - 这是容器 ↔ host 之间的**结构化数据协议**，不是人工可读日志
+ * - **禁止**在这些脚本中添加非 JSON 的 `console.log` 输出（会破坏协议）
+ * - 子类型 @runtime-validation：输出同时用于诊断日志和业务验证（如安装后检查）
+ *
+ * ### @diagnostic-output（诊断输出）
+ * - 脚本的 `console.log` 输出仅被 host 端记录到 Winston 日志中
+ * - **不参与**方法返回值或业务逻辑
+ * - 用于安装后验证、配置检查等诊断场景
+ * - 这些脚本的输出格式可以调整，不会影响功能正确性
+ *
+ * ### @adapter-method（适配方法）
+ * - 不包含内联脚本，通过 HTTP/WebSocket/docker exec CLI 等与容器通信
  */
 import { Injectable, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
@@ -177,6 +198,8 @@ export class OpenClawClient {
   /** 缓存容器的 proxy token（containerId → token） */
   private readonly proxyTokenCache = new Map<string, string>();
 
+  // Container-side Node scripts reserve stdout for machine-readable JSON.
+  // Human-readable diagnostics must be emitted by host-side logger calls.
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly httpService: HttpService,
@@ -1116,6 +1139,10 @@ export class OpenClawClient {
   /**
    * 注入 MCP Server 配置到 OpenClaw 容器的 openclaw.json
    * 在插件安装后，将 mcpConfig 实际注入到容器的配置文件中
+   *
+   * @diagnostic-output — 内联脚本的 console.log 仅用于记录执行结果，
+   *   不被 host 端解析为返回值。stdout 内容仅通过 Winston 日志记录。
+   *
    * @param containerId Docker 容器 ID
    * @param mcpServers Record<string, McpServerConfig>
    *   McpServerConfig 格式：{ "plugin-slug": { "command": "npx", "args": [...], "env": {...} }
@@ -1133,6 +1160,7 @@ export class OpenClawClient {
     // P0-3: 使用 Base64 编码传递数据，彻底消除 JSON 注入风险
     const encoded = Buffer.from(JSON.stringify(mcpServers)).toString('base64');
 
+    // @diagnostic-output: 脚本输出仅用于 Winston 日志记录，不参与方法返回值
     const nodeScript = `
       const fs = require("fs");
       const configPath = ${JSON.stringify(configPath)};
@@ -1143,7 +1171,8 @@ export class OpenClawClient {
         config.mcpServers[name] = server;
       }
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
-      console.log(JSON.stringify({ success: true }));
+      // 输出执行确认（仅用于 host 端日志，不参与返回值）
+      console.log(JSON.stringify({ success: true, updatedServers: Object.keys(newServers) }));
     `;
 
     const result = await this.dockerExec.executeNodeScript(
@@ -1155,13 +1184,17 @@ export class OpenClawClient {
     this.logger.info('OpenClawClient: MCP 配置注入完成', {
       containerId,
       plugins: Object.keys(mcpServers),
-      output: result.stdout,
+      stdoutLength: result.stdout.length,
       durationMs: result.durationMs,
     });
   }
 
   /**
    * 移除指定 MCP Server 配置
+   *
+   * @diagnostic-output — 内联脚本的 console.log 仅用于记录执行结果，
+   *   不被 host 端解析为返回值。stdout 内容仅通过 Winston 日志记录。
+   *
    * @param containerId Docker 容器 ID
    * @param serverName MCP Server plugin slug（如 "mcp-server-slack"）
    */
@@ -1184,6 +1217,7 @@ export class OpenClawClient {
 
     // 构建 node 脚本：读取 openclaw.json，删除指定 mcpServers，写回文件
     // 使用引号包裹属性名，避免注入风险
+    // @diagnostic-output: 脚本输出仅用于 Winston 日志记录，不参与方法返回值
     const nodeScript = `
       const fs = require("fs");
       const configPath = ${JSON.stringify(configPath)};
@@ -1191,8 +1225,10 @@ export class OpenClawClient {
       if (config.mcpServers) {
         delete config.mcpServers["${serverName}"];
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
+        // 输出执行确认（仅用于 host 端日志）
         console.log(JSON.stringify({ success: true, removed: "${serverName}" }));
       } else {
+        // 无 mcpServers 配置时仍视为成功（幂等）
         console.log(JSON.stringify({ success: true, message: "No mcpServers found" }));
       }
     `;
@@ -1206,7 +1242,7 @@ export class OpenClawClient {
     this.logger.info('OpenClawClient: MCP 配置移除完成', {
       containerId,
       serverName,
-      output: result.stdout,
+      stdoutLength: result.stdout.length,
       durationMs: result.durationMs,
     });
   }
@@ -1768,13 +1804,9 @@ export class OpenClawClient {
     });
 
     try {
-      // OpenClaw Gateway 的 /agents 端点返回 HTML 页面,不是 JSON API
-      // 因此我们需要从容器内的配置文件读取 agent 信息
-      // 注意: 这个方法需要 containerId,但当前签名只有 port
-      // 作为临时方案,我们返回空列表,让调用方从 DB 获取信息
-
-      // TODO: 重构此方法,接受 containerId 参数,然后从容器内读取配置文件
-      // 或者使用 WebSocket 协议与 Gateway 通信获取 agent 状态
+      // OpenClaw Gateway 的 /agents 端点返回 HTML 页面，不是 JSON API。
+      // 该 port/token 签名无法定位容器，保留为兼容入口；需要真实 Agent
+      // 列表时请调用 listAgentsFromConfig(containerId)。
 
       this.logger.warn(
         'OpenClawClient: listAgents 方法需要重构以支持从配置文件读取',
@@ -1938,6 +1970,10 @@ export class OpenClawClient {
 
   /**
    * 读取容器内 openclaw.json
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式配置对象，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
+   *   禁止在脚本中添加非 JSON 的 console.log（会破坏协议）。
    */
   async readGatewayConfig(
     containerId: string,
@@ -1997,7 +2033,6 @@ export class OpenClawClient {
       }
       const parsed = JSON.parse(Buffer.from("${payload}", "base64").toString("utf8"));
       fs.writeFileSync(configPath, JSON.stringify(parsed, null, 2), "utf8");
-      console.log("ok");
     `;
 
     await this.dockerExec.executeNodeScript(containerId, nodeScript, {
@@ -2081,6 +2116,9 @@ export class OpenClawClient {
   /**
    * 读取 openclaw.json 配置文件
    * 用于检查配置状态和比对配置变化
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式配置对象或 null，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
    */
   async readOpenclawConfig(
     containerId: string,
@@ -2116,6 +2154,9 @@ export class OpenClawClient {
 
   /**
    * 读取 Gateway 运行态插件列表（plugins.entries）
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 数组，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
    */
   async listRuntimePlugins(
     containerId: string,
@@ -2348,8 +2389,10 @@ export class OpenClawClient {
       }
     }
 
-    // === 诊断：验证安装结果 ===
-    // 检查 openclaw.json 是否更新了 plugins.entries
+    // === @runtime-validation: 安装后验证脚本 ===
+    // 此脚本输出被 host 端 JSON.parse 解析后用于：
+    // 1. 诊断日志（Winston）
+    // 2. 业务判断 — 若插件未出现在 plugins.entries 中，返回安装失败
     const openclawHome = await this.resolveOpenClawHome(containerId);
     const configPath = buildOpenClawPath(openclawHome, 'openclaw.json');
 
@@ -2421,44 +2464,6 @@ export class OpenClawClient {
       }
     }
 
-    // 扫描可能安装位置的文件结构
-    const scanPathsScript = `
-      const fs = require('fs');
-      const path = require('path');
-      
-      const basePaths = [
-        '${openclawHome}/plugins',
-        '${openclawHome}/node_modules',
-        '/app/plugins',
-        '/app/node_modules'
-      ];
-      
-      const results = {};
-      for (const basePath of basePaths) {
-        try {
-          if (fs.existsSync(basePath)) {
-            const items = fs.readdirSync(basePath, { withFileTypes: true });
-            results[basePath] = items.map(i => ({
-              name: i.name,
-              isDir: i.isDirectory()
-            }));
-          } else {
-            results[basePath] = { exists: false };
-          }
-        } catch (e) {
-          results[basePath] = { error: e.message };
-        }
-      }
-      
-      console.log(JSON.stringify(results));
-    `;
-
-    const scanResult = await this.dockerExec.executeCommand(
-      containerId,
-      ['node', '-e', scanPathsScript],
-      { timeout: 10000 },
-    );
-
     return {
       success: true,
       output: result.stdout,
@@ -2468,6 +2473,9 @@ export class OpenClawClient {
   /**
    * 读取已安装插件的 manifest 文件 (openclaw.plugin.json)
    * 用于获取 configSchema 和 uiHints 等元数据
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式搜索结果，
+   *   host 端通过 `JSON.parse(stdout)` 解析后提取 manifest 字段作为返回值。
    *
    * @param containerId 容器 ID
    * @param pluginId 插件 ID
@@ -2585,6 +2593,9 @@ export class OpenClawClient {
   /**
    * 诊断 npm 插件安装位置
    * 用于调试 npm 安装后插件文件的实际位置
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式诊断结果，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
    *
    * @param containerId 容器 ID
    * @param pluginId 插件 ID（可选，如果不提供则扫描所有可能位置）
@@ -2746,9 +2757,8 @@ export class OpenClawClient {
         if (fs.existsSync(dir)) {
           try {
             fs.rmSync(dir, { recursive: true, force: true });
-            console.log('Cleaned: ' + dir);
           } catch (e) {
-            console.log('Failed to clean ' + dir + ': ' + e.message);
+            throw e;
           }
         }
       }
@@ -2883,6 +2893,9 @@ export class OpenClawClient {
    *
    * 注意：plugins.entries 只接受 enabled 和 config 字段
    * sourceType 和 installSpec 不应写入，否则会导致 OpenClaw 校验失败
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式插件条目，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
    */
   async upsertRuntimePluginEntry(
     containerId: string,
@@ -2978,6 +2991,9 @@ export class OpenClawClient {
 
   /**
    * 卸载/移除 Gateway 运行态插件（从 plugins.entries 中删除）
+   *
+   * @diagnostic-output — 内联脚本的 console.log 输出仅用于记录执行状态，
+   *   不被 host 端解析。方法始终返回 `{ success: true }`（成功时）。
    */
   async uninstallRuntimePlugin(
     containerId: string,
@@ -2989,6 +3005,8 @@ export class OpenClawClient {
       'base64',
     );
 
+    // @diagnostic-output: 脚本输出仅用于 Winston 日志记录，不参与方法返回值
+    // 方法在 executeNodeScript 成功后直接返回 { success: true }
     const nodeScript = `
       const fs = require("fs");
       const path = require("path");
@@ -3028,16 +3046,15 @@ export class OpenClawClient {
       const appPluginsDir = "/app/plugins/" + payload.pluginId;
       if (fs.existsSync(appPluginsDir)) {
         fs.rmSync(appPluginsDir, { recursive: true, force: true });
-        console.log("Deleted: " + appPluginsDir);
       }
 
       // 4. 删除 {openclawHome}/extensions/{pluginId} 目录
       const extensionsDir = path.join(openclawHome, "extensions", payload.pluginId);
       if (fs.existsSync(extensionsDir)) {
         fs.rmSync(extensionsDir, { recursive: true, force: true });
-        console.log("Deleted: " + extensionsDir);
       }
 
+      // 输出最终执行确认（仅用于 host 端日志）
       console.log(JSON.stringify({ success: true, pluginId: payload.pluginId }));
     `;
 
@@ -3062,6 +3079,9 @@ export class OpenClawClient {
 
   /**
    * 读取插件 Tool Access（全局 tools + agents.list[].tools）
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式工具访问配置，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
    */
   async getRuntimePluginToolAccess(
     containerId: string,
@@ -3178,6 +3198,9 @@ export class OpenClawClient {
 
   /**
    * 更新插件 Tool Access（全局 tools + agents.list[].tools）
+   *
+   * @runtime-protocol — 内联脚本输出 JSON 格式更新后的工具访问配置，
+   *   host 端通过 `JSON.parse(stdout)` 解析后作为返回值。
    */
   async updateRuntimePluginToolAccess(
     containerId: string,

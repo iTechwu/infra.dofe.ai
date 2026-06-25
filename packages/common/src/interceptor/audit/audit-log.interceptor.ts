@@ -5,7 +5,6 @@ import {
   CallHandler,
   Inject,
   Optional,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable, tap, catchError, of } from 'rxjs';

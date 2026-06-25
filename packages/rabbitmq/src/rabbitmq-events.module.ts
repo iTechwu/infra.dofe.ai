@@ -72,9 +72,10 @@ function logEvents(level: 'error' | 'warn' | 'log', message: string, meta?: unkn
 
             // 设置连接错误监听
             connection.on('error', (error) => {
-              console.error(
-                '[Events] RabbitMQ Events connection error:',
-                error,
+              logEvents(
+                'error',
+                `[Events] RabbitMQ Events connection error: ${error.message}`,
+                { error: error.message },
               );
             });
 

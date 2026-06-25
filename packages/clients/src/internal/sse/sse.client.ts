@@ -1,7 +1,9 @@
 import { RedisService } from '@dofe/infra-redis';
 import { objectUtil } from '@dofe/infra-utils';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 import {
   interval,
   Observable,
@@ -22,6 +24,7 @@ export class SseClient {
   constructor(
     private readonly config: ConfigService,
     private readonly redis: RedisService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async publish(
@@ -163,17 +166,17 @@ export class SseClient {
         if (result instanceof Promise) {
           result.catch((err) => {
             // 静默处理初始回调错误，避免影响 SSE 连接建立
-            console.error(
-              `[SseClient] Initial callback error for ${clientId}:`,
-              err,
+            this.logger.error(
+              `[SseClient] Initial callback error for ${clientId}`,
+              { clientId, error: err instanceof Error ? err.message : String(err) },
             );
           });
         }
       } catch (err) {
         // 静默处理同步回调错误
-        console.error(
-          `[SseClient] Initial callback sync error for ${clientId}:`,
-          err,
+        this.logger.error(
+          `[SseClient] Initial callback sync error for ${clientId}`,
+          { clientId, error: err instanceof Error ? err.message : String(err) },
         );
       }
 
@@ -194,8 +197,10 @@ export class SseClient {
                 await result;
               }
             } catch (err) {
-              // 回调错误不影响心跳流，记录日志并继续
-              console.error(`[SseClient] Callback error for ${clientId}:`, err);
+              this.logger.error(`[SseClient] Callback error for ${clientId}`, {
+                clientId,
+                error: err instanceof Error ? err.message : String(err),
+              });
               // 如果错误是数据库连接池相关，可能是连接已关闭，不继续执行
               if (err instanceof Error && err.message.includes('pool')) {
                 // 数据库连接池已关闭，停止心跳
@@ -209,8 +214,10 @@ export class SseClient {
             const data = await this.subscribe(clientId);
             return data;
           } catch (err) {
-            // 订阅错误不影响心跳流，返回 ping 消息
-            console.error(`[SseClient] Subscribe error for ${clientId}:`, err);
+            this.logger.error(`[SseClient] Subscribe error for ${clientId}`, {
+              clientId,
+              error: err instanceof Error ? err.message : String(err),
+            });
             return {
               t: 'p',
               data: { timestamp: new Date().toISOString() },
@@ -220,7 +227,10 @@ export class SseClient {
         }),
         // 捕获所有错误，避免 Observable 链中断
         catchError((err) => {
-          console.error(`[SseClient] Heartbeat error for ${clientId}:`, err);
+          this.logger.error(`[SseClient] Heartbeat error for ${clientId}`, {
+            clientId,
+            error: err instanceof Error ? err.message : String(err),
+          });
           // 返回 ping 消息，保持连接活跃
           return of({
             t: 'p',
@@ -271,7 +281,10 @@ export class SseClient {
           return ret;
         },
         error: (err) => {
-          console.error(`[SseClient] Observable error for ${clientId}:`, err);
+          this.logger.error(`[SseClient] Observable error for ${clientId}`, {
+            clientId,
+            error: err instanceof Error ? err.message : String(err),
+          });
           observer.error(err);
         },
         complete: () => {

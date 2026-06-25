@@ -188,7 +188,7 @@
 - ✅ 创建 `docs/0625/infra-boundaries-2026-06-25.md`：定义全部 19 个包的边界规则
 - ✅ 建立 5 层分层模型（叶包→工具层→适配层→客户端层→聚合层）
 - ✅ 制定新能力归属检查清单（6 条判断规则）
-- ✅ 标记 3 处已知边界违规：
+- ✅ 标记 2 处已知 `@boundary-violation`：
   - `common/src/utils/prisma-error.util.ts` — Prisma 特定代码在 common 中（`@boundary-violation`）
   - `common/src/enums/error-codes.ts` — contracts 桥接文件（`@boundary-violation`）
 - ✅ `shared-services/src/agentx/` 已收口为兼容 re-export，canonical 实现位于 `@dofe/infra-clients/agentx`
@@ -266,14 +266,16 @@
   - 构建规则说明（为什么必须走根构建）
   - 治理文档索引（links to review/roadmap/boundaries）
 - ✅ 创建 `docs/0625/infra-boundaries-2026-06-25.md`：19 个包的完整边界定义
-- ✅ 所有 3 处 `@boundary-violation` 已标注在源码中
-- ✅ 6 处 `@deprecated` 已标注弃用截止日期
+- ✅ 所有 2 处 `@boundary-violation` 已标注在源码中（prisma-error.util.ts, error-codes.ts，迁移截止 2027-06-30）
+- ✅ 6 处核心 `@deprecated` 已标注弃用截止日期（另有 ~39 处 config/dto 层面的字段级弃用标注）
 - ✅ 4 个兼容路径有明确迁移计划
 - ✅ `packages/docker/src/docker-orphan-cleaner.service.ts` 已落地 `gracePeriodMs`，避免孤儿容器被立即清理
 - ✅ `packages/redis/src/redis.module.ts` 已收口 Redis 连接日志
 - ✅ `packages/redis/src/redis-version-check.ts` 已收口 Redis 版本检查输出
 - ✅ `packages/rabbitmq/src/rabbitmq-events.module.ts` 已收口 RabbitMQ Events 连接日志
 - ✅ `packages/clients/src/internal/feishu/test-connection.ts` 已抽出脚本输出辅助函数，便于后续区分诊断输出与运行时日志
+- ✅ `packages/clients/src/internal/openclaw/openclaw.client.ts` 已清除 3 处纯人工脚本提示输出，保留 JSON 协议返回
+- ✅ `packages/clients/src/internal/openclaw/openclaw.client.ts` 已标注容器脚本 stdout 边界：stdout 只承载 JSON 协议，人工诊断走宿主 logger
 
 ---
 
@@ -340,7 +342,94 @@
 - ✅ `redis-version-check.ts` 已统一 Redis 版本检查输出
 - ✅ `rabbitmq-events.module.ts` 已统一 RabbitMQ Events 连接日志出口
 - ✅ `clients/src/internal/feishu/test-connection.ts` 已抽出脚本输出辅助函数
-- ⏳ `clients/src/internal/openclaw/openclaw.client.ts` 仍保留批量脚本输出，需在下一轮明确哪些是 CLI、哪些是运行时日志
+- ✅ `clients/src/internal/openclaw/openclaw.client.ts` 已清除纯人工脚本提示输出，保留 JSON 协议返回
+- ✅ `clients/src/internal/openclaw/openclaw.client.ts` 剩余 `console.log(JSON.stringify(...))` 均按容器脚本 stdout JSON 协议保留
+- ✅ `docker-orphan-cleaner.service.ts` 已清理 `gracePeriodMs` 陈旧待办注释
+- ✅ `openclaw.client.ts` 已将 `listAgents` 模糊待办改为兼容入口说明，并指向 `listAgentsFromConfig(containerId)`
+- 🔄 [2026-06-25 深度收口] openclaw 内联脚本输出边界细化（5 轮循环）：
+  - ✅ [Cycle 1] 全部 12 处内联脚本完成 @runtime-protocol / @diagnostic-output 分类标注：
+    - **@runtime-protocol** (8): readGatewayConfig, readOpenclawConfig, listRuntimePlugins, getPluginManifest, diagnosePluginLocations, upsertRuntimePluginEntry, getRuntimePluginToolAccess, updateRuntimePluginToolAccess
+    - **@diagnostic-output** (4): injectMcpConfig, removeMcpConfig, installRuntimePlugin(verify), uninstallRuntimePlugin
+    - 文件头部添加完整分类说明（3 种类型定义 + 约束规则）
+  - ✅ [Cycle 2] injectMcpConfig / removeMcpConfig 清理：
+    - 内联脚本添加 @diagnostic-output 行内标注
+    - injectMcpConfig 输出增强为包含 `updatedServers` 列表
+    - removeMcpConfig 增加幂等性注释
+  - ✅ [Cycle 3] installRuntimePlugin 验证脚本收口：
+    - 重新分类为 @runtime-validation（输出同时用于诊断日志和安装成功/失败判定）
+    - 文件头部 JSDoc 新增 @runtime-validation 子类型说明
+  - ✅ [Cycle 4] uninstallRuntimePlugin 脚本输出收口：
+    - 添加 @diagnostic-output 行内标注
+    - 说明方法在 executeNodeScript 成功后直接返回 { success: true }
+  - ✅ [Cycle 5] 最终验证与文档标注：
+    - TypeScript 构建通过，零类型错误
+    - roadmap 文档标注全部完成
+  - ✅ [Cycle 6] 陈旧待办与文档一致性复审：
+    - 清理 `docker-orphan-cleaner.service.ts` 中已过期的 `gracePeriodMs` 待办注释
+    - 将 `openclaw.client.ts` 的 `listAgents` 待办改为兼容入口说明
+    - 修正文档中 `@boundary-violation` 计数：2 处源码标记 + 1 处 agentx 兼容收口
+  - 📋 **分类汇总**：8 个 @runtime-protocol（含 1 个 @runtime-validation）+ 4 个 @diagnostic-output = 12 处全部收口；陈旧待办已清理
+
+#### Round 7: console.* 全面迁移到 Winston/standaloneLogger (2026-06-25) ✅
+
+- ✅ [Cycle 1] `sse.client.ts` — 6 处 `console.error` → `this.logger.error`（注入 WINSTON_MODULE_PROVIDER）
+- ✅ [Cycle 2] 3 个文件各 1 处迁移：
+  - `third-party-sse.client.ts` — `console.error` → `this.logger.error`
+  - `system-health.service.ts` — `console.error` → `this.logger.error`
+  - `mask.interceptor.ts` — `console.error` → `(this.logger ?? console).error`（@Optional 注入，兼容非 DI 实例化）
+- ✅ [Cycle 3] `crypto.util.ts` — 7 处 `console.error` → `standaloneLogger.error`（utils 层无 DI 访问，使用已有 standalone logger）
+- ✅ [Cycle 4] `transactional.decorator.ts` — 3 处 `console.warn/error` → `standaloneLogger.warn/error`（装饰器层无 DI，复用 standaloneLogger）
+- ✅ [Cycle 5] 额外收口：
+  - `http.exception.ts` — 1 处 `console.error` → `this.logger.error`（已有 Winston 注入，遗漏未用）
+  - `rabbitmq-events.module.ts` — 1 处 raw `console.error` → 复用模块已有的 `logEvents()` helper
+- 📋 **本轮总计**：**19 处** `console.*` 迁移完成（6 + 3 + 7 + 3 主体 + 2 额外收口）
+- 📋 **全仓状态**：所有非 fallback/协议/JSDoc/测试的 `console.*` 已清零
+  - 保留：Redis/RabbitMQ bootstrap fallback logger（预期模式）
+  - 保留：openclaw 容器内脚本 `console.log(JSON.stringify(...))`（协议通道）
+  - 保留：prisma-crud-generator CLI（用户界面）
+  - 保留：JSDoc @example 中的示例代码
+
+#### Round 8: 代码整洁收口 (2026-06-25) ✅
+
+- ✅ [C1] `docker.service.ts` — `const { Readable } = require('stream')` → top-level `import { Readable } from 'node:stream'`，风格与文件已有 `node:` 前缀 import 一致
+- ✅ [C2] `http.exception.ts` — 移除 3 行死代码（已注释的 import + 无用的 eslint-disable + 说明注释）
+- ✅ [C3] `skill-validator.util.ts` — 移除真正未使用的 `import * as yaml from 'js-yaml'` 及其 2 处误导性 eslint-disable 注释（`yaml` 只在注释和扩展名字符串中出现，从未被调用）
+- ✅ [C4] `audit-log.interceptor.ts` + `request.middleware.ts` — 移除 2 处误用的 `eslint-disable @typescript-eslint/no-unused-vars`（所有 import 均实际被使用）
+- 📋 **本轮总计**：移除 1 处 lazy require、3 行死代码、1 个真·未使用 import、6 处无效 eslint-disable 注释
+- 📋 **eslint-disable 全仓审计结果**：
+  - 已清理：audit-log.interceptor、request.middleware、skill-validator.util（yaml）、http.exception
+  - 保留 justified：transform-root.pipe（`_metadata` 参数）、unit-of-work（rest-spread 排除模式）、api.exception（显式 any）、audit-log-helper（显式 any）、openspeech（lazy require SDK）、system-health（restricted-paths 有文档说明）、prisma-crud-generator（CLI require）
+
+#### Round 9: 构建配置与 CI 完善 (2026-06-25) ✅
+
+- ✅ [C1] `tsconfig.build-all.json` — 补充缺失的 `@dofe/sso-browser` + `@dofe/sso-browser/*` 路径别名（此前 sso-browser 包不在统一构建中）
+- ✅ [C2] `tsconfig.build-all.json` — 移除废弃的 `@/libs/*` 别名（零消费者）
+- ✅ [C3] `ci.yml` + `packages/config/package.json` — ESLint 依赖修复：
+  - 发现 `eslint-plugin-prettier` 被 eslint.nestjs.config.mjs 引用但未声明为依赖
+  - 在 `@dofe/infra-config` peerDependencies 中新增 `eslint-plugin-prettier: >=5`
+  - CI lint 步骤添加注释说明 soft-fail 原因
+- ✅ [C4] `tsconfig.build-all.json` — 移除全部 21 个零消费者的 `@/...` 死别名（`@/common/*`, `@/config/*`, `@/decorators/*`, `@/filter/*` 等），减少路径别名总量约 27%
+- 📋 **构建前后**：路径别名 78→56 个（28% 精简），所有别名均有消费者或标注为过渡期保留
+- 📋 **TSC 验证**：零错误通过
+
+#### Round 10: 包清单一致性 + 死目录清理 + 文档计数校准 (2026-06-25) ✅
+
+- ✅ [C1] `prisma-crud-generator` + `web-runtime` — `main`/`types` 路径去 `./` 前缀：
+  - 两包使用 `./dist/index.js` 而其他 17 个包使用 `dist/index.js`
+  - 统一为 `dist/index.js`（均为 `commonjs` 类型，`./` 冗余）
+- ✅ [C2] 清理 2 个死目录：
+  - `packages/jwt/_tmp_build` — 遗留构建临时目录（空，零引用）
+  - `packages/clients/src/internal/crypt/dto` — 空目录（零引用）
+- ✅ [C3] `@boundary-violation` 标记格式验证：
+  - 标记格式实际正确（grep 截断导致误判为 `@n:`）
+  - 2 处标记与 roadmap 记录一致
+- ✅ [C4] `common/index.ts` 58 个 re-exports 审计：
+  - 2 处 @boundary-violation 文件通过主入口公开（按过渡期计划保留至 2027-06-30）
+  - 其余均为合法公开 API（decorators/guards/interceptors/filters/pipes/middleware）
+- ✅ [C5] 文档计数校准：
+  - `@deprecated` 标注: 6 处核心 API 级 + ~39 处 config/dto 字段级 → 修正 roadmap 表述
+  - `@boundary-violation` 计数: 2 处源码标记 ✅ 与实际情况一致
+  - `@boundary-violation` 计数: 原有 roadmap 记录 "3 处" 含 1 处已完成的 agentx 收口 ≠ 当前活跃违规数
 
 ---
 

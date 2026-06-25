@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { RedisService } from '@dofe/infra-redis';
 import { RabbitmqService } from '@dofe/infra-rabbitmq';
 // eslint-disable-next-line import/no-restricted-paths -- 健康检查服务需要直接访问 Prisma 检查数据库连接状态
 import { PrismaService } from '@dofe/infra-prisma';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class SystemHealthService {
@@ -10,6 +12,7 @@ export class SystemHealthService {
     private readonly redis: RedisService,
     private readonly rabbitmq: RabbitmqService,
     private readonly prisma: PrismaService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
   async checkDiskSpace(): Promise<boolean> {
@@ -17,7 +20,7 @@ export class SystemHealthService {
     return new Promise((resolve, reject) => {
       exec('df -h | grep /dev/sda1', (error: Error | null, stdout: string, _stderr: string) => {
         if (error) {
-          console.error(`exec error: ${error}`);
+          this.logger.error('Disk space check exec error', { error: error.message });
           return reject(false);
         }
         const regex = /(\d+)%/;

@@ -1,5 +1,7 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 import { EventEmitter } from 'events';
 
 @Injectable()
@@ -7,7 +9,10 @@ export class ThirdPartySseClient extends EventEmitter implements OnModuleInit {
   private readonly baseUrl: string;
   private eventSource: EventSource | null = null;
 
-  constructor(private readonly httpService: HttpService) {
+  constructor(
+    private readonly httpService: HttpService,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {
     super();
     // video-task-processor has been removed, baseUrl is no longer needed
     this.baseUrl = '';
@@ -34,7 +39,9 @@ export class ThirdPartySseClient extends EventEmitter implements OnModuleInit {
       this.emit('data', data); // Emit data for other parts of the application
     };
     this.eventSource.onerror = (err) => {
-      console.error('Error connecting to third-party SSE:', err);
+      this.logger.error('Error connecting to third-party SSE', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       if (this.eventSource) {
         this.eventSource.close();
         this.eventSource = null;

@@ -35,4 +35,7 @@ jobs:
 
       - name: Lint
         run: pnpm run lint
+        # Soft-fail during migration: eslint-plugin-prettier is declared as a
+        # peerDependency of @dofe/infra-config but not installed at repo root.
+        # Projects consuming the shared config should install it themselves.
         continue-on-error: true

@@ -100,6 +100,7 @@ Layer 4: 聚合服务层
 **设计约束：**
 - `clients/src/internal/` 前缀在源码中保留，但在 exports 中剥离（由 `generate-exports.mjs` 处理）
 - 每个客户端应该是独立的，不依赖其他客户端
+- 容器内脚本 stdout 可以作为 JSON 协议返回通道；人类可读诊断必须由宿主侧 logger 输出，不能混入 stdout
 
 ---
 

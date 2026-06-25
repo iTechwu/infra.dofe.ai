@@ -40,6 +40,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
+import { standaloneLogger } from '@dofe/infra-utils';
 import { isDevelopment } from '../../config/env-config.service';
 
 /**
@@ -388,7 +389,7 @@ async function executeWithRetry(
         );
 
         // Log retry attempt
-        console.warn(
+        standaloneLogger.warn(
           `Transaction ${methodName} failed with retryable error, ` +
             `retrying in ${delay}ms (attempt ${retryCount}/${options.maxRetries})`,
           { error: (error as Error).message },
@@ -566,11 +567,11 @@ function logTransactionComplete(
 
     if (success) {
       if (duration > 1000) {
-        console.warn('Slow Transaction', logData);
+        standaloneLogger.warn('Slow Transaction', logData);
       }
       // dev 环境下记录所有事务，生产环境只记录慢事务
     } else {
-      console.error('Transaction Failed', {
+      standaloneLogger.error('Transaction Failed', {
         ...logData,
         error: error ? { name: error.name, message: error.message } : undefined,
       });

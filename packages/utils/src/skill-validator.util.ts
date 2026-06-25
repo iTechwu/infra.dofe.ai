@@ -3,11 +3,6 @@
  * 用于验证上传的 skill 是否符合 OpenClaw skill 规范和标准
  */
 import * as path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// yaml is used for parsing YAML content in skill files (indirect)
-import * as yaml from 'js-yaml';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// yaml is used indirectly through yaml.load
 import { z } from 'zod';
 import { parseSkillMd, type ParsedSkillMd } from './skill-md-parser.util';
 

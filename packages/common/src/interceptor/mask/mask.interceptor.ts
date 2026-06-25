@@ -4,11 +4,15 @@ import {
   Injectable,
   NestInterceptor,
   SetMetadata,
+  Optional,
+  Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { maskUtil } from '@dofe/infra-utils';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 /**
  * 脱敏配置元数据 Key
@@ -214,7 +218,10 @@ function processData(data: any, config: MaskConfig): any {
  */
 @Injectable()
 export class MaskInterceptor implements NestInterceptor {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    @Optional() @Inject(WINSTON_MODULE_PROVIDER) private readonly logger?: Logger,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const config = this.reflector.get<MaskConfig & { skip?: boolean }>(
@@ -233,7 +240,7 @@ export class MaskInterceptor implements NestInterceptor {
           return processData(data, config);
         } catch (error) {
           // 脱敏失败时返回原数据，避免影响正常响应
-          console.error('Data masking failed:', error);
+          (this.logger ?? console).error('Data masking failed:', error);
           return data;
         }
       }),

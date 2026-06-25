@@ -2,7 +2,6 @@ import {
   Inject,
   Injectable,
   NestMiddleware,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 import { IncomingMessage, ServerResponse } from 'http';

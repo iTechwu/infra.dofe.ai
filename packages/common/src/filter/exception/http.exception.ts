@@ -12,9 +12,6 @@ import { ApiException } from './api.exception';
 
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
-// import { errorFromType } from '@/ts-rest/response.helper';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// errorFromType is re-exported but not used in this file
 
 @Catch(HttpException, ApiException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -111,7 +108,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const message = context.getMessage ? context.getMessage() : null;
       return { channel, message };
     } catch (error) {
-      console.error('获取通道或消息时发生错误', error);
+      this.logger.error('获取通道或消息时发生错误', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return { channel: null, message: null };
     }
   }

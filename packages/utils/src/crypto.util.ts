@@ -1,9 +1,10 @@
 import * as crypto from 'crypto';
 import * as CryptoJS from 'crypto-js';
+import { standaloneLogger } from './logger-standalone.util';
 
 export function rsaDecrypt(val: string) {
   if (!val || typeof val !== 'string') {
-    console.error('[rsaDecrypt] Invalid input:', {
+    standaloneLogger.error('[rsaDecrypt] Invalid input', {
       val: val?.substring(0, 50),
     });
     return '';
@@ -13,14 +14,14 @@ export function rsaDecrypt(val: string) {
     const bytes = CryptoJS.AES.decrypt(val, 'qmez2n1llvatr8gczip6uyokpi1wi8ys');
     const originalText = bytes.toString(CryptoJS.enc.Utf8);
     if (!originalText || originalText.trim() === '') {
-      console.error('[rsaDecrypt] Decryption result is empty', {
+      standaloneLogger.error('[rsaDecrypt] Decryption result is empty', {
         inputLength: val.length,
         inputPreview: val.substring(0, 50),
       });
     }
     return originalText;
   } catch (error: unknown) {
-    console.error('[rsaDecrypt] Decryption failed:', {
+    standaloneLogger.error('[rsaDecrypt] Decryption failed', {
       error: (error as Error).message || error,
       inputLength: val.length,
       inputPreview: val.substring(0, 50),
@@ -68,7 +69,9 @@ export function aesCbcDecrypt(val: string, secretKey: string, iv: string) {
     const originalText = decryptedBytes.toString(CryptoJS.enc.Utf8);
     return originalText;
   } catch (error) {
-    console.error('Decryption failed:', error);
+    standaloneLogger.error('Decryption failed', {
+      error: (error as Error).message || error,
+    });
     throw new Error('Failed to decrypt data due to an error.');
   }
 }
@@ -110,12 +113,16 @@ export function decrypt(dataStr: string, key: string, iv: string): string {
     try {
       decrypted += decipher.final('utf8');
     } catch (err) {
-      console.error('Decryption failed:', err);
+      standaloneLogger.error('Decryption failed', {
+        error: (err as Error).message || err,
+      });
       throw err; // 或者您可以选择返回一个错误消息或空字符串
     }
     return decrypted;
   } catch (err) {
-    console.error('Error in decryption setup:', err);
+    standaloneLogger.error('Error in decryption setup', {
+      error: (err as Error).message || err,
+    });
     throw err; // 抛出错误或返回错误消息
   }
 }
@@ -137,7 +144,9 @@ export function encrypt(dataStr: string, key: string, iv: string): string {
 
     return encrypted;
   } catch (err) {
-    console.error('Error in encryption:', err);
+    standaloneLogger.error('Error in encryption', {
+      error: (err as Error).message || err,
+    });
     throw new Error('Error encrypting data');
   }
 }

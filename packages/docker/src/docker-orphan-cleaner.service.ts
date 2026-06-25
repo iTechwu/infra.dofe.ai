@@ -715,9 +715,9 @@ export class DockerOrphanCleanerService {
   /**
    * Cleanup all orphaned sandbox containers
    * @param knownGatewayContainers - list of known gateway container names
-   * @param gracePeriodMs - grace period in milliseconds before cleanup
-   *   TODO: gracePeriodMs is not yet implemented. Future versions should track
-   *   orphan detection time and only cleanup after grace period expires.
+   * @param gracePeriodMs - grace period in milliseconds before cleanup.
+   *   Orphans are recorded on first detection and skipped until the grace
+   *   period expires.
    */
   async cleanupOrphanedSandboxes(
     knownGatewayContainers: string[],
