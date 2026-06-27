@@ -1,5 +1,4 @@
 import Docker from 'dockerode';
-import { getDockerConnectionOptions } from './docker.utils';
 
 const DEFAULT_DOCKER_HOST = '/var/run/docker.sock';
 const DEFAULT_TIMEOUT_MS = 8000;
@@ -18,6 +17,27 @@ export function createDockerClient(options: DockerClientOptions = {}): Docker {
   return new Docker(
     getDockerConnectionOptions(options.dockerHost ?? DEFAULT_DOCKER_HOST),
   );
+}
+
+function getDockerConnectionOptions(hostOrUrl: string): Docker.DockerOptions {
+  const value = (hostOrUrl ?? '').trim();
+  if (!value) {
+    return { socketPath: DEFAULT_DOCKER_HOST };
+  }
+
+  const tcpMatch = value.match(/^(?:tcp|http|https):\/\/([^:/]+):(\d+)$/i);
+  if (tcpMatch) {
+    const protocol = value.toLowerCase().startsWith('https') ? 'https' : 'http';
+    return {
+      protocol: protocol as 'http' | 'https',
+      host: tcpMatch[1],
+      port: parseInt(tcpMatch[2], 10),
+      socketPath: null,
+    } as Docker.DockerOptions;
+  }
+
+  const socketPath = value.startsWith('unix://') ? value.slice(7) : value;
+  return { socketPath };
 }
 
 export async function probeDockerDaemon(

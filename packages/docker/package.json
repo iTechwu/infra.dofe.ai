@@ -70,6 +70,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
+    "test:smoke": "node --test test/*.smoke.mjs",
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
@@ -93,7 +94,9 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "test",
+    "package.json"
   ],
   "license": "UNLICENSED"
 }

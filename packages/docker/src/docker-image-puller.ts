@@ -1,5 +1,4 @@
 import Docker from 'dockerode';
-import { getLocalImageId, pullImage } from './docker.utils';
 import { safeDockerMessage, withDockerTimeout } from './docker-client.factory';
 
 const DEFAULT_PULL_TIMEOUT_MS = 300_000;
@@ -32,6 +31,10 @@ export async function inspectDockerImage(
   image: string,
   timeoutMs = 8000,
 ): Promise<DockerImagePresence> {
+  if (!docker) {
+    return { present: false, imageId: null };
+  }
+
   try {
     const imageId = await withDockerTimeout(
       getLocalImageId(docker, image),
@@ -54,11 +57,7 @@ export async function pullDockerImage(
   }
 
   try {
-    if (options.registryAuth || options.platform) {
-      await pullWithDockerode(docker, options, timeoutMs);
-    } else {
-      await pullImage(docker, options.image, timeoutMs);
-    }
+    await pullWithDockerode(docker, options, timeoutMs);
     return {
       ok: true,
       message: `Image ${options.image} pulled successfully.`,
@@ -69,6 +68,19 @@ export async function pullDockerImage(
       options.registryAuth,
     );
     return { ok: false, message };
+  }
+}
+
+async function getLocalImageId(
+  docker: Docker,
+  imageName: string,
+): Promise<string | null> {
+  try {
+    const image = docker.getImage(imageName);
+    const info = await image.inspect();
+    return info.Id || null;
+  } catch {
+    return null;
   }
 }
 
