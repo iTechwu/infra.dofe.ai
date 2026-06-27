@@ -15,6 +15,7 @@
     "lint": "eslint 'packages/*/src/**/*.ts' --fix",
     "typecheck": "pnpm -r --stream run typecheck",
     "verify:storage-feature-boundary": "node scripts/check-storage-feature-boundary.mjs",
+    "verify:published-package": "node scripts/verify-published-package.mjs",
     "publish:all": "bash scripts/publish-all.sh",
     "publish": "bash scripts/publish-single.sh",
     "publish:clients": "bash scripts/publish-single.sh clients",
