@@ -1,0 +1,45 @@
+{
+  "name": "@dofe/infra-runtime",
+  "version": "0.1.2",
+  "description": "Runtime detection and invocation planning primitives for dofe.ai agents",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "test:smoke": "node --test test/*.smoke.mjs",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./runtime-detection": {
+      "types": "./dist/runtime-detection.d.ts",
+      "default": "./dist/runtime-detection.js"
+    },
+    "./runtime-invocation": {
+      "types": "./dist/runtime-invocation.d.ts",
+      "default": "./dist/runtime-invocation.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "test",
+    "package.json"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^25.9.4",
+    "rimraf": "^6.1.2",
+    "typescript": "^6.0.3"
+  }
+}

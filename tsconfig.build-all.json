@@ -56,7 +56,9 @@
       "@dofe/infra-web-runtime": ["packages/web-runtime/src"],
       "@dofe/infra-web-runtime/*": ["packages/web-runtime/src/*"],
       "@dofe/infra-workspace": ["packages/workspace/src"],
-      "@dofe/infra-workspace/*": ["packages/workspace/src/*"]
+      "@dofe/infra-workspace/*": ["packages/workspace/src/*"],
+      "@dofe/infra-runtime": ["packages/runtime/src"],
+      "@dofe/infra-runtime/*": ["packages/runtime/src/*"]
     }
   },
   "include": [

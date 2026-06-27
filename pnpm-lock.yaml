@@ -14,6 +14,9 @@ importers:
       '@dofe/infra-docker':
         specifier: workspace:*
         version: link:packages/docker
+      '@dofe/infra-runtime':
+        specifier: workspace:*
+        version: link:packages/runtime
       '@dofe/infra-workspace':
         specifier: workspace:*
         version: link:packages/workspace
@@ -539,6 +542,18 @@ importers:
     devDependencies:
       rimraf:
         specifier: ^6.1.3
+        version: 6.1.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  packages/runtime:
+    devDependencies:
+      '@types/node':
+        specifier: ^25.9.4
+        version: 25.9.4
+      rimraf:
+        specifier: ^6.1.2
         version: 6.1.3
       typescript:
         specifier: ^6.0.3
@@ -6126,7 +6141,7 @@ snapshots:
 
   '@types/bcrypt@6.0.0':
     dependencies:
-      '@types/node': 26.0.1
+      '@types/node': 25.9.4
 
   '@types/caseless@0.12.5': {}
 
