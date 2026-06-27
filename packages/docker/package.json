@@ -70,6 +70,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
+    "test": "pnpm run test:smoke",
     "test:smoke": "node --test test/*.smoke.mjs",
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
