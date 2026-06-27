@@ -35,7 +35,8 @@
     "publish:sso-browser": "bash scripts/publish-single.sh sso-browser",
     "publish:utils": "bash scripts/publish-single.sh utils",
     "publish:vector": "bash scripts/publish-single.sh vector",
-    "publish:web-runtime": "bash scripts/publish-single.sh web-runtime"
+    "publish:web-runtime": "bash scripts/publish-single.sh web-runtime",
+    "publish:workspace": "bash scripts/publish-single.sh workspace"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@dofe/infra-contracts": "workspace:*",
     "@dofe/infra-docker": "workspace:*",
+    "@dofe/infra-workspace": "workspace:*",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.27",
     "@nestjs/platform-fastify": "^11.1.27",

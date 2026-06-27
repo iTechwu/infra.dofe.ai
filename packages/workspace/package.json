@@ -1,0 +1,49 @@
+{
+  "name": "@dofe/infra-workspace",
+  "version": "0.1.1",
+  "description": "Workspace and managed-path primitives for dofe.ai runtimes",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "test:smoke": "node --test test/*.smoke.mjs",
+    "postbuild": "node ../../scripts/generate-exports.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./docker-volume": {
+      "types": "./dist/docker-volume.d.ts",
+      "default": "./dist/docker-volume.js"
+    },
+    "./path-policy": {
+      "types": "./dist/path-policy.d.ts",
+      "default": "./dist/path-policy.js"
+    },
+    "./workspace-root": {
+      "types": "./dist/workspace-root.d.ts",
+      "default": "./dist/workspace-root.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "test",
+    "package.json"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^25.9.4",
+    "rimraf": "^6.1.2",
+    "typescript": "^6.0.3"
+  }
+}

@@ -7,3 +7,4 @@ export * from './redis-lock.service';
 export * from './tenant-redis.module';
 export * from './tenant-redis.service';
 export * from './redis-version-check';
+export * from './bullmq-bootstrap';

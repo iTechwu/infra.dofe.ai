@@ -1,6 +1,11 @@
 /**
  * Shared type stubs for the Docker package.
  * Kept local to avoid depending on @repo/contracts (agents-specific).
+ *
+ * Legacy compatibility note:
+ * these Bot/OpenClaw-shaped exports predate the cross-project infra boundary.
+ * New shared Docker primitives must not add product-domain types here; prefer
+ * product-neutral modules such as docker-client.factory and docker-image-puller.
  */
 
 // ── Bot Type ──

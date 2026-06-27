@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-redis",
-  "version": "0.1.78",
+  "version": "0.1.80",
   "description": "Redis caching, distributed locks, tenant-level cache isolation, and version validation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./bullmq-bootstrap": {
+      "types": "./dist/bullmq-bootstrap.d.ts",
+      "default": "./dist/bullmq-bootstrap.js"
     },
     "./cache.service": {
       "types": "./dist/cache.service.d.ts",
@@ -50,6 +54,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
+    "test:smoke": "node --test test/*.smoke.mjs",
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {

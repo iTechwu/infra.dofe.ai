@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-docker",
-  "version": "0.1.78",
+  "version": "0.1.79",
   "description": "Docker container management — create/start/stop containers, port allocation, orphan cleanup with grace period",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,6 +8,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./docker-client.factory": {
+      "types": "./dist/docker-client.factory.d.ts",
+      "default": "./dist/docker-client.factory.js"
+    },
+    "./docker-image-puller": {
+      "types": "./dist/docker-image-puller.d.ts",
+      "default": "./dist/docker-image-puller.js"
     },
     "./docker-image.module": {
       "types": "./dist/docker-image.module.d.ts",
@@ -24,6 +32,18 @@
     "./docker-runtime.module": {
       "types": "./dist/docker-runtime.module.d.ts",
       "default": "./dist/docker-runtime.module.js"
+    },
+    "./docker-sandbox-command": {
+      "types": "./dist/docker-sandbox-command.d.ts",
+      "default": "./dist/docker-sandbox-command.js"
+    },
+    "./docker-sandbox-runner": {
+      "types": "./dist/docker-sandbox-runner.d.ts",
+      "default": "./dist/docker-sandbox-runner.js"
+    },
+    "./docker-sandbox.types": {
+      "types": "./dist/docker-sandbox.types.d.ts",
+      "default": "./dist/docker-sandbox.types.js"
     },
     "./docker-stats.service": {
       "types": "./dist/docker-stats.service.d.ts",
