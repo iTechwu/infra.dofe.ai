@@ -16,6 +16,7 @@ export function executeDockerSandbox(
 ): Promise<DockerSandboxRunResult> {
   const profile = describeDockerSandboxProfile(opts);
   const startedAt = Date.now();
+  const redactions = sandboxSecretRedactions(opts);
 
   return new Promise((resolve) => {
     const args = buildDockerSandboxRunCommand(opts).slice(1);
@@ -28,11 +29,19 @@ export function executeDockerSandbox(
     let stderr = '';
 
     child.stdout?.on('data', (chunk: Buffer) => {
-      stdout = appendBounded(stdout, chunk.toString('utf8'), maxOutputBytes);
+      stdout = appendBounded(
+        stdout,
+        redactSandboxOutput(chunk.toString('utf8'), redactions),
+        maxOutputBytes,
+      );
     });
 
     child.stderr?.on('data', (chunk: Buffer) => {
-      stderr = appendBounded(stderr, chunk.toString('utf8'), maxOutputBytes);
+      stderr = appendBounded(
+        stderr,
+        redactSandboxOutput(chunk.toString('utf8'), redactions),
+        maxOutputBytes,
+      );
     });
 
     child.on('error', (error: NodeJS.ErrnoException) => {
@@ -65,4 +74,22 @@ function appendBounded(current: string, next: string, maxBytes: number): string 
   const combined = current + next;
   if (combined.length <= maxBytes) return combined;
   return combined.slice(0, maxBytes);
+}
+
+function sandboxSecretRedactions(opts: DockerSandboxRunOptions): string[] {
+  return Object.entries(opts.envVars ?? {})
+    .filter(([key, value]) => isSecretEnvKey(key) && value.length > 0)
+    .map(([, value]) => value);
+}
+
+function isSecretEnvKey(key: string): boolean {
+  return /SECRET|TOKEN|PASSWORD|API[_-]?KEY|PRIVATE[_-]?KEY/i.test(key);
+}
+
+function redactSandboxOutput(output: string, redactions: string[]): string {
+  let redacted = output;
+  for (const value of redactions) {
+    redacted = redacted.split(value).join('***');
+  }
+  return redacted;
 }
