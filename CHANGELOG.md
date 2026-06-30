@@ -1,3 +1,5 @@
+## [0.1.80] - 2026-06-30
+
 ## [0.1.79] - 2026-06-30
 - feat: harden rabbitmq logging redaction
 - feat: 添加 runtime 包及相关功能，支持运行时检测和调用规划
