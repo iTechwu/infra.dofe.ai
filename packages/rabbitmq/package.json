@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-rabbitmq",
-  "version": "0.1.78",
+  "version": "0.1.79",
   "description": "RabbitMQ message queue — event bus, pub/sub messaging, independent events vhost",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,6 +12,10 @@
     "./dto/rabbitmq.dto": {
       "types": "./dist/dto/rabbitmq.dto.d.ts",
       "default": "./dist/dto/rabbitmq.dto.js"
+    },
+    "./log-redaction.util": {
+      "types": "./dist/log-redaction.util.d.ts",
+      "default": "./dist/log-redaction.util.js"
     },
     "./rabbitmq-events.constants": {
       "types": "./dist/rabbitmq-events.constants.d.ts",

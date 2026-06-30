@@ -15,7 +15,7 @@
 
 'use client';
 
-import type { UserInfo } from '@repo/contracts';
+import type { SsoUserInfo as UserInfo } from './sso-session';
 
 // ============================================================================
 // Types

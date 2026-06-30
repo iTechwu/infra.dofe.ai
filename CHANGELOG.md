@@ -1,3 +1,13 @@
+## [0.1.79] - 2026-06-30
+- feat: harden rabbitmq logging redaction
+- feat: 添加 runtime 包及相关功能，支持运行时检测和调用规划
+- feat: add workspace package and related utilities
+- chore: add infra package publish readback check
+- test: add docker package test alias
+- test: cover docker sandbox runner redaction
+- test: cover docker image pull primitives
+- docs: define shared infra primitive boundaries
+
 ## [0.1.78] - 2026-06-25
 - feat: 深化类型安全，移除 @app/* 别名，更新构建验证和 README 文档
 
