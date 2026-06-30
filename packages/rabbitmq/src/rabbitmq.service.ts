@@ -9,6 +9,7 @@ import { Logger } from 'winston';
 import * as amqplib from 'amqplib';
 
 import { RABBITMQ_CONNECTION, RabbitmqConnection } from './dto/rabbitmq.dto';
+import { redactErrorMessage, connectionClosedSeverity } from './log-redaction.util';
 
 interface MessageHandler {
   (message: any): Promise<void>;
@@ -116,11 +117,11 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
       if (isProductionEnv() && !isRabbitmqOptional()) {
         this.logger.error('Failed to initialize RabbitMQ service', {
-          error,
+          error: redactErrorMessage(error),
         });
       } else {
         this.logger.warn('RabbitMQ is unavailable in current environment', {
-          error: error instanceof Error ? error.message : String(error),
+          error: redactErrorMessage(error),
         });
       }
 
@@ -140,13 +141,21 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
     conn.on('error', (error: Error) => {
       this.logger.error('RabbitMQ connection error', {
-        error: error instanceof Error ? error.message : String(error),
+        error: redactErrorMessage(error),
       });
       this.handleConnectionClosed();
     });
 
     conn.on('close', () => {
-      this.logger.warn('RabbitMQ connection closed');
+      // During shutdown (onModuleDestroy sets isShuttingDown) the close is
+      // expected, not a warning: downgrade to debug so operators can distinguish
+      // a benign shutdown race from a real mid-run connection loss (OPZ-04).
+      const level = connectionClosedSeverity(this.isShuttingDown);
+      this.logger[level](
+        level === 'debug'
+          ? 'RabbitMQ connection closed during shutdown'
+          : 'RabbitMQ connection closed',
+      );
       this.handleConnectionClosed();
     });
   }

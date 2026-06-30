@@ -14,6 +14,7 @@ import {
   RABBITMQ_EVENTS_CONNECTION,
   type RabbitmqEventsConnection,
 } from './rabbitmq-events.constants';
+import { redactUrlCredentials } from './log-redaction.util';
 
 export { RABBITMQ_EVENTS_CONNECTION, RabbitmqEventsConnection };
 
@@ -66,7 +67,7 @@ function logEvents(level: 'error' | 'warn' | 'log', message: string, meta?: unkn
             } else {
               logEvents(
                 'log',
-                `✅ [Events] RabbitMQ Events connection established: ${rabbitmqEventsUrl}`,
+                `✅ [Events] RabbitMQ Events connection established: ${redactUrlCredentials(rabbitmqEventsUrl)}`,
               );
             }
 
@@ -74,8 +75,8 @@ function logEvents(level: 'error' | 'warn' | 'log', message: string, meta?: unkn
             connection.on('error', (error) => {
               logEvents(
                 'error',
-                `[Events] RabbitMQ Events connection error: ${error.message}`,
-                { error: error.message },
+                `[Events] RabbitMQ Events connection error: ${redactUrlCredentials(error.message)}`,
+                { error: redactUrlCredentials(error.message) },
               );
             });
 

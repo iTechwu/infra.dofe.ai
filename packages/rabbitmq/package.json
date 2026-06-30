@@ -38,6 +38,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
+    "test": "node --test test/*.smoke.mjs",
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
