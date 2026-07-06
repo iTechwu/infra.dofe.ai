@@ -425,7 +425,7 @@ export const vikingdbSchema = z.object({
 
 // Full Keys Configuration Schema
 export const keysConfigSchema = z.object({
-  google: googleServiceAccountSchema,
+  google: googleServiceAccountSchema.optional(),
   'jina-ai': jinaAiSchema.optional(),
   oauth: z.array(oauthProviderSchema).optional(),
   sendcloud: sendcloudSchema.optional(),

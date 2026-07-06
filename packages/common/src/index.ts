@@ -2,7 +2,13 @@ export * from './common.module';
 export * from './encryption.service';
 export * from './adapters';
 export * from './config/env-config.service';
-export { getKeysConfig, initKeysConfig, getEnvConfig, getConfig } from './config/configuration';
+export {
+  getKeysConfig,
+  initKeysConfig,
+  getEnvConfig,
+  getConfig,
+  validateConfiguredFeatures,
+} from './config/configuration';
 export type { KeysConfig, YamlConfig, EnvConfig } from './config/validation';
 export type { JwtConfig, EmbeddingKeysConfig, VikingDbKeysConfig } from './config/validation';
 export type { AppConfig, SendCloudConfig, StorageCredentialsConfig, IpInfoConfig, OpenSpeechConfig } from './config/validation';

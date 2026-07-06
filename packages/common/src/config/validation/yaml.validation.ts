@@ -524,6 +524,13 @@ export const prismaConfigSchema = z.object({
  */
 export const yamlConfigSchema = z.object({
   app: appConfigSchema,
+  /**
+   * 启动期需要强校验的功能能力。
+   *
+   * 未声明的功能不会因为 keys/config.json 缺少对应块而阻止启动；声明后会按
+   * FEATURE_REGISTRY 检查 env/yaml/keys 并给出配置方式提示。
+   */
+  requiredFeatures: z.array(z.string().min(1)).optional(),
   uploadConfig: uploadConfigSchema.optional(),
   // ipinfo 从 keys/config.json 合并 (通过 configuration.ts)
   ipinfo: ipInfoConfigSchema.optional(),

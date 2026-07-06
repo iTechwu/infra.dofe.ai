@@ -16,6 +16,7 @@ import {
 } from './validation';
 import environment from '@dofe/infra-utils/environment.util';
 import { createContextLogger } from '@dofe/infra-utils';
+import { validateRequiredFeatures } from './features';
 
 // Note: AgentXConfigHelper is exported directly from './agentx.config'
 // to avoid circular dependency. Import from '@/config/agentx.config' instead.
@@ -318,6 +319,54 @@ export function validateKeysConfigResult(rawConfig: unknown) {
 }
 
 // ============================================================================
+// Feature Validation
+// ============================================================================
+
+function parseRequiredFeaturesFromEnv(): string[] {
+  return (process.env.REQUIRED_FEATURES ?? '')
+    .split(',')
+    .map((feature) => feature.trim())
+    .filter(Boolean);
+}
+
+function getRequiredFeatures(): string[] {
+  const yamlFeatures = Array.isArray(config?.requiredFeatures)
+    ? config.requiredFeatures
+    : [];
+  return Array.from(new Set([...yamlFeatures, ...parseRequiredFeaturesFromEnv()]));
+}
+
+export function validateConfiguredFeatures(): ReturnType<typeof validateRequiredFeatures> {
+  const requiredFeatures = getRequiredFeatures();
+  const result = validateRequiredFeatures(requiredFeatures, {
+    env: process.env,
+    yaml: (config ?? {}) as Record<string, unknown>,
+    keys: keysConfig as Record<string, unknown> | undefined,
+  });
+
+  if (result.warnings.length > 0) {
+    logger.warn('Feature configuration warnings', {
+      warnings: result.warnings,
+    });
+  }
+
+  if (!result.valid) {
+    const message = [
+      'Required feature configuration validation failed.',
+      ...result.errors,
+    ].join('\n');
+
+    if (process.env.NODE_ENV?.startsWith('prod')) {
+      throw new Error(message);
+    }
+
+    logger.warn(message);
+  }
+
+  return result;
+}
+
+// ============================================================================
 // Full Configuration Initialization
 // ============================================================================
 
@@ -340,6 +389,9 @@ export async function initAllConfig(): Promise<{
 
   // 3. Load and validate keys config
   const keys = initKeysConfig();
+
+  // 4. Validate only explicitly required features.
+  validateConfiguredFeatures();
 
   logger.info('All configuration initialized successfully');
 
