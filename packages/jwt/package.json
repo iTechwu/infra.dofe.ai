@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-jwt",
-  "version": "0.1.80",
+  "version": "0.1.81",
   "description": "JWT signing/verification and JWKS client for dofe.ai services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
