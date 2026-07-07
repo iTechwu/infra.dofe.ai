@@ -1,3 +1,6 @@
+## [0.1.84] - 2026-07-07
+- fix: pin internal package ranges during publish
+
 ## [0.1.83] - 2026-07-07
 - fix: align internal infra dependency ranges
 
