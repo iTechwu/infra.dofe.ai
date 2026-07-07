@@ -170,14 +170,33 @@ else
   # Bump version in all package.json files
   # ──────────────────────────────────────────────────────────────────────
   echo "Bumping version in all package.json files..."
+  INTERNAL_PACKAGE_NAMES=$(node -e "
+    const fs = require('fs');
+    const names = fs.readdirSync('packages')
+      .map((dir) => {
+        const file = 'packages/' + dir + '/package.json';
+        if (!fs.existsSync(file)) return null;
+        return require('./' + file).name;
+      })
+      .filter(Boolean);
+    console.log(names.join(','));
+  ")
   for pkg_json in packages/*/package.json; do
     node -e "
       const pkg = require('./$pkg_json');
+      const internal = new Set('$INTERNAL_PACKAGE_NAMES'.split(',').filter(Boolean));
+      for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+        const deps = pkg[section];
+        if (!deps) continue;
+        for (const name of Object.keys(deps)) {
+          if (internal.has(name)) deps[name] = '^$NEW_VERSION';
+        }
+      }
       pkg.version = '$NEW_VERSION';
       require('fs').writeFileSync('$pkg_json', JSON.stringify(pkg, null, 2) + '\n');
     "
   done
-  echo "  All packages bumped to $NEW_VERSION."
+  echo "  All packages bumped to $NEW_VERSION; internal package ranges set to ^$NEW_VERSION."
   echo ""
 
   # ──────────────────────────────────────────────────────────────────────
