@@ -1,3 +1,6 @@
+## [0.1.82] - 2026-07-07
+- feat(clients): add chat capability verification
+
 ## [0.1.81] - 2026-07-06
 
 ## [0.1.80] - 2026-06-30
