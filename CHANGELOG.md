@@ -1,3 +1,9 @@
+## [Unreleased]
+- feat(openspeech): `OpenspeechProviderFactory` / `OpenspeechClient` 支持显式 `OpenSpeechConfig` 注入——新增 `getProviderWithConfig`、`getStreamingProviderWithConfig`、`submitTranscribeTaskWithConfig`、`queryTranscribeTaskStatusWithConfig`，每次新建实例不缓存，支持同 vendor 多账号 / 多租户并发，避免账号串扰；保留 `getKeysConfig()` 默认读取与原签名，向后兼容
+- feat(volcengine-tts): `VolcengineTtsClient` 新增 `static create(config, deps)` 工厂并拆分 `resolveConfig` / `applyConfig`，支持 models.dofe.ai 从 DB ProviderKey 注入多账号配置（含 TOS）；DI 构造路径 fail-fast 行为不变
+- refactor(openspeech)!: `openspeech.tos.appId` 重命名为 `appKey`（对应火山 `X-Api-App-Key` 请求头），schema / types / factory / client / providers / streaming-asr 同步更新。**BREAKING**：消费方 `keys/config.json` 的 `openspeech.tos.appId` 字段需改为 `appKey`
+- chore(shared-services): tsconfig paths 增补 `@dofe/infra-common → ../common/dist`，使本地 typecheck 解析 workspace common 而非已发布 npm 版
+
 ## [0.1.84] - 2026-07-07
 - fix: pin internal package ranges during publish
 

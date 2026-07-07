@@ -17,6 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@dofe/infra-common": ["../common/dist"],
       "@dofe/infra-clients": ["../clients/dist"],
       "@dofe/infra-clients/*": ["../clients/dist/internal/*"],
       "@dofe/infra-shared-services": ["./src/index.ts"],

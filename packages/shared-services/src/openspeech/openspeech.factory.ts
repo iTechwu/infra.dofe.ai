@@ -178,12 +178,15 @@ export class OpenspeechProviderFactory {
    * @returns {IOpenspeechProvider} 新创建的提供商实例
    * @throws {Error} 不支持的 vendor 类型或配置缺失时抛出异常
    */
-  private createProvider(vendor: FileBucketVendor): IOpenspeechProvider {
+  private createProvider(
+    vendor: FileBucketVendor,
+    configOverride?: OpenSpeechConfig,
+  ): IOpenspeechProvider {
     switch (vendor) {
       case 'oss':
-        return this.createAliyunProvider();
+        return this.createAliyunProvider(configOverride);
       case 'tos':
-        return this.createVolcengineAucProvider();
+        return this.createVolcengineAucProvider(configOverride);
       default:
         throw new Error(`Unsupported vendor for openspeech: ${vendor}`);
     }
@@ -199,10 +202,11 @@ export class OpenspeechProviderFactory {
    */
   private createStreamingProvider(
     vendor: FileBucketVendor,
+    configOverride?: OpenSpeechConfig,
   ): IStreamingAsrProvider {
     switch (vendor) {
       case 'tos':
-        return this.createVolcengineSaucProvider();
+        return this.createVolcengineSaucProvider(configOverride);
       default:
         throw new Error(`Unsupported vendor for streaming ASR: ${vendor}`);
     }
@@ -249,7 +253,7 @@ export class OpenspeechProviderFactory {
     }
 
     return {
-      appId: config.appId,
+      appKey: config.appKey,
       appAccessToken: config.appAccessToken,
       uid: config.uid,
       endpoint: config.auc.endpoint,
@@ -278,7 +282,7 @@ export class OpenspeechProviderFactory {
     }
 
     return {
-      appId: config.appId,
+      appKey: config.appKey,
       appAccessToken: config.appAccessToken,
       uid: config.uid,
       endpoint: config.sauc.endpoint,
@@ -296,8 +300,10 @@ export class OpenspeechProviderFactory {
    * @returns {AliyunOpenspeechProvider} 阿里云提供商实例
    * @throws {Error} 配置缺失时抛出异常
    */
-  private createAliyunProvider(): AliyunOpenspeechProvider {
-    const rawConfig = this.openspeechConfig?.oss;
+  private createAliyunProvider(
+    configOverride?: OpenSpeechConfig,
+  ): AliyunOpenspeechProvider {
+    const rawConfig = this.resolveOpenspeechConfig(configOverride)?.oss;
     if (!rawConfig) {
       throw new Error(
         'Aliyun OpenSpeech config (oss) not found in configuration',
@@ -316,8 +322,10 @@ export class OpenspeechProviderFactory {
    * @returns {VolcengineOpenspeechProvider} 火山引擎 AUC 提供商实例
    * @throws {Error} 配置缺失时抛出异常
    */
-  private createVolcengineAucProvider(): VolcengineOpenspeechProvider {
-    const rawConfig = this.openspeechConfig?.tos;
+  private createVolcengineAucProvider(
+    configOverride?: OpenSpeechConfig,
+  ): VolcengineOpenspeechProvider {
+    const rawConfig = this.resolveOpenspeechConfig(configOverride)?.tos;
     if (!rawConfig) {
       throw new Error(
         'Volcengine OpenSpeech config (tos) not found in configuration',
@@ -340,8 +348,10 @@ export class OpenspeechProviderFactory {
    * @returns {VolcengineStreamingAsrProvider} 火山引擎 SAUC 提供商实例
    * @throws {Error} 配置缺失时抛出异常
    */
-  private createVolcengineSaucProvider(): VolcengineStreamingAsrProvider {
-    const rawConfig = this.openspeechConfig?.tos;
+  private createVolcengineSaucProvider(
+    configOverride?: OpenSpeechConfig,
+  ): VolcengineStreamingAsrProvider {
+    const rawConfig = this.resolveOpenspeechConfig(configOverride)?.tos;
     if (!rawConfig) {
       throw new Error(
         'Volcengine OpenSpeech config (tos) not found in configuration',
@@ -351,6 +361,71 @@ export class OpenspeechProviderFactory {
     const config = this.toVolcengineSaucConfig(rawConfig);
     this.logger.info('Creating Volcengine OpenSpeech SAUC provider');
     return new VolcengineStreamingAsrProvider(this.logger, config);
+  }
+
+  /**
+   * 解析生效的 OpenSpeech 配置
+   *
+   * @description 显式注入的配置优先；未提供时回退到构造期从 `getKeysConfig()` 读取的全局默认配置。
+   * 供 models.dofe.ai 等外部服务从数据库 ProviderKey 解析多账号配置后注入使用。
+   *
+   * @private
+   * @param {OpenSpeechConfig} [explicit] - 显式注入的配置（可选）
+   * @returns {OpenSpeechConfig | undefined} 生效的 OpenSpeech 配置
+   */
+  private resolveOpenspeechConfig(
+    explicit?: OpenSpeechConfig,
+  ): OpenSpeechConfig | undefined {
+    return explicit ?? this.openspeechConfig;
+  }
+
+  /**
+   * 按显式注入的配置创建录音文件识别 provider（不缓存）
+   *
+   * @description 供 models.dofe.ai 等 DB 驱动的调用方使用：从数据库 ProviderKey 解析出
+   * appKey / appAccessToken / uid / endpoint / resourceId 等字段，组装成 OpenSpeechConfig 后注入，
+   * 由 factory 复用既有 toAliyunConfig / toVolcengineAucConfig 转换逻辑构造 provider。
+   *
+   * 与 {@link getProvider} 的关键区别：本方法每次都新建 provider 实例，**不做 vendor 维度单例缓存**，
+   * 因此支持同一 vendor 下的多账号、多租户并发调用，避免账号串扰；代价是放弃单例复用。
+   *
+   * @param {FileBucketVendor} vendor - 云服务商类型
+   * @param {OpenSpeechConfig} config - 显式注入的 OpenSpeech 配置
+   * @returns {IOpenspeechProvider} 新建的提供商实例（未缓存）
+   * @throws {Error} vendor 不支持或配置缺失时抛出异常
+   *
+   * @example
+   * ```typescript
+   * // models 服务从 DB ProviderKey 解析后注入
+   * const provider = factory.getProviderWithConfig('tos', {
+   *   tos: { appKey, appAccessToken, uid, auc: { endpoint, resourceId } },
+   * });
+   * const taskId = await provider.submitTask({ audioUrl });
+   * ```
+   */
+  getProviderWithConfig(
+    vendor: FileBucketVendor,
+    config: OpenSpeechConfig,
+  ): IOpenspeechProvider {
+    return this.createProvider(vendor, config);
+  }
+
+  /**
+   * 按显式注入的配置创建流式识别 provider（不缓存）
+   *
+   * @description 供 models.dofe.ai 等外部服务注入 DB 解析的火山引擎 SAUC 配置。
+   * 与 {@link getStreamingProvider} 的关键区别：不做 vendor 维度单例缓存，支持多账号。
+   *
+   * @param {FileBucketVendor} vendor - 云服务商类型（目前仅支持 'tos'）
+   * @param {OpenSpeechConfig} config - 显式注入的 OpenSpeech 配置（需包含 tos.sauc）
+   * @returns {IStreamingAsrProvider} 新建的流式识别提供商实例（未缓存）
+   * @throws {Error} vendor 不支持或 SAUC 配置缺失时抛出异常
+   */
+  getStreamingProviderWithConfig(
+    vendor: FileBucketVendor,
+    config: OpenSpeechConfig,
+  ): IStreamingAsrProvider {
+    return this.createStreamingProvider(vendor, config);
   }
 
   /**

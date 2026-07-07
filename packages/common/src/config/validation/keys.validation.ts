@@ -147,8 +147,8 @@ export const openspeechAliyunProviderSchema = z.object({
 
 // 火山引擎语音识别配置
 export const openspeechVolcengineProviderSchema = z.object({
-  /** 应用 ID */
-  appId: z.string(),
+  /** 应用 AppKey（对应火山 X-Api-App-Key 请求头） */
+  appKey: z.string(),
   /** 应用访问令牌 */
   appAccessToken: z.string(),
   /** 用户 ID */
@@ -190,7 +190,7 @@ export const openspeechProviderSchema = z.object({
   nslAppId: z.string().optional(),
   nslAppKey: z.string().optional(),
   apiVersion: z.string().optional(),
-  appId: z.string().optional(),
+  appKey: z.string().optional(),
   appAccessToken: z.string().optional(),
   appAccessSecret: z.string().optional(),
   resourceId: z.string().optional(),

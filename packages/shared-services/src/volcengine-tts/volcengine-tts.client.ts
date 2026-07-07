@@ -43,19 +43,61 @@ export interface VolcengineTtsConfig {
   };
 }
 
+/**
+ * 显式配置注入路径的运行时依赖
+ *
+ * @description 通过 {@link VolcengineTtsClient.create} 创建独立实例时所需的最小依赖。
+ * 不包含 ConfigService / FileStorageService —— 显式模式不读取 keys/config.json，
+ * TOS 凭证直接由 {@link VolcengineTtsConfig.tos} 提供。
+ */
+export interface VolcengineTtsDeps {
+  /** HTTP 客户端（调用火山 TTS API） */
+  httpService: HttpService;
+  /** Winston 日志记录器 */
+  logger: Logger;
+}
+
 @Injectable()
 export class VolcengineTtsClient {
-  private readonly ttsConfig: VolcengineTtsConfig;
-  private readonly ttsUrl: string;
+  private ttsConfig!: VolcengineTtsConfig;
+  private ttsUrl!: string;
   private tosClient: TosClient | null = null;
   private cloudUrl: string = '';
 
+  /**
+   * 构造函数（NestJS DI 路径）
+   *
+   * @description 从 `keys/config.json` 解析配置（fail-fast：缺失抛 FeatureNotConfiguredError），
+   * 保持与历史行为一致，现有调用方零改动。需要多账号/多租户或 DB 驱动配置时，改用静态工厂
+   * {@link VolcengineTtsClient.create} 注入显式 config。
+   *
+   * @param {ConfigService} configService - NestJS 配置服务
+   * @param {HttpService} httpService - HTTP 客户端
+   * @param {FileStorageService} fileApi - 文件存储服务（保留 DI 兼容，TTS 实际直连火山 TOS）
+   * @param {Logger} logger - Winston 日志记录器
+   */
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
     private readonly fileApi: FileStorageService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
+    this.applyConfig(VolcengineTtsClient.resolveConfig(configService));
+  }
+
+  /**
+   * 从 `keys/config.json` 解析火山 TTS 配置（含 TOS）
+   *
+   * @description fail-fast：tts.volcengine、storage.tos、buckets 任一缺失即抛错。
+   * 供 DI 构造路径使用；外部服务（models.dofe.ai）应直接组装 {@link VolcengineTtsConfig}
+   * 走 {@link VolcengineTtsClient.create}，不走此方法。
+   *
+   * @static
+   * @param {ConfigService} configService - NestJS 配置服务（读取 buckets）
+   * @returns {VolcengineTtsConfig} 解析后的 TTS 配置
+   * @throws {FeatureNotConfiguredError|Error} 配置缺失时抛出
+   */
+  static resolveConfig(configService: ConfigService): VolcengineTtsConfig {
     const config = getKeysConfig()?.tts as TtsConfig | undefined;
     if (!config || !config.volcengine) {
       throw new FeatureNotConfiguredError('tts', 'keys.tts');
@@ -69,7 +111,7 @@ export class VolcengineTtsClient {
     // Direct TOS access is a storage-client capability; SSO-only consumers do
     // not need buckets.
     const bucketConfigs =
-      this.configService.get<YamlConfig['buckets']>('buckets') ?? [];
+      configService.get<YamlConfig['buckets']>('buckets') ?? [];
     if (bucketConfigs.length === 0) {
       throw new FeatureNotConfiguredError('storage-client', 'buckets');
     }
@@ -84,26 +126,11 @@ export class VolcengineTtsClient {
       );
     }
 
-    if (
-      !storageConfig ||
-      !storageConfig.accessKey ||
-      !storageConfig.secretKey
-    ) {
+    if (!storageConfig?.accessKey || !storageConfig?.secretKey) {
       throw new Error('TOS storage credentials not found in keys/config.json');
     }
 
-    // 构建 TOS 配置
-    const tosConfig = {
-      region: tosBucket.region || 'cn-shanghai',
-      endpoint: this.extractTosEndpoint(
-        tosBucket.tosEndpoint || tosBucket.endpoint,
-      ),
-      bucket: tosBucket.bucket,
-      accessKeyId: storageConfig.accessKey,
-      accessKeySecret: storageConfig.secretKey,
-    };
-
-    this.ttsConfig = {
+    return {
       endpoint:
         volcengineConfig.endpoint ||
         'https://openspeech.bytedance.com/api/v3/tts/unidirectional',
@@ -112,19 +139,74 @@ export class VolcengineTtsClient {
       region: volcengineConfig.region || 'cn-shanghai',
       accessKey: volcengineConfig.accessKey || '',
       secretKey: volcengineConfig.secretKey || '',
-      tos: tosConfig,
+      tos: {
+        region: tosBucket.region || 'cn-shanghai',
+        endpoint: VolcengineTtsClient.extractTosEndpoint(
+          tosBucket.tosEndpoint || tosBucket.endpoint,
+        ),
+        bucket: tosBucket.bucket,
+        accessKeyId: storageConfig.accessKey,
+        accessKeySecret: storageConfig.secretKey,
+      },
     };
+  }
 
-    this.ttsUrl = this.ttsConfig.endpoint;
+  /**
+   * 应用 TTS 配置（设置 ttsConfig / ttsUrl，校验并初始化 TOS 客户端）
+   *
+   * @protected
+   * @param {VolcengineTtsConfig} config - 完整的 TTS 配置（含 TOS）
+   */
+  protected applyConfig(config: VolcengineTtsConfig): void {
+    this.ttsConfig = config;
+    this.ttsUrl = config.endpoint;
     this.validateConfiguration();
     this.initializeTOS();
+  }
+
+  /**
+   * 按显式注入的配置创建独立 TTS 客户端实例（非 DI，支持多账号）
+   *
+   * @description 供 models.dofe.ai 从数据库 ProviderKey 解析出 endpoint / apiKey / resourceId /
+   * region / accessKey / secretKey / tos 后注入。每次调用返回**独立实例**，不做单例缓存，避免多账号
+   * 串扰；绕过 DI 构造路径，不读取 `keys/config.json`，也不依赖 ConfigService / FileStorageService。
+   *
+   * @static
+   * @param {VolcengineTtsConfig} config - 显式注入的 TTS 配置（含 TOS）
+   * @param {VolcengineTtsDeps} deps - 运行时依赖（HTTP 客户端 + 日志）
+   * @returns {VolcengineTtsClient} 独立客户端实例（未缓存，由调用方持有）
+   *
+   * @example
+   * ```typescript
+   * const client = VolcengineTtsClient.create(
+   *   { endpoint, apiKey, resourceId, region, accessKey, secretKey, tos },
+   *   { httpService, logger },
+   * );
+   * const result = await client.textToSpeech({ text: '你好', speaker });
+   * ```
+   */
+  static create(
+    config: VolcengineTtsConfig,
+    deps: VolcengineTtsDeps,
+  ): VolcengineTtsClient {
+    const instance = Object.create(
+      VolcengineTtsClient.prototype,
+    ) as VolcengineTtsClient;
+    Object.assign(instance, {
+      configService: undefined,
+      httpService: deps.httpService,
+      fileApi: undefined,
+      logger: deps.logger,
+    });
+    instance.applyConfig(config);
+    return instance;
   }
 
   /**
    * 从 endpoint URL 中提取 TOS endpoint 域名
    * 例如: https://tos-s3-cn-shanghai.volces.com -> tos-s3-cn-shanghai.volces.com
    */
-  private extractTosEndpoint(endpointUrl: string): string {
+  private static extractTosEndpoint(endpointUrl: string): string {
     if (!endpointUrl) {
       return 'tos-cn-shanghai.volces.com';
     }

@@ -34,6 +34,7 @@ import { FileBucketVendor, FileSource } from '@prisma/client';
 
 import { FileStorageService } from '../file-storage/file-storage.service';
 import { fileUtil } from '@dofe/infra-utils';
+import { OpenSpeechConfig } from '@dofe/infra-common';
 import { OpenspeechProviderFactory } from './openspeech.factory';
 import {
   SubmitTaskResult,
@@ -437,5 +438,98 @@ export class OpenspeechClient {
    */
   getStreamingAvailableVendors(): FileBucketVendor[] {
     return this.providerFactory.getStreamingAvailableVendors();
+  }
+
+  // =========================================================================
+  // 显式配置注入方法（供 models.dofe.ai 等 DB 驱动调用方）
+  // =========================================================================
+
+  /**
+   * 用显式注入的 provider 配置提交录音文件识别任务（AUC）
+   *
+   * @description 与 {@link OpenspeechClient.submitTranscribeTask} 的关键区别：
+   * - 直接接受 `audioUrl`，不依赖 FileStorageService 按 FileKey 推导音频地址，便于 models
+   *   侧已有平台资产 URL 时直接提交；
+   * - 接受显式 `OpenSpeechConfig`，由 models 从数据库 ProviderKey 解析注入，支持多账号/多租户，
+   *   每次调用新建 provider（不缓存，不与 config.json 默认账号串扰）。
+   *
+   * @param {FileBucketVendor} vendor - 云服务商类型
+   * @param {string} audioUrl - 音频文件的可访问 HTTP(S) URL
+   * @param {OpenSpeechConfig} config - 显式注入的 OpenSpeech 配置
+   * @param {object} [options] - 可选参数
+   * @param {string} [options.callbackUrl] - 任务完成回调地址（provider 回调 models 的 webhook）
+   * @returns {Promise<SubmitTaskResult>} 任务提交结果
+   * @throws {Error} vendor 不支持或配置缺失时抛出异常
+   *
+   * @example
+   * ```typescript
+   * const { vendorTaskId } = await client.submitTranscribeTaskWithConfig(
+   *   'tos',
+   *   audioUrl,
+   *   { tos: { appKey, appAccessToken, uid, auc: { endpoint, resourceId } } },
+   *   { callbackUrl: 'https://models.dofe.ai/v1/generation/callbacks/volcengine' },
+   * );
+   * ```
+   */
+  async submitTranscribeTaskWithConfig(
+    vendor: FileBucketVendor,
+    audioUrl: string,
+    config: OpenSpeechConfig,
+    options?: { callbackUrl?: string },
+  ): Promise<SubmitTaskResult> {
+    this.logger.info('Openspeech transcription submit (injected config)', {
+      vendor,
+      audioUrl,
+    });
+
+    const provider = this.providerFactory.getProviderWithConfig(vendor, config);
+    const vendorTaskId = await provider.submitTask({
+      audioUrl,
+      callbackUrl: options?.callbackUrl,
+    });
+
+    return {
+      vendor,
+      vendorTaskId,
+      audioUrl,
+    };
+  }
+
+  /**
+   * 用显式注入的配置查询录音识别任务状态（AUC）
+   *
+   * @description {@link OpenspeechClient.submitTranscribeTaskWithConfig} 的配套查询方法。
+   * 查询时注入的 config 需与提交时一致（同账号），否则可能因鉴权不符导致查询失败。
+   *
+   * @param {FileBucketVendor} vendor - 云服务商类型
+   * @param {string} vendorTaskId - 云服务商返回的任务 ID
+   * @param {OpenSpeechConfig} config - 显式注入的 OpenSpeech 配置
+   * @returns {Promise<TaskStatusResult>} 任务状态与结果
+   */
+  async queryTranscribeTaskStatusWithConfig(
+    vendor: FileBucketVendor,
+    vendorTaskId: string,
+    config: OpenSpeechConfig,
+  ): Promise<TaskStatusResult> {
+    const provider = this.providerFactory.getProviderWithConfig(vendor, config);
+    return provider.queryTaskStatus(vendorTaskId);
+  }
+
+  /**
+   * 按显式注入的配置获取流式识别 provider 实例（SAUC）
+   *
+   * @description 流式识别需要跨多帧音频维持同一 provider 内部的 WebSocket 连接池，因此不能像 AUC
+   * 那样每次调用都新建 provider。本方法按显式 config 创建并返回 provider 实例，由调用方
+   * （models.dofe.ai）持有并自行管理 `connect` / `sendAudio` / `disconnect` 生命周期与会话状态。
+   *
+   * @param {FileBucketVendor} vendor - 云服务商类型（目前仅支持 'tos'）
+   * @param {OpenSpeechConfig} config - 显式注入的 OpenSpeech 配置（需包含 tos.sauc）
+   * @returns {IStreamingAsrProvider} 流式识别 provider 实例（未缓存，由调用方持有）
+   */
+  getStreamingProviderWithConfig(
+    vendor: FileBucketVendor,
+    config: OpenSpeechConfig,
+  ): IStreamingAsrProvider {
+    return this.providerFactory.getStreamingProviderWithConfig(vendor, config);
   }
 }

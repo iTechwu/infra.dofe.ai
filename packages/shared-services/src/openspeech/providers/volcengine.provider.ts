@@ -55,7 +55,7 @@ const VolcengineStatusCode = {
  * @example
  * ```typescript
  * const provider = new VolcengineOpenspeechProvider(logger, httpService, {
- *   appId: 'your-app-id',
+ *   appKey: 'your-app-id',
  *   appAccessToken: 'your-access-token',
  *   endpoint: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
  *   uid: 'your-user-id',
@@ -140,7 +140,7 @@ export class VolcengineOpenspeechProvider extends BaseOpenspeechProvider {
   private buildHeaders(requestId: string): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-Api-App-Key': this.config.appId,
+      'X-Api-App-Key': this.config.appKey,
       'X-Api-Access-Key': this.config.appAccessToken,
       'X-Api-Request-Id': requestId,
       'X-Api-Sequence': '-1',
@@ -180,9 +180,9 @@ export class VolcengineOpenspeechProvider extends BaseOpenspeechProvider {
     }
 
     // 校验必要的配置项
-    if (!this.config.appId || !this.config.appAccessToken) {
+    if (!this.config.appKey || !this.config.appAccessToken) {
       throw new Error(
-        'Volcengine OpenSpeech config missing appId or appAccessToken',
+        'Volcengine OpenSpeech config missing appKey or appAccessToken',
       );
     }
 
@@ -315,9 +315,9 @@ export class VolcengineOpenspeechProvider extends BaseOpenspeechProvider {
     }
 
     // 校验必要的配置项
-    if (!this.config.appId || !this.config.appAccessToken) {
+    if (!this.config.appKey || !this.config.appAccessToken) {
       throw new Error(
-        'Volcengine OpenSpeech config missing appId or appAccessToken',
+        'Volcengine OpenSpeech config missing appKey or appAccessToken',
       );
     }
 

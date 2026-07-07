@@ -160,7 +160,7 @@ export interface VolcengineAsrModeConfig {
  */
 export interface VolcengineOpenspeechConfig {
   /** 应用 ID */
-  appId: string;
+  appKey: string;
   /** 应用访问令牌 */
   appAccessToken: string;
   /** 用户 ID */
@@ -185,7 +185,7 @@ export interface VolcengineOpenspeechConfig {
  */
 export interface VolcengineAucConfig {
   /** 应用 ID */
-  appId: string;
+  appKey: string;
   /** 应用访问令牌 */
   appAccessToken: string;
   /** 用户 ID */
@@ -210,7 +210,7 @@ export interface VolcengineAucConfig {
  */
 export interface VolcengineSaucConfig {
   /** 应用 ID */
-  appId: string;
+  appKey: string;
   /** 应用访问令牌 */
   appAccessToken: string;
   /** 用户 ID */
