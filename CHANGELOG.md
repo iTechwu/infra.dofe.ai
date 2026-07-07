@@ -1,3 +1,6 @@
+## [0.1.83] - 2026-07-07
+- fix: align internal infra dependency ranges
+
 ## [0.1.82] - 2026-07-07
 - feat(clients): add chat capability verification
 
