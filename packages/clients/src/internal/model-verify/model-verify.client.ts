@@ -228,6 +228,73 @@ export class ModelVerifyClient {
   }
 
   /**
+   * Step 7: 验证 Chat 模型的特定能力（capability smoke test）。
+   * 在最小 chat 请求上叠加 capability-specific 参数（response_format / tools），
+   * 200/429 视为支持；400/422（参数错误）视为不支持并返回原因；其他错误保守视为可用。
+   * Anthropic 协议暂不叠加 response_format/tools（无原生等价），仅做基础 chat 探活。
+   */
+  async verifyChatCapability(
+    apiHost: string,
+    apiKey: string,
+    model: string,
+    apiType: 'openai' | 'anthropic',
+    options?: {
+      responseFormat?: { type: string };
+      tools?: unknown[];
+      extraBody?: Record<string, unknown>;
+    },
+  ): Promise<{ verified: boolean; failureReason?: string }> {
+    const isAnthropic = apiType === 'anthropic';
+    const url = isAnthropic ? `${apiHost}/v1/messages` : `${apiHost}/chat/completions`;
+    const headers = isAnthropic
+      ? {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        }
+      : { ...this.getHeaders(apiHost, apiKey), 'Content-Type': 'application/json' };
+
+    const body: Record<string, unknown> = {
+      model,
+      max_tokens: 1,
+      messages: [{ role: 'user', content: 'Hi' }],
+    };
+    if (!isAnthropic) {
+      if (options?.responseFormat) body.response_format = options.responseFormat;
+      if (options?.tools) body.tools = options.tools;
+      if (options?.extraBody) Object.assign(body, options.extraBody);
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(url, body, { headers }).pipe(
+          timeout(this.TIMEOUT_MS),
+          catchError((error) =>
+            of({
+              status: error.response?.status || 500,
+              data: error.response?.data as unknown,
+            }),
+          ),
+        ),
+      );
+      if (response.status === 200 || response.status === 429) {
+        return { verified: true };
+      }
+      if (response.status === 400 || response.status === 422) {
+        const data = response.data as { error?: { message?: unknown } } | undefined;
+        const msg = data?.error?.message ? String(data.error.message) : '';
+        return {
+          verified: false,
+          failureReason: `HTTP ${response.status}: ${msg || 'capability not supported'}`,
+        };
+      }
+      return { verified: true };
+    } catch {
+      return { verified: true };
+    }
+  }
+
+  /**
    * 验证 Gemini 模型
    */
   async verifyGeminiModel(
