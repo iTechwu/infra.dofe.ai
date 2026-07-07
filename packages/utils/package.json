@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-utils",
-  "version": "0.1.84",
+  "version": "0.1.85",
   "description": "Pure function utilities — crypto, file, string, array, object, pagination, logging; zero NestJS dependency",
   "engines": {
     "node": ">=20.19.0"
@@ -148,7 +148,7 @@
     }
   },
   "peerDependencies": {
-    "@dofe/infra-contracts": "^0.1.84",
+    "@dofe/infra-contracts": "^0.1.85",
     "@nestjs/swagger": "^11.0.0",
     "@prisma/client": "^7.0.0",
     "bcrypt": "^5.1.0 || ^6.0.0",

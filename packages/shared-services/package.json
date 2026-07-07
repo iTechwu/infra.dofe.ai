@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-shared-services",
-  "version": "0.1.84",
+  "version": "0.1.85",
   "description": "Composite business services — orchestration across prisma/redis/rabbitmq/clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -368,8 +368,8 @@
     "@alicloud/imm20200930": "^4.6.2",
     "@alicloud/openapi-core": "^1.0.7",
     "@darabonba/typescript": "^1.0.4",
-    "@dofe/infra-clients": "^0.1.84",
-    "@dofe/infra-contracts": "^0.1.84",
+    "@dofe/infra-clients": "^0.1.85",
+    "@dofe/infra-contracts": "^0.1.85",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -395,13 +395,13 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.84",
-    "@dofe/infra-jwt": "^0.1.84",
-    "@dofe/infra-prisma": "^0.1.84",
-    "@dofe/infra-rabbitmq": "^0.1.84",
-    "@dofe/infra-redis": "^0.1.84",
-    "@dofe/infra-shared-db": "^0.1.84",
-    "@dofe/infra-utils": "^0.1.84"
+    "@dofe/infra-common": "^0.1.85",
+    "@dofe/infra-jwt": "^0.1.85",
+    "@dofe/infra-prisma": "^0.1.85",
+    "@dofe/infra-rabbitmq": "^0.1.85",
+    "@dofe/infra-redis": "^0.1.85",
+    "@dofe/infra-shared-db": "^0.1.85",
+    "@dofe/infra-utils": "^0.1.85"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

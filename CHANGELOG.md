@@ -1,3 +1,6 @@
+## [0.1.85] - 2026-07-07
+- feat(openspeech): support explicit provider config injection
+
 ## [Unreleased]
 - feat(openspeech): `OpenspeechProviderFactory` / `OpenspeechClient` 支持显式 `OpenSpeechConfig` 注入——新增 `getProviderWithConfig`、`getStreamingProviderWithConfig`、`submitTranscribeTaskWithConfig`、`queryTranscribeTaskStatusWithConfig`，每次新建实例不缓存，支持同 vendor 多账号 / 多租户并发，避免账号串扰；保留 `getKeysConfig()` 默认读取与原签名，向后兼容
 - feat(volcengine-tts): `VolcengineTtsClient` 新增 `static create(config, deps)` 工厂并拆分 `resolveConfig` / `applyConfig`，支持 models.dofe.ai 从 DB ProviderKey 注入多账号配置（含 TOS）；DI 构造路径 fail-fast 行为不变

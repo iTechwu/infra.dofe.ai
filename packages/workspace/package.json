@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-workspace",
-  "version": "0.1.84",
+  "version": "0.1.85",
   "description": "Workspace and managed-path primitives for dofe.ai runtimes",
   "engines": {
     "node": ">=20.19.0"
