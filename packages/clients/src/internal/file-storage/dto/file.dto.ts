@@ -1,5 +1,10 @@
-import { FileBucketVendor } from '@prisma/client';
 import { z } from 'zod';
+
+// Canonical storage vendors. Kept inline (not z.nativeEnum on @prisma/client)
+// so this DTO does not crash when a consumer's Prisma schema lacks the
+// FileBucketVendor enum — the values must match the FileBucketVendor stub
+// declared in missing-modules.stub.d.ts.
+const FILE_BUCKET_VENDORS = ['s3', 'oss', 'tos', 'gcs', 'qiniu', 'us3', 'cos'] as const;
 
 // File API Key Schema
 export const FileApiKeySchema = z.object({
@@ -14,7 +19,7 @@ export const FileLocalSchema = z.object({
 
 // Config Schema
 export const DoFeUploaderConfigSchema = z.object({
-  vendor: z.nativeEnum(FileBucketVendor),
+  vendor: z.enum(FILE_BUCKET_VENDORS),
   bucket: z.string(),
   region: z.string(),
   zone: z.string().optional(),
