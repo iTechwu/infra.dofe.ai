@@ -1,3 +1,6 @@
+## [0.1.86] - 2026-07-08
+- fix(clients): avoid prisma enum runtime import for file DTO
+
 ## [0.1.85] - 2026-07-07
 - feat(openspeech): support explicit provider config injection
 
