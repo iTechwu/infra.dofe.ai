@@ -49,15 +49,14 @@ function coerceHeaderValue(value: unknown): string | undefined {
   }
   if (Array.isArray(value)) {
     for (const item of value) {
-      if (item === undefined || item === null || item === '') {
+      const coerced = coerceHeaderValue(item);
+      if (coerced === undefined) {
         continue;
       }
-      return String(item);
+      return coerced;
     }
     return undefined;
   }
-  if (value === '') {
-    return undefined;
-  }
-  return String(value);
+  const trimmed = String(value).trim();
+  return trimmed ? trimmed : undefined;
 }

@@ -389,6 +389,14 @@
       "types": "./dist/volcengine-speech/headers.d.ts",
       "default": "./dist/volcengine-speech/headers.js"
     },
+    "./volcengine-speech/interpretation": {
+      "types": "./dist/volcengine-speech/interpretation/index.d.ts",
+      "default": "./dist/volcengine-speech/interpretation/index.js"
+    },
+    "./volcengine-speech/interpretation/interpretation.client": {
+      "types": "./dist/volcengine-speech/interpretation/interpretation.client.d.ts",
+      "default": "./dist/volcengine-speech/interpretation/interpretation.client.js"
+    },
     "./volcengine-speech/memo": {
       "types": "./dist/volcengine-speech/memo/index.d.ts",
       "default": "./dist/volcengine-speech/memo/index.js"
@@ -432,6 +440,10 @@
     "./volcengine-speech/retry": {
       "types": "./dist/volcengine-speech/retry.d.ts",
       "default": "./dist/volcengine-speech/retry.js"
+    },
+    "./volcengine-speech/task-result": {
+      "types": "./dist/volcengine-speech/task-result.d.ts",
+      "default": "./dist/volcengine-speech/task-result.js"
     },
     "./volcengine-speech/tts-streaming": {
       "types": "./dist/volcengine-speech/tts-streaming/index.d.ts",

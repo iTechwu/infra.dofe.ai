@@ -49,7 +49,7 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 
 ## NS-INFRA-03: package exports 与消费端别名复验
 
-**状态**：本地 exports smoke 已完成（循环 71-72、76）。新增 `pnpm verify:package-exports`，默认覆盖 `volcengine-speech` 能力拆分入口、旧 `volcengine-tts` helper、`@dofe/infra-clients/sso` 与 `@dofe/infra-common/ts-rest`；重运行时入口做 `resolve`，轻量纯模块做 `require`。循环 76 已改为自动发现 `packages/*/package.json`，并提供 `--list-defaults` 查看默认覆盖面。
+**状态**：本地 exports smoke 已完成（循环 71-72、76、81）。新增 `pnpm verify:package-exports`，默认覆盖 `volcengine-speech` 能力拆分入口、纯 `task-result`、旧 `volcengine-tts` helper、`@dofe/infra-clients/sso` 与 `@dofe/infra-common/ts-rest`；重运行时入口做 `resolve`，轻量纯模块做 `require`。循环 76 已改为自动发现 `packages/*/package.json`，并提供 `--list-defaults` 查看默认覆盖面；当前默认覆盖 17 个 exports。
 
 **目标**：确认当前显式 exports 和生成脚本已经覆盖消费端需要的稳定入口，消费端不再需要 `dist/*` 深链或 `@dofe/infra-*` path alias 绕路。
 

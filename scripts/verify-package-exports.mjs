@@ -40,6 +40,7 @@ const defaultChecks = [
   { spec: '@dofe/infra-shared-services/volcengine-speech/memo', mode: 'resolve' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/protocol', mode: 'require' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/errors', mode: 'require' },
+  { spec: '@dofe/infra-shared-services/volcengine-speech/task-result', mode: 'require' },
   { spec: '@dofe/infra-shared-services/volcengine-tts', mode: 'resolve' },
   { spec: '@dofe/infra-shared-services/volcengine-tts/tts-http-request', mode: 'require' },
   { spec: '@dofe/infra-shared-services/volcengine-tts/tts-stream-processor', mode: 'require' },

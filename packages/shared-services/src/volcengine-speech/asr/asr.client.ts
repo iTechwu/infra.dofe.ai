@@ -6,7 +6,11 @@ import {
   VolcengineSpeechRequestOptions,
   VolcengineSpeechTaskResult,
 } from '../types';
-import { validateAsrRequest, validateRequiredString } from '../validation';
+import {
+  validateAsrMode,
+  validateAsrRequest,
+  validateRequiredString,
+} from '../validation';
 
 const DEFAULT_ASR_RESOURCE_IDS: Record<VolcengineAsrMode, string> = {
   standard: 'volc.bigasr.auc',
@@ -27,9 +31,9 @@ export class VolcengineAsrClient {
     const result = await this.transport.postHeaderStatus<T>(
       `${this.getBaseUrl(mode)}/submit`,
       {
+        ...(request.options ?? {}),
         audio: { url: request.audioUrl },
         ...(request.callbackUrl ? { callback: request.callbackUrl } : {}),
-        ...(request.options ?? {}),
       },
       {
         ...options,
@@ -53,6 +57,7 @@ export class VolcengineAsrClient {
     options: VolcengineSpeechRequestOptions = {},
   ): Promise<VolcengineSpeechTaskResult<T>> {
     validateRequiredString(taskId, 'taskId');
+    validateAsrMode(mode);
     const result = await this.transport.postHeaderStatus<T>(
       `${this.getBaseUrl(mode)}/query`,
       {},

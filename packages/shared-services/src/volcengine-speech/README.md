@@ -19,6 +19,7 @@ import {
 - `asr`: recording-file ASR HTTP tasks for standard, fast, and off-peak modes.
 - `voice`: voice/resource APIs.
 - `realtime`: end-to-end realtime speech model WebSocket sessions.
+- `interpretation`: simultaneous interpretation 2.0 WebSocket sessions.
 - `podcast`: podcast WebSocket v3 sessions.
 - `memo`: Doubao speech memo task APIs.
 - `protocol`: shared WebSocket frame codec and session utilities.
@@ -79,9 +80,13 @@ validation helpers and retry executor for its HTTP request phase. Its default
 `maxRetries` is `0`, so retry is opt-in for that legacy path.
 
 After a WebSocket session closes or `close()` is called, the client clears the
-underlying connection reference. Create a new session instead of reusing the closed one. Call
-`session.isOpen()` before sending to check whether the connection is still
-usable.
+underlying connection reference. Create a new session instead of reusing the
+closed one. Call `session.isOpen()` before sending to check whether the
+connection is still usable. The shared WebSocket session supports JSON frames,
+audio frames, last-packet audio frames, `onOpen`, `onEvent`, `onAudio`,
+`onError`, and `onClose`; product-specific event schemas remain exposed through
+the generic event callback until real vendor fixtures justify stronger typed
+normalization.
 
 ## Examples
 
@@ -160,6 +165,27 @@ session.sendAudio(audioFrame);
 session.sendAudio(Buffer.alloc(0), true);
 ```
 
+### Simultaneous Interpretation
+
+```ts
+const session = await client.interpretation.connect(
+  {
+    session_id: 'interpretation-session-1',
+    source_language: 'zh',
+    target_language: 'en',
+    audio_format: 'pcm',
+    sample_rate: 16000,
+  },
+  {
+    onEvent: (event) => handleInterpretationEvent(event),
+    onAudio: (audio) => playback.write(audio),
+  },
+);
+
+session.sendAudio(audioFrame);
+session.close();
+```
+
 ### Memo Task
 
 ```ts
@@ -189,8 +215,10 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 ```
 
 `verify:volcengine-speech` builds the package and runs a no-secret smoke check
-for WebSocket frame encoding/decoding, error frame parsing, explicit config
-resolution, and auth header generation.
+for WebSocket frame encoding/decoding, product WebSocket init/send/close
+sessions, error frame parsing, explicit config resolution, auth header
+generation, package exports, task result normalization, and selected legacy
+delegation boundaries.
 
 ## Volcengine References
 

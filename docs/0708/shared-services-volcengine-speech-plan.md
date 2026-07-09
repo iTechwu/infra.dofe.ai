@@ -393,3 +393,9 @@
 | 73 | 发布回读 checklist 接入 `pnpm build` 与 `pnpm verify:package-exports`，并补新增子路径显式验证示例 | 标注 NS-INFRA-04 本地发布前 smoke 补齐 | 后续真实发布仍需 npm metadata readback 与 consumer install smoke | 文档变更，最终由循环 75 统一 diff 验证 |
 | 74 | 根构建从 `npx tsc` 切换为 `pnpm exec tsc`，消除 npm 读取 pnpm `.npmrc` 的 warning 来源 | 标注 nextstep README/doc scan 的构建治理状态 | CI 如仍直接用 npm/npx，需要后续迁移到 pnpm 命令 | 已通过 `pnpm build && pnpm verify:package-exports`，构建无 npm `.npmrc` warning |
 | 75 | 最终复扫代码与文档，校准 exports smoke、发布回读和构建 warning 状态 | 标注循环 71-75 全部闭环 | 剩余项收窄为真实火山联调、跨仓 consumer 复验和发布后 readback | 最终完整验证见 0709 nextstep 实施日志 |
+| 76 | `verify-package-exports` 改为自动发现 `packages/*/package.json`，并新增 `--list-defaults` | 标注 NS-INFRA-03 smoke 覆盖面可查看 | 新增高风险子路径仍需显式传参或补默认列表 | 已通过 `pnpm verify:package-exports` 与 `node scripts/verify-package-exports.mjs --list-defaults` |
+| 77 | `publish-single.sh`、`publish-all.sh` 在真实 publish 前接入 `pnpm verify:package-exports` | 标注 NS-INFRA-04 发布脚本已接入本地 smoke | 发布后仍需 npm metadata readback 与 consumer install/build | 已通过 shell 语法检查和单包 dry-run；全量 dry-run 被当前 dirty worktree guard 拦截，符合策略 |
+| 78 | 新增 `pnpm verify:shared-primitives-boundary`，扫描 runtime/workspace/docker/redis 的产品语义词并 allowlist 历史兼容命中 | 标注 NS-INFRA-05 本地边界 smoke 完成 | 未来新增非 allowlist 命中需迁回消费端或补边界 ADR | 已通过 `pnpm verify:shared-primitives-boundary` |
+| 79 | 修正 0708 计划表重复循环 51 为 `52a`，保留历史实现证据 | 标注 NS-SPEECH-06 循环编号去噪完成 | 长表历史“下一轮/后续”语句保留为审计轨迹 | 文档变更，最终由循环 80 统一 diff 验证 |
+| 80 | 复扫代码与文档，校准发布、exports、shared primitives 边界和编号去噪状态 | 标注循环 76-80 全部闭环 | 剩余项为真实联调、跨仓 consumer 复验、发布后 readback、SSO contracts-base 评估 | 最终完整验证见 0709 nextstep 实施日志 |
+| 81 | 修复 shared-services TypeScript 6 deprecation 配置；ASR runtime-heavy smoke 改为 subpath resolve，纯 `task-result` 继续 require 覆盖 | 标注 0709 nextstep 循环 81 完成 | ASR client 真实路径仍需 DI mock 或真实联调环境 | 已通过 typecheck、verify:volcengine-speech、根 build、package exports、shared primitives boundary、发布脚本语法检查与 `git diff --check` |

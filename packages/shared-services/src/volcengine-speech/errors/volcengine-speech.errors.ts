@@ -83,20 +83,29 @@ export function assertVolcengineHeaderStatusSuccess(params: {
   requestId?: string;
   raw?: unknown;
 }): void {
-  const statusCode = params.statusCode;
+  const statusCode = normalizeHeaderStatusValue(params.statusCode);
   if (!statusCode || statusCode === String(VOLCENGINE_SPEECH_SUCCESS_CODE)) {
     return;
   }
+  const statusMessage = normalizeHeaderStatusValue(params.statusMessage);
 
   throw new VolcengineSpeechError({
     message:
-      params.statusMessage ??
+      statusMessage ??
       `Volcengine speech request failed: ${statusCode}`,
     code: statusCode,
     logId: params.logId,
     requestId: params.requestId,
     raw: params.raw,
   });
+}
+
+function normalizeHeaderStatusValue(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
 }
 
 const RETRYABLE_NETWORK_CODES = new Set([

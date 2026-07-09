@@ -240,4 +240,16 @@
 
 **受益**：本地可执行的后续事项继续转为稳定命令，文档仪表盘能区分“本地已闭环”和“需要外部环境”的事项。
 
-**验证**：最终完整验证见本轮收尾记录。
+**验证**：首次完整验证暴露 shared-services `ignoreDeprecations` 仍为 `5.0`，已在循环 81 修复；最终完整验证见循环 81。
+
+## 循环 81：TypeScript 6 与 ASR smoke 分层修正
+
+**实施**：将 `packages/shared-services/tsconfig.json` 的 `ignoreDeprecations` 从 `5.0` 调整为 `6.0`，与仓库其他 package 和 `tsconfig.build-all.json` 保持一致；同时从 `verify-volcengine-speech` 移除 runtime-heavy 的 ASR client 直接导入，保留纯 `task-result` 归一化断言，并把 `@dofe/infra-shared-services/volcengine-speech/task-result` 加入 `verify-package-exports` 的 `require` 覆盖。
+
+**标注文档**：本日志补充记录循环 81；0708 计划表同步追加该修正，避免把验证中发现的 TypeScript 6/Prisma client smoke 问题留成隐性状态。
+
+**审查待实施项**：ASR client 真实运行时路径仍需要 Nest/Prisma/真实火山或更完整 DI mock 环境；默认无密钥 smoke 只覆盖纯 task-result 和 ASR subpath resolve。
+
+**受益**：恢复标准 `pnpm --filter @dofe/infra-shared-services typecheck`，并让无密钥 smoke 避免误加载 Prisma client，同时仍保护 ASR 相关纯结果契约和 package exports。
+
+**验证**：已通过 `pnpm --filter @dofe/infra-shared-services typecheck`、`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`、`pnpm build`、`pnpm verify:package-exports`、`node scripts/verify-package-exports.mjs --list-defaults`、`pnpm verify:shared-primitives-boundary`、`bash -n scripts/publish-single.sh`、`bash -n scripts/publish-all.sh`、`git diff --check` 与待办关键词复扫；`verify-package-exports` 当前覆盖 17 个默认 exports，`shared-services` 当前生成 129 个 exports。

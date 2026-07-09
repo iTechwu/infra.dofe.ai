@@ -10,6 +10,7 @@ export interface VolcengineSpeechEndpointConfig {
   asrFast: string;
   asrOffPeak: string;
   realtime: string;
+  interpretation: string;
   podcast: string;
   memo: string;
   voice: string;
@@ -202,6 +203,15 @@ export interface VolcengineAsrRequest {
   mode?: VolcengineAsrMode;
   resourceId?: string;
   options?: Record<string, unknown>;
+}
+
+export interface VolcengineInterpretationRequest {
+  session_id?: string;
+  source_language?: string;
+  target_language?: string;
+  audio_format?: string;
+  sample_rate?: number;
+  [key: string]: unknown;
 }
 
 export interface VolcengineVoiceRequest {

@@ -18,6 +18,7 @@ import {
 import { readVolcengineHeader } from './headers';
 import { executeVolcengineRetry } from './retry';
 import { buildVolcengineSpeechHeaders } from './auth';
+import { normalizeHeaderStatusTaskResult } from './task-result';
 
 @Injectable()
 export class VolcengineSpeechTransport {
@@ -144,15 +145,14 @@ export class VolcengineSpeechTransport {
       raw: response.data,
     });
 
-    return {
-      taskId: logId ?? requestId,
+    return normalizeHeaderStatusTaskResult<T>({
       statusCode,
       statusMessage,
       result: response.data,
       requestId,
       logId,
       raw: response.data,
-    };
+    });
   }
 
   private async executeWithRetry<T>(

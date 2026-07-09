@@ -6,6 +6,7 @@ import { VolcenginePodcastClient } from './podcast';
 import { VolcengineRealtimeSpeechClient } from './realtime';
 import { VolcengineTtsStreamingClient } from './tts-streaming';
 import { VolcengineAsrClient } from './asr';
+import { VolcengineInterpretationClient } from './interpretation';
 import { VolcengineSpeechConfig } from './types';
 import { VolcengineSpeechClient } from './volcengine-speech.client';
 import { VolcengineSpeechTransport } from './volcengine-speech.transport';
@@ -28,6 +29,7 @@ export function createVolcengineSpeechClient(
   const ttsStreaming = new VolcengineTtsStreamingClient(transport);
   const asr = new VolcengineAsrClient(transport);
   const realtime = new VolcengineRealtimeSpeechClient(transport);
+  const interpretation = new VolcengineInterpretationClient(transport);
   const podcast = new VolcenginePodcastClient(transport);
   const memo = new VolcengineMemoClient(transport);
   const voice = new VolcengineVoiceClient(transport);
@@ -38,6 +40,7 @@ export function createVolcengineSpeechClient(
     ttsStreaming,
     asr,
     realtime,
+    interpretation,
     podcast,
     memo,
     voice,

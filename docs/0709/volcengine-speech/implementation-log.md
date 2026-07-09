@@ -15,3 +15,448 @@ options 与 client 管理 header 的规则一致。代码已支持 `resourceId` 
 reserved headers 不能被绕过。
 
 **验证**：待后续循环统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 2: ASR Client Mock Coverage
+
+**审查待实施项**：`next-execution-plan.md` Step 3 要求 ASR 三种 HTTP mode 的
+submit/query 行为有 mock transport tests。现有 smoke 只覆盖 header builder，没有证明
+`VolcengineAsrClient` 自身会选择正确 endpoint、resource id、sequence 和 query
+log id。
+
+**实施**：扩展 `scripts/verify-volcengine-speech.mjs`，新增
+`VolcengineAsrClient` fake transport 覆盖：fast submit、off-peak submit 自定义
+resource、standard query、query 保留自定义 header、空 taskId 拒绝。
+
+**标注文档**：Step 3 已完成 client 级无密钥覆盖的主体部分；Loop 4 前复查确认该
+ASR mock 已实际落入当前 smoke 脚本。后续仍需 task result
+归一化，避免 ASR/memo 结果语义分散。
+
+**验证**：待后续循环统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 3: Task Result Normalization
+
+**审查待实施项**：`next-execution-plan.md` Step 5 要求统一 ASR、memo、未来任务型接口
+的 task result 语义。审查发现 memo 的 body-status 归一化在 `memo.normalizer.ts`，
+ASR 的 header-status 归一化在 transport 中内联，语义分散。
+
+**实施**：新增 `volcengine-speech/task-result.ts`，提供
+`normalizeBodyTaskResult`、`normalizeHeaderStatusTaskResult` 和
+`extractTaskError`；`memo.normalizer.ts` 保留旧导出但委托共享 helper；
+`VolcengineSpeechTransport.postHeaderStatus` 委托 header-status helper。
+
+**标注文档**：Step 5 已完成共享 helper 抽取和 smoke 覆盖；后续如新增音频任务型接口，
+应直接复用该模块。
+
+**验证**：待后续循环统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 4: Realtime And Podcast WebSocket Smoke
+
+**审查待实施项**：`next-execution-plan.md` Step 4 要求为 realtime 和 podcast 增加
+最小 mock WebSocket session smoke。现有 smoke 只验证 codec 和 closed session，
+没有真实走 `connect()`、headers、init frame 和 callback。
+
+**实施**：扩展 `scripts/verify-volcengine-speech.mjs`，使用本地
+`WebSocketServer` 分别验证 `VolcengineRealtimeSpeechClient` 与
+`VolcenginePodcastClient`：client 发起连接、携带 auth header、发送 gzip JSON init
+frame、接收 gzip JSON server event，并触发 `onEvent`。
+
+**标注文档**：Step 4 已完成最小 WS session smoke；后续如果接入同声传译独立 client，
+应复用同一类本地 WS smoke 模式。
+
+**验证**：待后续循环统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 5: Package Export Smoke
+
+**审查待实施项**：`next-execution-plan.md` Step 8 要求 README、exports 和 smoke
+同步更新。新增 `asr` 与 `task-result` 后，如果 package exports 漏生成，消费方会在发布包中
+无法导入。
+
+**实施**：扩展 `scripts/verify-volcengine-speech.mjs`，通过
+`createRequire` 验证 `@dofe/infra-shared-services/volcengine-speech`、
+`@dofe/infra-shared-services/volcengine-speech/asr` 与
+`@dofe/infra-shared-services/volcengine-speech/task-result` 的关键导出。
+
+**标注文档**：Step 8 的 package export 护栏已补齐；后续每新增公开子路径都应添加同类
+require smoke。
+
+**验证**：待后续循环统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 6: Real API Checklist
+
+**审查待实施项**：`next-execution-plan.md` Step 7 要求建立真实火山 API 联调清单，
+同时保持默认 smoke/CI 无密钥。当前目录缺少可执行 checklist，真实联调证据字段也没有统一模板。
+
+**实施**：新增 `real-api-checklist.md`，覆盖 README 中的 audio generation、HTTP
+streaming TTS、TTS WebSocket、ASR 三模式、realtime、podcast、memo、voice；
+为每项列出官方文档 URL、方法入口、request id、log id、resource id、状态和结果记录字段。
+
+**标注文档**：Step 7 已完成 checklist 文档；真实供应商调用仍需有效凭证显式执行，不进入默认
+`verify:volcengine-speech`。
+
+**验证**：待后续循环统一运行 `typecheck` 与 `verify:volcengine-speech`；真实 API
+checklist 本轮仅文档化，未执行真实供应商请求。
+
+## Loop 7: Verification Fixes And Delegation Matrix
+
+**审查待实施项**：执行 `verify:volcengine-speech` 时发现两类阻塞：根脚本直接
+`import 'ws'` 导致根依赖解析失败；导入 speech/asr export 会过早加载
+`@dofe/infra-common` 并触发 Prisma runtime。另一个待实施项是 Step 6 需要明确 legacy
+delegation 边界，避免误做 breaking rewrite。
+
+**实施**：将 smoke 中的 `ws` 改为通过 shared-services package context 的
+`createRequire` 加载；将 `VolcengineSpeechConfigService` 的 `@dofe/infra-common`
+加载改为仅在默认 keys 解析或抛配置错误时懒加载；移除
+`packages/shared-services/tsconfig.json` 中触发 TypeScript 6 弃用错误的
+`baseUrl`，保留既有 `paths`；新增
+`delegation-matrix.md` 记录 legacy delegation 状态和后续候选边界。
+
+**标注文档**：Step 6 已完成边界矩阵；Step 8 的 package export smoke 已能在无 Prisma
+generated client 的默认环境中运行。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 8: ASR Mode Runtime Validation
+
+**审查待实施项**：审查 `VolcengineAsrClient` 时发现 `VolcengineAsrMode` 仅在
+TypeScript 编译期约束；运行时如果传入非法 mode，会通过 `getBaseUrl` 的 fallback
+默默走 standard endpoint，容易把极速版或闲时版请求误路由。
+
+**实施**：新增 `validateAsrMode`，`validateAsrRequest` 和 `queryTask` 均调用该校验；
+smoke 覆盖非法 submit mode 与非法 query mode。
+
+**标注文档**：Step 3 的 ASR compatibility 现在包含 mode 运行时防护，非法 mode 不再降级成
+standard。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 9: Header Status Task Result Hardening
+
+**审查待实施项**：审查 `normalizeHeaderStatusTaskResult` 时发现 header status
+字段直接透传，空白 `statusMessage` 会导致失败任务没有可读 `error`；带空格的
+`statusCode` 也不会被归一化。
+
+**实施**：在 `task-result.ts` 中 trim `statusCode` 与 `statusMessage`；非成功状态且没有
+有效 message 时返回稳定 fallback：`Volcengine speech task failed: <code>`；smoke
+覆盖空白 message 与 trim 后的错误码。
+
+**标注文档**：Step 5 的 task result 归一化补齐 header-status 失败文案保护。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 10: WebSocket Request Options Passthrough
+
+**审查待实施项**：Loop 4 的 WebSocket smoke 已覆盖 connect/init/event，但 fake
+transport 未证明 `requestOptions` 会传入 `buildHeaders` 并出现在握手头中。
+
+**实施**：扩展 realtime/podcast 本地 WebSocket smoke：传入 `requestId`、`resourceId`
+和 custom trace header；fake transport 记录 `buildHeaders` 入参；本地 server 校验握手头。
+
+**标注文档**：Step 4 与 Step 2 现在同时覆盖 WebSocket request options 透传，不只覆盖
+HTTP header builder。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 11: Documentation Directory Index
+
+**审查待实施项**：`docs/0709/volcengine-speech` 已有执行计划、日志、delegation matrix
+和真实 API checklist，但缺少目录级 README，后续读者需要逐个打开文件才能理解当前状态。
+
+**实施**：新增目录 README，说明各文档用途、默认无密钥验证命令、真实 API checklist
+边界和当前实现状态。
+
+**标注文档**：文档目录现在有入口索引；后续新增该目录下的文档时应同步更新 README。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 12: Real API Reference Coverage
+
+**审查待实施项**：复查用户最初提供的火山 speech 文档列表时发现
+`real-api-checklist.md` 覆盖了核心能力，但没有集中记录全部音频相关补充文档 URL。
+
+**实施**：扩展 `real-api-checklist.md`，新增 `Official Reference Set`，列出核心能力文档
+和用户给出的 10 个音频相关文档入口。
+
+**标注文档**：真实联调 checklist 现在可作为完整文档入口索引；实际字段核对仍需在有效凭证下
+按能力逐项执行。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 13: Verification Closeout
+
+**审查待实施项**：Loop 8 到 Loop 12 完成后，需要把实际验证结果回填文档，避免日志继续保留
+“待后续循环统一运行”的过期状态。
+
+**实施**：执行并确认通过 `pnpm --filter @dofe/infra-shared-services typecheck`、
+`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 与
+`git diff --check`。
+
+**标注文档**：本轮 closeout 记录最终验证结果；早期 loop 的“待统一验证”以本条记录为准。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```
+
+## Loop 14: Header Status Success Assertion Hardening
+
+**审查待实施项**：Loop 9 已强化 task result 的 header-status 归一化，但
+`assertVolcengineHeaderStatusSuccess` 仍直接比较原始 header 字符串。若供应商或 mock
+返回带空格的 `X-Api-Status-Code:  20000000 `，transport 会误判为失败。
+
+**实施**：在错误断言层 trim `statusCode` 与 `statusMessage`；空白 message 不再覆盖默认错误
+文案；smoke 覆盖 trim 后的成功码和失败消息。
+
+**标注文档**：Step 5 的 header-status 保护现在覆盖 transport 成功断言和 task result
+归一化两层。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 15: ASR Payload Reserved Keys
+
+**审查待实施项**：审查 `VolcengineAsrClient.submitTask` 时发现 `request.options`
+会与核心请求体字段合并；如果调用方传入 `options.audio` 或 `options.callback`，可能覆盖
+`audioUrl` / `callbackUrl` 生成的权威字段。
+
+**实施**：新增 ASR reserved option keys 校验，拒绝 `options.audio` 和 `options.callback`；
+payload 组装改为先展开 options、再写入核心字段，形成双重保护；smoke 覆盖 reserved key
+拒绝与正常 payload 顺序。
+
+**标注文档**：Step 3 的 ASR submit 请求体现在明确保护核心字段，避免调用方通过扩展 options
+绕过高级 API 的字段语义。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 16: WebSocket Error Callback Smoke
+
+**审查待实施项**：现有 smoke 覆盖 WebSocket codec 错误帧解码，也覆盖 realtime/podcast
+正常事件路径，但没有验证 `VolcengineWebSocketSession` 收到错误帧后会转成
+`VolcengineSpeechError` 并调用 `onError`。
+
+**实施**：新增本地 WebSocket error callback smoke：server 收到 init frame 后发送
+ERROR_RESPONSE 帧，session 应触发一次 `onError`，错误类型为 `VolcengineSpeechError`，
+code/message 与帧内容一致。
+
+**标注文档**：Step 4 的 WebSocket matrix 现在覆盖正常事件路径和错误帧回调路径。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 17: Simultaneous Interpretation Boundary
+
+**审查待实施项**：复查最初文档列表时发现“同声传译 2.0”被列入官方参考，但当前 unified
+client 没有 dedicated `interpretation` capability group。若不标注边界，读者可能误以为已完整实现。
+
+**实施**：在 `real-api-checklist.md` 中新增 Simultaneous Interpretation 2.0 条目，明确当前
+只有协议级 WebSocket foundation 可复用、仍缺产品级 client；在 `delegation-matrix.md`
+记录为显式 future capability，并列出实现前需要的 fake WebSocket 保护。
+
+**标注文档**：同声传译 2.0 已从“隐含覆盖”调整为“明确待实现能力”，避免能力声明过度。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 18: Follow-Up Plan Reopened For Interpretation
+
+**审查待实施项**：`next-execution-plan.md` 的 checkpoint 已标为完成，但 Loop 17 明确了一个新的
+真实能力缺口：同声传译 2.0 尚无 dedicated client。计划文档需要反映这个后续项。
+
+**实施**：在 `next-execution-plan.md` 新增 Follow-Up Step 9，定义 dedicated simultaneous
+interpretation client 的目标、范围、不做和受益；同步更新目录 README 的当前状态说明。
+
+**标注文档**：后续实施项重新打开且范围明确，不再把 protocol foundation 等同于完整产品能力。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 19: Verification Closeout
+
+**审查待实施项**：Loop 14 到 Loop 18 完成后，需要确认新增校验、WebSocket error smoke
+和文档边界调整没有破坏构建与无密钥验证。
+
+**实施**：执行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+**标注文档**：本条记录作为 Loop 14 到 Loop 18 的统一验证结果；后续真正实现
+Follow-Up Step 9 时应新增独立 loop。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```
+
+## Loop 20: Interpretation Client Foundation
+
+**审查待实施项**：Follow-Up Step 9 要求为同声传译 2.0 增加 dedicated capability
+group。当前代码只有 protocol foundation，没有 endpoint 配置、client 入口或 public export。
+
+**实施**：新增 `interpretation` endpoint 配置、`VolcengineInterpretationRequest` 类型、
+`VolcengineInterpretationClient`、统一 client/factory/module 注入和 public export。
+
+**标注文档**：同声传译从“未来能力”进入 dedicated client 实施阶段，但仍需校验、smoke、README
+和 package export 收口。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 21: Interpretation Validation And Smoke
+
+**审查待实施项**：Loop 20 新增 client 后，还缺请求校验和无密钥路径证明。若不校验 init
+payload，调用方可传空数组、空语言字段或非法采样率进入 WebSocket。
+
+**实施**：新增 `validateInterpretationRequest`，校验 init payload 为对象、可选字符串非空、
+`sample_rate` 为正数；扩展 smoke，覆盖校验、默认 endpoint、local WebSocket session、
+主包导出和 `volcengine-speech/interpretation` 子路径导出。
+
+**标注文档**：Follow-Up Step 9 的代码与无密钥 smoke 主体已完成；后续补 README/checklist
+能力声明。
+
+**验证**：待本轮后续统一运行 `typecheck` 与 `verify:volcengine-speech`。
+
+## Loop 22: Interpretation Documentation Alignment
+
+**审查待实施项**：Loop 20/21 已新增 dedicated interpretation client，但 README 与
+`real-api-checklist.md` 仍描述为 future/protocol-only 能力，文档已经落后于代码表面。
+
+**实施**：更新 package README 的 capability groups 和示例，新增
+`client.interpretation.connect` 使用方式；更新目录 README 当前状态；将真实 API checklist
+中的同声传译条目改为 dedicated client 可用、真实供应商验证仍需凭证。
+
+**标注文档**：Follow-Up Step 9 的用户可见文档入口已同步。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 23: Interpretation Plan And Matrix Closeout
+
+**审查待实施项**：同声传译 dedicated client 已实现后，`delegation-matrix.md` 和
+`next-execution-plan.md` 仍把它标成 future capability / 待实施状态。
+
+**实施**：更新 delegation matrix，把同声传译标为 dedicated client implemented with local
+smoke，并说明剩余真实联调和未来 typed normalization 边界；更新 Follow-Up Step 9 状态为
+已完成无密钥实现，并新增 Checkpoint D。
+
+**标注文档**：同声传译能力状态已从 future capability 收口为 no-secret implementation
+complete、real API validation pending。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 24: TTS WebSocket Entry Smoke
+
+**审查待实施项**：Step 4 的 WebSocket matrix 包含 TTS WebSocket、realtime 和 podcast。
+此前本地 session smoke 覆盖 realtime/podcast/interpretation，但没有覆盖
+`ttsStreaming.connectWebSocket` 这个 dedicated entry。
+
+**实施**：扩展本地 WebSocket smoke helper，支持自定义 connect method；新增
+`VolcengineTtsStreamingClient.connectWebSocket` 覆盖，验证 init frame、request options
+和 server event 回调。
+
+**标注文档**：Step 4 的 WebSocket matrix 现在覆盖 TTS WebSocket、realtime、podcast、
+interpretation 和错误帧路径。
+
+**验证**：待本轮后续统一运行 `verify:volcengine-speech`。
+
+## Loop 25: Interpretation Verification Closeout
+
+**审查待实施项**：Loop 20 到 Loop 24 完成后，需要确认 dedicated interpretation client、
+TTS WebSocket smoke、package exports 和文档同步没有破坏构建。
+
+**实施**：执行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。构建期间
+`generate-exports` 更新了 package exports，新增 interpretation 子路径导出。
+
+**标注文档**：本条记录作为 Loop 20 到 Loop 24 的统一验证结果；目录 README 的 latest
+closeout 更新为 Loop 25。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```
+
+## Loop 26: Product WebSocket Send And Close Smoke
+
+**审查待实施项**：复查 Step 4 与 README WebSocket 示例时发现，本地 WebSocket smoke
+已覆盖 init frame 和 server event，但产品级 entry 返回 session 后的 `sendJson`、
+`sendAudio(..., true)`、`onOpen`、`onClose` 和关闭后 `isOpen()` 语义没有一起覆盖。
+
+**实施**：扩展 `verifyWebSocketClient`，对 TTS WebSocket、realtime、podcast、
+interpretation 四类 client 统一验证：握手后触发一次 `onOpen`；收到 init frame 后由
+server 回发 event；client 再发送 JSON frame 与 last audio frame；server 收到音频后
+主动 close；client 收到 `onClose` 且 `isOpen()` 变为 `false`。
+
+**标注文档**：Step 4 的 WebSocket matrix 不再只说明连接与事件，还覆盖连接后发送和关闭语义。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 27: Reserved Header Case-Insensitive Smoke
+
+**审查待实施项**：Step 2 要求认证头、request id、resource id、sequence 由 client
+管理。已有 smoke 覆盖了大写保留头，但需要证明小写 custom header 也不能绕过保留头过滤。
+
+**实施**：扩展 header smoke，传入 `x-api-request-id`、`x-api-key`、`x-api-sequence`
+等小写保留头，确认输出仍使用可信 `requestId`、api key 和 `sequence`，且非保留
+`x-trace` 仍保留。
+
+**标注文档**：Step 2 的 reserved header 护栏覆盖大小写绕过场景。
+
+**验证**：待本轮后续统一运行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+## Loop 28: Interpretation Direct Export Smoke
+
+**审查待实施项**：Loop 25 的 `generate-exports` 已生成
+`volcengine-speech/interpretation/interpretation.client` 子路径，但 smoke 只覆盖
+`volcengine-speech/interpretation` 聚合导出。
+
+**实施**：新增 direct subpath require smoke，验证
+`@dofe/infra-shared-services/volcengine-speech/interpretation/interpretation.client`
+可导出 `VolcengineInterpretationClient`。
+
+**标注文档**：Follow-Up Step 9 的 package export 护栏覆盖聚合子路径和直接 client 子路径。
+
+**验证**：待本轮后续统一运行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+## Loop 29: WebSocket Documentation Alignment
+
+**审查待实施项**：README 的 WebSocket lifecycle 说明仍偏概括，没有反映现有 session
+实际支持的 JSON/audio/last packet/open/close 回调，也没有说明同声传译事件字段暂不强行归一化。
+
+**实施**：更新 package README，明确共享 WebSocket session 支持 JSON frame、audio frame、
+last-packet audio frame、`onOpen`、`onEvent`、`onAudio`、`onError` 和 `onClose`；
+同时标注产品事件 schema 仍通过泛型 callback 暴露，真实供应商 fixtures 足够后再考虑强类型归一化。
+
+**标注文档**：README 与 Step 4/Follow-Up Step 9 的实现边界一致，避免过度承诺 typed
+interpretation event schema。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 30: Plan Matrix Alignment
+
+**审查待实施项**：`next-execution-plan.md` 的 Step 4 和 Checkpoint B 仍主要描述
+realtime/podcast 最小路径，没有纳入 Loop 24 与 Loop 26 已完成的 TTS WebSocket、
+interpretation、post-connect send 和 close callback 覆盖。
+
+**实施**：更新 Step 4 状态、范围和 Checkpoint B，明确当前 matrix 覆盖 TTS WebSocket、
+realtime、podcast、interpretation、错误帧、连接后发送和关闭回调。
+
+**标注文档**：执行计划已与代码和 smoke 当前状态同步。
+
+**验证**：待本轮后续统一运行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+## Loop 31: WebSocket Matrix Verification Closeout
+
+**审查待实施项**：Loop 27 到 Loop 30 完成后，需要确认 reserved header 大小写保护、
+interpretation direct export smoke、WebSocket send/close smoke 和文档同步没有破坏构建。
+
+**实施**：执行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+**标注文档**：本条记录作为 Loop 27 到 Loop 30 的统一验证结果；目录 README 的 latest
+closeout 更新为 Loop 31。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```

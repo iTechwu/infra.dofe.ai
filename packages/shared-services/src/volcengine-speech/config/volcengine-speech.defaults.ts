@@ -13,6 +13,7 @@ export const defaultVolcengineSpeechEndpoints: VolcengineSpeechEndpointConfig =
     asrFast: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     asrOffPeak: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     realtime: 'wss://openspeech.bytedance.com/api/v3/realtime/dialogue',
+    interpretation: 'wss://openspeech.bytedance.com/api/v3/interpretation',
     podcast: 'wss://openspeech.bytedance.com/api/v3/podcast',
     memo: 'https://openspeech.bytedance.com/api/v3/memo',
     voice: 'https://openspeech.bytedance.com/api/v3/voice',
@@ -91,6 +92,10 @@ function normalizeEndpoints(
       'endpoints.asrOffPeak',
     ),
     realtime: normalizeVolcengineEndpoint(endpoints.realtime, 'endpoints.realtime'),
+    interpretation: normalizeVolcengineEndpoint(
+      endpoints.interpretation,
+      'endpoints.interpretation',
+    ),
     podcast: normalizeVolcengineEndpoint(endpoints.podcast, 'endpoints.podcast'),
     memo: normalizeVolcengineEndpoint(endpoints.memo, 'endpoints.memo'),
     voice: normalizeVolcengineEndpoint(endpoints.voice, 'endpoints.voice'),

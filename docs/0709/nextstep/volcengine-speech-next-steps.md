@@ -100,6 +100,8 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 
 ## NS-SPEECH-06: 文档状态去噪与循环编号修正
 
+**状态**：部分完成（循环 79）。重复循环 51 已修正为 `52a`，并保留历史实现与验证证据；历史“下一轮/后续”语句仍作为审计轨迹保留，当前事实以本目录 nextstep 状态段为准。
+
 **目标**：清理 `shared-services-volcengine-speech-plan.md` 中循环记录的重复编号和历史“下一轮”噪音，让当前待办只指向真实剩余工作。
 
 **范围**：循环 51 重复编号、已经完成但仍含“后续需真实联调保护”的旧描述、验证命令从 pnpm wrapper 到直接命令的临时状态说明。

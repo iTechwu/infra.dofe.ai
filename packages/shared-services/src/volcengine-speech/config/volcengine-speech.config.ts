@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { getKeysConfig, FeatureNotConfiguredError } from '@dofe/infra-common';
 import {
   VolcengineSpeechConfig,
   VolcengineSpeechResolvedConfig,
@@ -20,6 +19,15 @@ type VolcengineSpeechConfigSource = Record<string, unknown> & {
   };
 };
 
+interface InfraCommonConfigApi {
+  getKeysConfig: () => unknown;
+  FeatureNotConfiguredError: new (feature: string, configPath: string) => Error;
+}
+
+function loadInfraCommonConfigApi(): InfraCommonConfigApi {
+  return require('@dofe/infra-common') as InfraCommonConfigApi;
+}
+
 @Injectable()
 export class VolcengineSpeechConfigService {
   static resolveConfig(
@@ -27,7 +35,9 @@ export class VolcengineSpeechConfigService {
   ): VolcengineSpeechResolvedConfig {
     const keys = explicitConfig
       ? undefined
-      : (getKeysConfig() as VolcengineSpeechConfigSource | undefined);
+      : (loadInfraCommonConfigApi().getKeysConfig() as
+          | VolcengineSpeechConfigSource
+          | undefined);
     const speechConfig =
       explicitConfig ??
       keys?.volcengineSpeech ??
@@ -35,6 +45,7 @@ export class VolcengineSpeechConfigService {
       keys?.tts?.volcengine;
 
     if (!speechConfig) {
+      const { FeatureNotConfiguredError } = loadInfraCommonConfigApi();
       throw new FeatureNotConfiguredError(
         'volcengine-speech',
         'keys.volcengineSpeech',
@@ -49,6 +60,7 @@ export class VolcengineSpeechConfigService {
       });
 
     if (resolved.authMode === 'api-key' && !resolved.apiKey) {
+      const { FeatureNotConfiguredError } = loadInfraCommonConfigApi();
       throw new FeatureNotConfiguredError(
         'volcengine-speech',
         'keys.volcengineSpeech.apiKey',
@@ -59,6 +71,7 @@ export class VolcengineSpeechConfigService {
       resolved.authMode === 'legacy' &&
       (!resolved.appId || !resolved.accessKey)
     ) {
+      const { FeatureNotConfiguredError } = loadInfraCommonConfigApi();
       throw new FeatureNotConfiguredError(
         'volcengine-speech',
         'keys.volcengineSpeech.appId/accessKey',

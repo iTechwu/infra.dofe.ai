@@ -61,6 +61,9 @@ export class VolcengineWebSocketSession<TEvent = unknown> {
         settled = true;
         cleanupConnectListeners();
         this.options.callbacks?.onError?.(error);
+        if (this.ws === ws) {
+          this.ws = undefined;
+        }
         ws.close();
         reject(error);
       };
@@ -122,10 +125,10 @@ export class VolcengineWebSocketSession<TEvent = unknown> {
     return Boolean(this.ws && this.ws.readyState === WebSocket.OPEN);
   }
 
-  close(): void {
+  close(code?: number, reason?: string | Buffer): void {
     const ws = this.ws;
     this.ws = undefined;
-    ws?.close();
+    ws?.close(code, reason);
   }
 
   private handleMessage(data: WebSocketMessageData): void {

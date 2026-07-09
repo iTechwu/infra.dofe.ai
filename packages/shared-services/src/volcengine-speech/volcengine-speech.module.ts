@@ -11,6 +11,7 @@ import { VolcengineVoiceClient } from './voice';
 import { VolcengineRealtimeSpeechClient } from './realtime';
 import { VolcenginePodcastClient } from './podcast';
 import { VolcengineAsrClient } from './asr';
+import { VolcengineInterpretationClient } from './interpretation';
 
 @Module({
   imports: [ConfigModule, HttpModule],
@@ -20,6 +21,7 @@ import { VolcengineAsrClient } from './asr';
     VolcengineAudioGenerationClient,
     VolcengineTtsStreamingClient,
     VolcengineAsrClient,
+    VolcengineInterpretationClient,
     VolcengineMemoClient,
     VolcengineVoiceClient,
     VolcengineRealtimeSpeechClient,
@@ -32,6 +34,7 @@ import { VolcengineAsrClient } from './asr';
     VolcengineAudioGenerationClient,
     VolcengineTtsStreamingClient,
     VolcengineAsrClient,
+    VolcengineInterpretationClient,
     VolcengineMemoClient,
     VolcengineVoiceClient,
     VolcengineRealtimeSpeechClient,

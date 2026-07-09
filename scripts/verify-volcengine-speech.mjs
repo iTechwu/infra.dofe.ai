@@ -23,6 +23,7 @@ import {
 import {
   validateCreateAudioRequest,
   validateAsrRequest,
+  validateInterpretationRequest,
   validateMemoTaskRequest,
   validateRequestOptions,
   validateRequiredString,
@@ -55,6 +56,7 @@ import {
 import {
   VolcengineSpeechError,
   VolcengineSpeechValidationError,
+  assertVolcengineHeaderStatusSuccess,
   isRetryableVolcengineSpeechCode,
   isRetryableHttpStatus,
   normalizeVolcengineHttpError,
@@ -66,11 +68,31 @@ import {
   executeVolcengineRetry,
   getVolcengineRetryDelayMs,
 } from '../packages/shared-services/dist/volcengine-speech/retry.js';
+import {
+  normalizeBodyTaskResult,
+  normalizeHeaderStatusTaskResult,
+} from '../packages/shared-services/dist/volcengine-speech/task-result.js';
+import {
+  VolcengineAsrClient,
+} from '../packages/shared-services/dist/volcengine-speech/asr/index.js';
+import {
+  VolcengineRealtimeSpeechClient,
+} from '../packages/shared-services/dist/volcengine-speech/realtime/index.js';
+import {
+  VolcenginePodcastClient,
+} from '../packages/shared-services/dist/volcengine-speech/podcast/index.js';
+import {
+  VolcengineInterpretationClient,
+} from '../packages/shared-services/dist/volcengine-speech/interpretation/index.js';
+import {
+  VolcengineTtsStreamingClient,
+} from '../packages/shared-services/dist/volcengine-speech/tts-streaming/index.js';
 
 const codec = new VolcengineWebSocketCodec();
 const sharedServicesRequire = createRequire(
   new URL('../packages/shared-services/package.json', import.meta.url),
 );
+const { WebSocketServer } = sharedServicesRequire('ws');
 
 const jsonFrame = codec.decode(codec.encodeJsonRequest({ text: 'hello' }, 1));
 assert.equal(jsonFrame.messageType, VOLCENGINE_WS_MESSAGE_TYPE.FULL_CLIENT_REQUEST);
@@ -124,6 +146,7 @@ const resolved = resolveConfig({
 assert.equal(resolved.authMode, 'api-key');
 assert.equal(resolved.endpoints.audioGeneration, 'https://example.test/create');
 assert.equal(resolved.endpoints.asrStandard, 'https://openspeech.bytedance.com/api/v3/auc/bigmodel');
+assert.equal(resolved.endpoints.interpretation, 'wss://openspeech.bytedance.com/api/v3/interpretation');
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', timeoutMs: 0 }), /timeoutMs/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', maxRetries: -1 }), /maxRetries/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', endpoints: { memo: '   ' } }), /endpoints.memo/);
@@ -172,6 +195,23 @@ const protectedHeaders = buildHeaders(resolved, {
 assert.equal(protectedHeaders['X-Api-Request-Id'], 'trusted-request');
 assert.equal(protectedHeaders['X-Api-Key'], 'test-api-key');
 assert.equal(protectedHeaders['X-Custom-Trace'], 'trace-2');
+const lowerCaseProtectedHeaders = buildHeaders(resolved, {
+  requestId: 'trusted-lower-request',
+  headers: {
+    'x-api-request-id': 'spoofed-lower-request',
+    'x-api-key': 'spoofed-lower-key',
+    'x-api-sequence': '999',
+    'x-trace': 'trace-lower',
+  },
+  sequence: -1,
+});
+assert.equal(lowerCaseProtectedHeaders['X-Api-Request-Id'], 'trusted-lower-request');
+assert.equal(lowerCaseProtectedHeaders['X-Api-Key'], 'test-api-key');
+assert.equal(lowerCaseProtectedHeaders['X-Api-Sequence'], '-1');
+assert.equal(lowerCaseProtectedHeaders['x-api-request-id'], undefined);
+assert.equal(lowerCaseProtectedHeaders['x-api-key'], undefined);
+assert.equal(lowerCaseProtectedHeaders['x-api-sequence'], undefined);
+assert.equal(lowerCaseProtectedHeaders['x-trace'], 'trace-lower');
 
 // shared auth headers (extracted for volcengine-tts delegation)
 const authHeaders = buildVolcengineAuthHeaders({
@@ -227,9 +267,44 @@ assert.throws(
   () =>
     validateAsrRequest({
       audioUrl: 'https://example.test/audio.mp3',
+      mode: 'turbo',
+    }),
+  /unsupported ASR mode/,
+);
+assert.throws(
+  () =>
+    validateAsrRequest({
+      audioUrl: 'https://example.test/audio.mp3',
       resourceId: ' ',
     }),
   /resourceId/,
+);
+assert.throws(
+  () =>
+    validateAsrRequest({
+      audioUrl: 'https://example.test/audio.mp3',
+      options: { audio: { url: 'https://evil.test/audio.mp3' } },
+    }),
+  /options.audio is reserved/,
+);
+validateInterpretationRequest({
+  session_id: 'interp-session',
+  source_language: 'zh',
+  target_language: 'en',
+  audio_format: 'pcm',
+  sample_rate: 16000,
+});
+assert.throws(
+  () => validateInterpretationRequest([]),
+  /interpretation init payload/,
+);
+assert.throws(
+  () => validateInterpretationRequest({ source_language: ' ' }),
+  /source_language/,
+);
+assert.throws(
+  () => validateInterpretationRequest({ sample_rate: 0 }),
+  /sample_rate/,
 );
 assert.throws(
   () => validateRequiredString('   ', 'taskId'),
@@ -248,9 +323,84 @@ assert.throws(
 );
 validateRequestOptions({ headers: { 'X-Trace': 'ok' } });
 
+const asrCalls = [];
+const asrClient = new VolcengineAsrClient({
+  getConfig() {
+    return {
+      endpoints: {
+        asrStandard: 'https://example.test/asr-standard/',
+        asrFast: 'https://example.test/asr-fast/',
+        asrOffPeak: 'https://example.test/asr-offpeak/',
+      },
+    };
+  },
+  async postHeaderStatus(url, payload, options) {
+    asrCalls.push({ url, payload, options });
+    return {
+      taskId: 'fallback-task',
+      requestId: options.requestId,
+      logId: 'asr-log-id',
+      result: { transcript: 'hello' },
+      raw: { transcript: 'hello' },
+    };
+  },
+});
+
+const fastAsr = await asrClient.submitTask(
+  {
+    mode: 'fast',
+    audioUrl: 'https://example.test/audio.mp3',
+    callbackUrl: 'https://example.test/callback',
+    options: { extra: 'value' },
+  },
+  { requestId: 'asr-submit' },
+);
+assert.equal(fastAsr.taskId, 'asr-log-id');
+assert.equal(asrCalls[0].url, 'https://example.test/asr-fast/submit');
+assert.deepEqual(asrCalls[0].payload, {
+  extra: 'value',
+  audio: { url: 'https://example.test/audio.mp3' },
+  callback: 'https://example.test/callback',
+});
+assert.equal(asrCalls[0].options.resourceId, 'volc.bigasr.auc.fast');
+assert.equal(asrCalls[0].options.sequence, -1);
+
+await asrClient.submitOffPeakTask({
+  audioUrl: 'https://example.test/offpeak.mp3',
+  resourceId: 'custom-offpeak-resource',
+});
+assert.equal(asrCalls[1].url, 'https://example.test/asr-offpeak/submit');
+assert.equal(asrCalls[1].options.resourceId, 'custom-offpeak-resource');
+
+await asrClient.queryTask('asr-log-id', 'standard', {
+  requestId: 'asr-query',
+  headers: { 'X-Trace': 'query-trace' },
+});
+assert.equal(asrCalls[2].url, 'https://example.test/asr-standard/query');
+assert.deepEqual(asrCalls[2].payload, {});
+assert.equal(asrCalls[2].options.resourceId, 'volc.bigasr.auc');
+assert.equal(asrCalls[2].options.headers['X-Tt-Logid'], 'asr-log-id');
+assert.equal(asrCalls[2].options.headers['X-Trace'], 'query-trace');
+await assert.rejects(() => asrClient.queryTask('   '), /taskId/);
+await assert.rejects(
+  () => asrClient.queryTask('asr-log-id', 'turbo'),
+  /unsupported ASR mode/,
+);
+
 assert.equal(isRetryableVolcengineSpeechCode(55000031), true);
 assert.equal(isRetryableVolcengineSpeechCode(45000081), true);
 assert.equal(isRetryableVolcengineSpeechCode(45000001), false);
+assert.doesNotThrow(() =>
+  assertVolcengineHeaderStatusSuccess({ statusCode: ' 20000000 ' }),
+);
+assert.throws(
+  () =>
+    assertVolcengineHeaderStatusSuccess({
+      statusCode: ' 45000001 ',
+      statusMessage: ' invalid audio ',
+    }),
+  /invalid audio/,
+);
 const retryableError = new VolcengineSpeechError({
   message: 'temporary upstream failure',
   code: 55000031,
@@ -343,6 +493,42 @@ const explicitErrorMemo = normalizeTaskResult({
 assert.equal(explicitErrorMemo.error, 'partial failure');
 assert.equal(extractTaskError({ message: 'ok' }, 'success'), undefined);
 assert.equal(extractTaskError({ message: 'bad' }, 'failed'), 'bad');
+assert.equal(
+  normalizeBodyTaskResult({
+    data: { taskId: 'body-task', status: 'failed', message: 'body failed' },
+    raw: {},
+  }).error,
+  'body failed',
+);
+const headerStatusTask = normalizeHeaderStatusTaskResult({
+  statusCode: '20000000',
+  statusMessage: 'ok',
+  result: { transcript: 'hi' },
+  requestId: 'header-req',
+  logId: 'header-log',
+  raw: {},
+});
+assert.equal(headerStatusTask.taskId, 'header-log');
+assert.equal(headerStatusTask.error, undefined);
+assert.deepEqual(headerStatusTask.result, { transcript: 'hi' });
+assert.equal(
+  normalizeHeaderStatusTaskResult({
+    statusCode: '45000001',
+    statusMessage: 'invalid audio',
+    raw: {},
+  }).error,
+  'invalid audio',
+);
+const headerStatusTrimmed = normalizeHeaderStatusTaskResult({
+  statusCode: ' 45000002 ',
+  statusMessage: '   ',
+  raw: {},
+});
+assert.equal(headerStatusTrimmed.statusCode, '45000002');
+assert.equal(
+  headerStatusTrimmed.error,
+  'Volcengine speech task failed: 45000002',
+);
 
 const idleSession = new VolcengineWebSocketSession(
   {},
@@ -353,6 +539,37 @@ idleSession.close();
 assert.equal(idleSession.isOpen(), false);
 assert.throws(() => idleSession.sendJson({ text: 'hi' }), /not open/);
 assert.throws(() => idleSession.sendAudio(Buffer.from([1, 2, 3, 4])), /not open/);
+
+await verifyWebSocketClient({
+  ClientCtor: VolcengineTtsStreamingClient,
+  endpointKey: 'ttsWebSocket',
+  connectMethod: 'connectWebSocket',
+  initPayload: { text: 'hello tts websocket' },
+});
+await verifyWebSocketClient({
+  ClientCtor: VolcengineRealtimeSpeechClient,
+  endpointKey: 'realtime',
+  initPayload: { session_id: 'session-1', audio_format: 'pcm' },
+});
+await verifyWebSocketClient({
+  ClientCtor: VolcenginePodcastClient,
+  endpointKey: 'podcast',
+  initPayload: { topic: 'podcast-demo' },
+});
+await verifyWebSocketClient({
+  ClientCtor: VolcengineInterpretationClient,
+  endpointKey: 'interpretation',
+  initPayload: {
+    session_id: 'interp-session',
+    source_language: 'zh',
+    target_language: 'en',
+    audio_format: 'pcm',
+    sample_rate: 16000,
+  },
+});
+await verifyWebSocketErrorCallback();
+await verifyWebSocketClientInitiatedClose();
+await verifyWebSocketConnectFailureCleanup();
 
 // volcengine-tts NDJSON chunk reducer (delegated from processStreamResponse)
 const ttsState = createTtsChunkReducerState();
@@ -554,6 +771,18 @@ const exportedTtsStreamProcessor = sharedServicesRequire('@dofe/infra-shared-ser
 assert.equal(typeof exportedTtsStreamProcessor.resolveTtsResponseStream, 'function');
 const exportedTtsStreamResult = sharedServicesRequire('@dofe/infra-shared-services/volcengine-tts/tts-stream-result');
 assert.equal(typeof exportedTtsStreamResult.resolveTtsStreamResult, 'function');
+const exportedVolcengineSpeech = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech');
+assert.equal(typeof exportedVolcengineSpeech.VolcengineAsrClient, 'function');
+assert.equal(typeof exportedVolcengineSpeech.VolcengineInterpretationClient, 'function');
+assert.equal(typeof exportedVolcengineSpeech.normalizeHeaderStatusTaskResult, 'function');
+const exportedAsr = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/asr');
+assert.equal(typeof exportedAsr.VolcengineAsrClient, 'function');
+const exportedInterpretation = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/interpretation');
+assert.equal(typeof exportedInterpretation.VolcengineInterpretationClient, 'function');
+const exportedInterpretationClient = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/interpretation/interpretation.client');
+assert.equal(typeof exportedInterpretationClient.VolcengineInterpretationClient, 'function');
+const exportedTaskResult = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/task-result');
+assert.equal(typeof exportedTaskResult.normalizeBodyTaskResult, 'function');
 
 let ttsHttpUnauthorizedCalls = 0;
 await assert.rejects(
@@ -621,8 +850,10 @@ assert.equal(readVolcengineHeader(undefined, 'x-tt-logid'), undefined);
 assert.equal(readVolcengineHeader({ 'x-tt-logid': 'log-1' }, 'x-tt-logid'), 'log-1');
 assert.equal(readVolcengineHeader({ 'X-Tt-Logid': 'log-2' }, 'x-tt-logid'), 'log-2');
 assert.equal(readVolcengineHeader({ 'x-tt-logid': ['log-3', 'extra'] }, 'x-tt-logid'), 'log-3');
-assert.equal(readVolcengineHeader({ 'x-tt-logid': [undefined, '', 'log-4'] }, 'x-tt-logid'), 'log-4');
+assert.equal(readVolcengineHeader({ 'x-tt-logid': ' log-trimmed ' }, 'x-tt-logid'), 'log-trimmed');
+assert.equal(readVolcengineHeader({ 'x-tt-logid': [undefined, '', ' log-4 '] }, 'x-tt-logid'), 'log-4');
 assert.equal(readVolcengineHeader({ 'x-tt-logid': '' }, 'x-tt-logid'), undefined);
+assert.equal(readVolcengineHeader({ 'x-tt-logid': '   ' }, 'x-tt-logid'), undefined);
 assert.equal(readVolcengineHeader({ other: 'x' }, 'x-tt-logid'), undefined);
 assert.equal(
   readVolcengineHeader(
@@ -701,3 +932,200 @@ await assert.rejects(
 assert.equal(nonRetryableAttempts, 1);
 
 process.stdout.write('[verify-volcengine-speech] ok\n');
+
+async function verifyWebSocketClient({
+  ClientCtor,
+  endpointKey,
+  initPayload,
+  connectMethod = 'connect',
+}) {
+  const server = new WebSocketServer({ port: 0 });
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+  const url = `ws://127.0.0.1:${address.port}`;
+
+  const sessionClosed = new Promise((resolve, reject) => {
+    server.once('connection', (ws, request) => {
+      assert.equal(request.headers['x-api-key'], 'test-api-key');
+      assert.equal(request.headers['x-api-request-id'], `${endpointKey}-req`);
+      assert.equal(request.headers['x-api-resource-id'], `${endpointKey}-rid`);
+      assert.equal(request.headers['x-trace'], `${endpointKey}-trace`);
+      const receivedFrames = [];
+      ws.on('message', (data) => {
+        try {
+          const frame = codec.decode(Buffer.from(data));
+          receivedFrames.push(frame);
+          if (receivedFrames.length === 1) {
+            assert.deepEqual(frame.json, initPayload);
+            ws.send(createServerJsonFrame({ event: `${endpointKey}-ok` }));
+            return;
+          }
+          if (receivedFrames.length === 2) {
+            assert.deepEqual(frame.json, { event: `${endpointKey}-client-json` });
+            return;
+          }
+          if (receivedFrames.length === 3) {
+            assert.equal(frame.messageType, VOLCENGINE_WS_MESSAGE_TYPE.AUDIO_ONLY_CLIENT_REQUEST);
+            assert.deepEqual([...frame.payload], [1, 2, 3, 4]);
+            assert.equal(frame.isLast, true);
+            ws.close(1000, `${endpointKey}-done`);
+            return;
+          }
+          reject(new Error(`Unexpected extra WebSocket frame for ${endpointKey}`));
+        } catch (error) {
+          reject(error);
+        }
+      });
+      ws.on('close', () => {
+        try {
+          assert.equal(receivedFrames.length, 3);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+  });
+
+  const events = [];
+  const closes = [];
+  let openCount = 0;
+  let buildHeadersOptions;
+  const client = new ClientCtor({
+    buildHeaders(options) {
+      buildHeadersOptions = options;
+      return {
+        'X-Api-Key': 'test-api-key',
+        'X-Api-Request-Id': options.requestId,
+        'X-Api-Resource-Id': options.resourceId,
+        'X-Trace': options.headers['X-Trace'],
+      };
+    },
+    getConfig() {
+      return {
+        timeoutMs: 1000,
+        endpoints: {
+          [endpointKey]: url,
+        },
+      };
+    },
+  });
+  const session = await client[connectMethod](
+    initPayload,
+    {
+      onOpen: () => {
+        openCount += 1;
+      },
+      onEvent: (event) => {
+        events.push(event);
+      },
+      onError: (error) => {
+        throw error;
+      },
+      onClose: (code, reason) => {
+        closes.push({ code, reason: reason.toString() });
+      },
+    },
+    {
+      requestId: `${endpointKey}-req`,
+      resourceId: `${endpointKey}-rid`,
+      headers: { 'X-Trace': `${endpointKey}-trace` },
+    },
+  );
+  assert.deepEqual(buildHeadersOptions, {
+    requestId: `${endpointKey}-req`,
+    resourceId: `${endpointKey}-rid`,
+    headers: { 'X-Trace': `${endpointKey}-trace` },
+  });
+  assert.equal(openCount, 1);
+  await waitFor(() => events.length === 1);
+  assert.deepEqual(events[0], { event: `${endpointKey}-ok` });
+  session.sendJson({ event: `${endpointKey}-client-json` });
+  session.sendAudio(Buffer.from([1, 2, 3, 4]), true);
+  await sessionClosed;
+  await waitFor(() => closes.length === 1);
+  assert.equal(closes[0].code, 1000);
+  assert.equal(closes[0].reason, `${endpointKey}-done`);
+  assert.equal(session.isOpen(), false);
+  await new Promise((resolve) => server.close(resolve));
+}
+
+function createServerJsonFrame(payload) {
+  const encoded = gzipSync(Buffer.from(JSON.stringify(payload)));
+  const frame = Buffer.alloc(8 + encoded.length);
+  frame[0] = (0b0001 << 4) | 0b0001;
+  frame[1] =
+    (VOLCENGINE_WS_MESSAGE_TYPE.FULL_SERVER_RESPONSE << 4) |
+    VOLCENGINE_WS_MESSAGE_FLAGS.NO_SEQUENCE;
+  frame[2] =
+    (VOLCENGINE_WS_SERIALIZATION.JSON << 4) |
+    VOLCENGINE_WS_COMPRESSION.GZIP;
+  frame.writeUInt32BE(encoded.length, 4);
+  encoded.copy(frame, 8);
+  return frame;
+}
+
+function createServerErrorFrame(code, message) {
+  const payload = Buffer.from(message, 'utf-8');
+  const frame = Buffer.alloc(12 + payload.length);
+  frame[0] = (0b0001 << 4) | 0b0001;
+  frame[1] = VOLCENGINE_WS_MESSAGE_TYPE.ERROR_RESPONSE << 4;
+  frame[2] =
+    (VOLCENGINE_WS_SERIALIZATION.NONE << 4) |
+    VOLCENGINE_WS_COMPRESSION.NONE;
+  frame.writeUInt32BE(code, 4);
+  frame.writeUInt32BE(payload.length, 8);
+  payload.copy(frame, 12);
+  return frame;
+}
+
+async function verifyWebSocketErrorCallback() {
+  const server = new WebSocketServer({ port: 0 });
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+  const url = `ws://127.0.0.1:${address.port}`;
+
+  server.once('connection', (ws) => {
+    ws.once('message', () => {
+      ws.send(createServerErrorFrame(45000001, 'bad websocket request'));
+    });
+  });
+
+  const errors = [];
+  const session = new VolcengineWebSocketSession(
+    {
+      buildHeaders() {
+        return { 'X-Api-Key': 'test-api-key' };
+      },
+      getConfig() {
+        return { timeoutMs: 1000 };
+      },
+    },
+    {
+      url,
+      initPayload: { event: 'init' },
+      callbacks: {
+        onError: (error) => errors.push(error),
+      },
+    },
+  );
+  await session.connect();
+  await waitFor(() => errors.length === 1);
+  assert.equal(errors[0] instanceof VolcengineSpeechError, true);
+  assert.equal(errors[0].code, 45000001);
+  assert.match(errors[0].message, /bad websocket request/);
+  session.close();
+  await new Promise((resolve) => server.close(resolve));
+}
+
+async function waitFor(predicate) {
+  const deadline = Date.now() + 1000;
+  while (!predicate()) {
+    if (Date.now() > deadline) {
+      throw new Error('Timed out waiting for condition');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
