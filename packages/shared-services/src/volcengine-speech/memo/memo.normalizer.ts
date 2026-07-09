@@ -63,5 +63,9 @@ function isFailureStatus(status?: string): boolean {
 }
 
 function getString(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
 }

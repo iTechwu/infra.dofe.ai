@@ -1,4 +1,5 @@
 import { BadGatewayException } from '@nestjs/common';
+import { readVolcengineHeader } from '../headers';
 
 export const VOLCENGINE_SPEECH_SUCCESS_CODE = 20000000;
 
@@ -134,37 +135,9 @@ export function normalizeVolcengineHttpError(
         ? `Volcengine speech HTTP request failed: ${networkCode ?? 'network error'}`
         : `Volcengine speech HTTP request failed with status ${status ?? 'unknown'}`),
     code: status,
-    logId: readLogId(response?.headers) ?? undefined,
+    logId: readVolcengineHeader(response?.headers, 'x-tt-logid'),
     requestId: context.requestId,
     retryable,
     raw: error,
   });
-}
-
-function readLogId(
-  headers: Record<string, unknown> | undefined,
-): string | undefined {
-  if (!headers) {
-    return undefined;
-  }
-  const getter = (headers as { get?: (name: string) => unknown }).get;
-  if (typeof getter === 'function') {
-    const viaGetter =
-      getter.call(headers, 'x-tt-logid') ?? getter.call(headers, 'X-Tt-Logid');
-    if (viaGetter !== undefined && viaGetter !== null) {
-      return String(viaGetter);
-    }
-  }
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() !== 'x-tt-logid' || value === undefined || value === null) {
-      continue;
-    }
-    if (Array.isArray(value)) {
-      return value[0] === undefined || value[0] === null
-        ? undefined
-        : String(value[0]);
-    }
-    return String(value);
-  }
-  return undefined;
 }

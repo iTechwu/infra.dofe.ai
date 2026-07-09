@@ -26,8 +26,8 @@ import {
   StreamingUtterance,
   StreamingWord,
 } from '../types';
+import { VolcengineWebSocketCodec } from '../../volcengine-speech/protocol/websocket-codec';
 
-const gzipAsync = promisify(zlib.gzip);
 const gunzipAsync = promisify(zlib.gunzip);
 
 /**
@@ -57,16 +57,6 @@ const MESSAGE_FLAGS = {
   LAST_PACKET_NO_SEQ: 0b0010,
   /** header后4个字节为sequence number且需要为负数（最后一包/负包） */
   LAST_PACKET_WITH_SEQ: 0b0011,
-} as const;
-
-/**
- * 序列化方法常量
- */
-const SERIALIZATION = {
-  /** 无序列化 */
-  NONE: 0b0000,
-  /** JSON 格式 */
-  JSON: 0b0001,
 } as const;
 
 /**
@@ -237,6 +227,15 @@ export class VolcengineStreamingAsrProvider implements IStreamingAsrProvider {
   private readonly reconnectConfig: ReconnectConfig;
 
   /**
+   * WebSocket 二进制帧编解码器
+   *
+   * @description 委托到统一 {@link VolcengineWebSocketCodec}，复用火山引擎 WebSocket 协议的
+   * 公共二进制头、gzip、sequence 编码逻辑；服务端响应解析（含 size 校验和友好错误信息）
+   * 仍保留在本 provider 的 {@link parseServerResponse} 中。
+   */
+  private readonly codec = new VolcengineWebSocketCodec();
+
+  /**
    * 构造函数
    *
    * @param {Logger} logger - Winston 日志记录器
@@ -307,66 +306,25 @@ export class VolcengineStreamingAsrProvider implements IStreamingAsrProvider {
   }
 
   /**
-   * 构建消息头（4 bytes）
-   *
-   * @description 按照火山引擎 WebSocket 二进制协议构建消息头
-   *
-   * 协议格式：
-   * - Byte 0: Version (4 bits) + Header Size (4 bits)
-   * - Byte 1: Message Type (4 bits) + Message Type Specific Flags (4 bits)
-   * - Byte 2: Serialization Method (4 bits) + Compression (4 bits)
-   * - Byte 3: Reserved
-   *
-   * @param messageType - 消息类型
-   * @param specificFlags - 消息类型特定标志
-   * @param serialization - 序列化方法
-   * @param compression - 压缩方法
-   * @returns 4 字节的消息头 Buffer
-   */
-  private buildMessageHeader(
-    messageType: number,
-    specificFlags: number = MESSAGE_FLAGS.NO_SEQUENCE,
-    serialization: number = SERIALIZATION.JSON,
-    compression: number = COMPRESSION.GZIP,
-  ): Buffer {
-    const header = Buffer.alloc(4);
-    // Byte 0: Version (0b0001) + Header Size (0b0001 = 4 bytes)
-    header[0] = (0b0001 << 4) | 0b0001;
-    // Byte 1: Message Type + Specific Flags
-    header[1] = (messageType << 4) | specificFlags;
-    // Byte 2: Serialization + Compression
-    header[2] = (serialization << 4) | compression;
-    // Byte 3: Reserved
-    header[3] = 0x00;
-    return header;
-  }
-
-  /**
    * 构建完整客户端请求消息（初始请求）
+   *
+   * @description 委托到统一 {@link VolcengineWebSocketCodec.encodeJsonRequest}，产出与历史内联
+   * 实现结构一致的二进制帧（4 字节协议头 + gzip payload，NO_SEQUENCE，无 sequence 字段）。
+   * 保留 async 签名以兼容现有 `await` 调用点。
    *
    * @param data - 请求参数（JSON 对象）
    * @returns 完整的二进制消息
    */
   private async buildFullClientRequest(data: object): Promise<Buffer> {
-    const header = this.buildMessageHeader(
-      MESSAGE_TYPE.FULL_CLIENT_REQUEST,
-      MESSAGE_FLAGS.NO_SEQUENCE,
-      SERIALIZATION.JSON,
-      COMPRESSION.GZIP,
-    );
-
-    const jsonData = JSON.stringify(data);
-    const compressed = await gzipAsync(Buffer.from(jsonData, 'utf-8'));
-
-    // Payload size (4 bytes, big-endian)
-    const payloadSize = Buffer.alloc(4);
-    payloadSize.writeUInt32BE(compressed.length, 0);
-
-    return Buffer.concat([header, payloadSize, compressed]);
+    return this.codec.encodeJsonRequest(data);
   }
 
   /**
    * 构建音频数据请求消息
+   *
+   * @description 委托到统一 {@link VolcengineWebSocketCodec.encodeAudioRequest}，产出与历史内联
+   * 实现结构一致的音频帧（AUDIO_ONLY，无序列化，gzip payload），并根据 `isLast` 设置
+   * NO_SEQUENCE / LAST_PACKET_NO_SEQ 标志。
    *
    * @param audioData - 音频数据
    * @param isLast - 是否为最后一帧
@@ -376,24 +334,7 @@ export class VolcengineStreamingAsrProvider implements IStreamingAsrProvider {
     audioData: Buffer,
     isLast: boolean = false,
   ): Promise<Buffer> {
-    const specificFlags = isLast
-      ? MESSAGE_FLAGS.LAST_PACKET_NO_SEQ
-      : MESSAGE_FLAGS.NO_SEQUENCE;
-
-    const header = this.buildMessageHeader(
-      MESSAGE_TYPE.AUDIO_ONLY_CLIENT_REQUEST,
-      specificFlags,
-      SERIALIZATION.NONE, // 音频数据不序列化
-      COMPRESSION.GZIP,
-    );
-
-    const compressed = await gzipAsync(audioData);
-
-    // Payload size (4 bytes, big-endian)
-    const payloadSize = Buffer.alloc(4);
-    payloadSize.writeUInt32BE(compressed.length, 0);
-
-    return Buffer.concat([header, payloadSize, compressed]);
+    return this.codec.encodeAudioRequest(audioData, isLast);
   }
 
   /**

@@ -25,12 +25,19 @@ import {
   extractTaskError,
 } from '../packages/shared-services/dist/volcengine-speech/memo/memo.normalizer.js';
 import {
+  createTtsChunkReducerState,
+  reduceTtsChunk,
+} from '../packages/shared-services/dist/volcengine-tts/tts-stream-reducer.js';
+import {
   VolcengineSpeechError,
   VolcengineSpeechValidationError,
   isRetryableVolcengineSpeechCode,
   isRetryableHttpStatus,
   normalizeVolcengineHttpError,
 } from '../packages/shared-services/dist/volcengine-speech/errors/index.js';
+import {
+  readVolcengineHeader,
+} from '../packages/shared-services/dist/volcengine-speech/headers.js';
 
 const codec = new VolcengineWebSocketCodec();
 
@@ -38,6 +45,18 @@ const jsonFrame = codec.decode(codec.encodeJsonRequest({ text: 'hello' }, 1));
 assert.equal(jsonFrame.messageType, VOLCENGINE_WS_MESSAGE_TYPE.FULL_CLIENT_REQUEST);
 assert.equal(jsonFrame.sequence, 1);
 assert.deepEqual(jsonFrame.json, { text: 'hello' });
+
+// openspeech provider delegation contract: the init / audio frames its
+// buildFullClientRequest / buildAudioOnlyRequest now produce via the codec.
+// Header = version(1)+headerSize(1) | messageType+flags | serialization+compression | reserved.
+const initFrame = codec.encodeJsonRequest({ user: { uid: 'u' }, audio: {} });
+assert.deepEqual([...initFrame.slice(0, 4)], [0x11, 0x10, 0x11, 0x00]);
+assert.equal(initFrame.readUInt32BE(4), initFrame.length - 8);
+
+const audioOnlyFrame = codec.encodeAudioRequest(Buffer.from([9, 9, 9]), false);
+assert.deepEqual([...audioOnlyFrame.slice(0, 4)], [0x11, 0x20, 0x01, 0x00]);
+const audioLastFrame = codec.encodeAudioRequest(Buffer.from([9, 9, 9]), true);
+assert.deepEqual([...audioLastFrame.slice(0, 4)], [0x11, 0x22, 0x01, 0x00]);
 
 const audio = Buffer.from([1, 2, 3, 4]);
 const audioFrame = codec.decode(codec.encodeAudioRequest(audio, true, -2));
@@ -131,6 +150,7 @@ assert.throws(
   /pitch_rate/,
 );
 assert.throws(() => validateMemoTaskRequest({}), /audioUrl or resourceUrl/);
+assert.throws(() => validateMemoTaskRequest({ audioUrl: '   ' }), /audioUrl or resourceUrl/);
 assert.throws(
   () => validateRequiredString('   ', 'taskId'),
   VolcengineSpeechValidationError,
@@ -221,6 +241,14 @@ assert.equal(successMemo.status, 'success');
 assert.equal(successMemo.error, undefined);
 assert.equal(successMemo.requestId, 'req-memo');
 
+const fallbackMemo = normalizeTaskResult({
+  data: { task_id: '   ', status: ' success ', message: ' success ' },
+  raw: {},
+}, 'fallback-task');
+assert.equal(fallbackMemo.taskId, 'fallback-task');
+assert.equal(fallbackMemo.status, 'success');
+assert.equal(fallbackMemo.error, undefined);
+
 const failedMemo = normalizeTaskResult({
   data: { task_id: 'task-2', status: 'failed', message: 'audio too short' },
   raw: {},
@@ -242,5 +270,49 @@ const idleSession = new VolcengineWebSocketSession(
 assert.equal(idleSession.isOpen(), false);
 assert.throws(() => idleSession.sendJson({ text: 'hi' }), /not open/);
 assert.throws(() => idleSession.sendAudio(Buffer.from([1, 2, 3, 4])), /not open/);
+
+// volcengine-tts NDJSON chunk reducer (delegated from processStreamResponse)
+const ttsState = createTtsChunkReducerState();
+reduceTtsChunk(ttsState, { code: 0, data: 'AAEC' }); // base64 [0,1,2]
+reduceTtsChunk(ttsState, { code: 0, sentence: { text: 'hi' } }); // skipped
+reduceTtsChunk(ttsState, { code: 0, data: 'AAEC' }); // accumulate again
+assert.equal(ttsState.completed, false);
+assert.equal(ttsState.error, undefined);
+assert.deepEqual([...ttsState.audioBuffer], [0, 1, 2, 0, 1, 2]);
+
+// completion code must set completed and NOT be misclassified as error
+// (regression for the buffer-remainder bug where 20000000 > 0 hit the error branch)
+const completedState = createTtsChunkReducerState();
+reduceTtsChunk(completedState, { code: 20000000 });
+assert.equal(completedState.completed, true);
+assert.equal(completedState.error, undefined);
+
+const errorState = createTtsChunkReducerState();
+reduceTtsChunk(errorState, { code: 45000001, message: 'invalid params' });
+assert.equal(errorState.completed, false);
+assert.equal(errorState.error, 'invalid params');
+
+const defaultErrorState = createTtsChunkReducerState();
+reduceTtsChunk(defaultErrorState, { code: 45000002 });
+assert.equal(defaultErrorState.error, '错误码: 45000002');
+
+// empty reducer state has no audio (processStreamResponse maps this to "未收到音频数据")
+assert.equal(createTtsChunkReducerState().audioBuffer.length, 0);
+
+// shared header reader (consolidated from transport getHeader + errors readLogId)
+assert.equal(readVolcengineHeader(undefined, 'x-tt-logid'), undefined);
+assert.equal(readVolcengineHeader({ 'x-tt-logid': 'log-1' }, 'x-tt-logid'), 'log-1');
+assert.equal(readVolcengineHeader({ 'X-Tt-Logid': 'log-2' }, 'x-tt-logid'), 'log-2');
+assert.equal(readVolcengineHeader({ 'x-tt-logid': ['log-3', 'extra'] }, 'x-tt-logid'), 'log-3');
+assert.equal(readVolcengineHeader({ 'x-tt-logid': [undefined, '', 'log-4'] }, 'x-tt-logid'), 'log-4');
+assert.equal(readVolcengineHeader({ 'x-tt-logid': '' }, 'x-tt-logid'), undefined);
+assert.equal(readVolcengineHeader({ other: 'x' }, 'x-tt-logid'), undefined);
+assert.equal(
+  readVolcengineHeader(
+    { get: (n) => (n === 'x-tt-logid' ? 'log-axios' : null) },
+    'X-Tt-Logid',
+  ),
+  'log-axios',
+);
 
 process.stdout.write('[verify-volcengine-speech] ok\n');

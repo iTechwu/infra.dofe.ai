@@ -96,6 +96,8 @@
 
 **补充状态**：已完成（循环 36）。新增 `normalizeVolcengineHttpError` 与 `isRetryableHttpStatus`，把 axios 形态的 HTTP/网络错误（非 2xx、超时、`ECONNRESET` 等）统一归一化为 `VolcengineSpeechError`，保留原始错误于 `raw`，并补齐 HTTP 级失败缺失的 `requestId`/`logId`/`retryable`，确保所有失败响应都可拿到追踪标识。
 
+**补充状态**：已完成（循环 45）。抽出共享纯模块 `volcengine-speech/headers.ts`（`readVolcengineHeader`），收敛 transport 的 `getHeader`/`findHeaderValue` 与 errors 的 `readLogId` 两处重复的大小写不敏感响应头读取逻辑，并纳入无密钥 smoke。
+
 **目标**：把官方错误码文档沉淀为共享错误模型，统一 HTTP/WebSocket 错误抛出形态。
 
 **范围**：新增 `volcengine-speech.errors.ts`，定义错误码枚举、错误分类、可重试判断、`X-Tt-Logid`/request id 捕获；为 HTTP 响应体中的 `code/message` 和 WebSocket error frame 提供标准转换。
@@ -216,6 +218,12 @@
 
 **状态**：已完成（循环 8）。已新增 [volcengine-speech-delegation-audit.md](/Users/techwu/Documents/codes/dofe.ai/infra.dofe.ai/docs/0708/volcengine-speech-delegation-audit.md)，明确旧模块可委托项、暂不委托项、前置条件和推荐顺序。
 
+**补充状态**：已完成（循环 41）。`openspeech` 的 `VolcengineStreamingAsrProvider` 已将 WebSocket 出站帧编码（`buildFullClientRequest`/`buildAudioOnlyRequest`）委托到统一 `VolcengineWebSocketCodec`，产出与历史内联实现结构一致的帧；服务端响应解析（含 size 校验与友好错误信息）仍保留在 provider 内。`streaming-asr` 经由该 provider 自动继承本次委托。
+
+**补充状态**：已完成（循环 42）。`volcengine-tts` 完成码常量复用统一 `VOLCENGINE_SPEECH_SUCCESS_CODE`（零行为变更）；并据实复核重写委托评估文档，将 `volcengine-tts` 鉴权头/配置/重试/logId/NDJSON+TOS 等候选项标注为“需测试保护后再委托”，逐项列出行为差异。
+
+**补充状态**：已完成（循环 44）。为 `volcengine-tts` 建立测试保护：抽出纯模块 `tts-stream-reducer.ts`（`reduceTtsChunk`/`createTtsChunkReducerState`），把 `processStreamResponse` 的 NDJSON 协议归约从“主循环 + 缓冲区剩余”两处重复逻辑收敛为单一纯函数，并修复缓冲区中完成码 `20000000` 因 `>0` 同时命中错误分支的潜在误判；reducer 已纳入无密钥 smoke。
+
 **目标**：在统一 client 稳定后，让旧模块逐步复用统一底座，降低重复实现。
 
 **范围**：评估 `volcengine-tts` 可委托到 `audio-generation` 或 `tts-streaming` 的部分；评估 `openspeech`、`streaming-asr` 可复用 `protocol` 和 `errors` 的部分；每次委托保持原方法签名、返回类型和异常兼容。
@@ -335,3 +343,12 @@
 | 38 | 为 `VolcengineWebSocketSession` 新增 `isOpen()`，并由 `assertOpen` 复用，便于调用方在发送前判断会话状态 | 标注步骤 7 的会话可观测性补强完成 | 下一轮收紧 request options 自定义 header 值校验 | 已通过 `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` |
 | 39 | `validateRequestOptions` 扩展到自定义 header 值校验，拦截空字符串与非字符串值，并补 smoke 成功/失败路径 | 标注步骤 3 的 request options 边界补强完成 | 下一轮最终深度审查、同步 README/checklist 并执行完整验证 | 已通过 `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` |
 | 40 | 深度审查循环 36-39 的实现，抽纯模块 `memo.normalizer`、HTTP 错误归一化、`isOpen()` 与 header 值校验；同步 README 与联调 checklist | 标注循环 36-40 全部闭环 | 后续只剩真实火山 API 联调和旧模块逐项委托迁移 | 已通过 `pnpm --filter @dofe/infra-shared-services typecheck`、`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`、`git diff --check` |
+| 41 | `openspeech` provider 将 WebSocket 出站帧编码委托到统一 `VolcengineWebSocketCodec`，移除内联 `buildMessageHeader`/`gzipAsync`/`SERIALIZATION`，保留 `parseServerResponse` 解析；补 smoke 断言编码帧头字节契约 | 标注步骤 13 的 openspeech 编码委托完成 | 下一轮推进 volcengine-tts 安全委托并据实更新委托评估文档 | 已通过 `pnpm --filter @dofe/infra-shared-services typecheck`、`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` |
+| 42 | `volcengine-tts` 完成码常量复用 `VOLCENGINE_SPEECH_SUCCESS_CODE`；据实复核重写委托评估文档，标注 openspeech 编码已委托、streaming-asr 经 provider 继承、volcengine-tts 其余候选项需测试保护 | 标注步骤 13 的 volcengine-tts 常量委托与评估复核完成 | 下一轮最终审查所有委托改动并跑完整验证 | 已通过 `pnpm --filter @dofe/infra-shared-services typecheck` |
+| 43 | 深度审查循环 41-42 委托改动：确认无悬挂引用、帧头字节契约 smoke 通过、常量复用零行为变更，并跑完整验证 | 标注循环 41-43 委托阶段闭环 | 后续需无密钥兼容 smoke 或真实联调保护才能推进 volcengine-tts 鉴权头/重试/logId 委托 | 已通过 `pnpm --filter @dofe/infra-shared-services typecheck`、`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`、`git diff --check` |
+| 44 | 抽出 volcengine-tts 纯模块 `tts-stream-reducer`，收敛 `processStreamResponse` 的 NDJSON 归约重复逻辑并修复完成码缓冲区误判，纳入 smoke | 标注步骤 13 的 volcengine-tts 测试保护建立完成 | 下一轮统一并去重 HTTP header 读取逻辑，沉淀为可复用纯 helper | 已通过 `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` |
+| 45 | 新增共享纯模块 `volcengine-speech/headers.ts`（`readVolcengineHeader`），替换 transport 与 errors 中重复的响应头读取实现，补 smoke（plain/AxiosHeaders/数组/大小写/缺失） | 标注步骤 4 的响应头读取去重完成 | 下一轮最终审查循环 44-45 并跑完整验证 | 已通过 `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` |
+| 46 | 深度审查循环 44-45：确认无悬挂引用、reducer/header-reader smoke 通过、TTS 归约与 header 读取去重到位，并跑完整验证 | 标注循环 44-46 全部闭环 | 后续需真实联调保护才能推进 volcengine-tts 鉴权头/重试/logId 委托 | 已通过 `pnpm --filter @dofe/infra-shared-services typecheck`、`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`、`git diff --check` |
+| 47 | 修复 `readVolcengineHeader` 数组值归一化：按注释取首个非空值，并将空字符串视为缺失；补 smoke 覆盖空值数组与空字符串 | 标注步骤 4 的响应头读取边界补强完成 | 下一轮补 memo 任务提交 URL 字段 trim 校验，避免空白字符串直达 API | 已通过 `tsc -p packages/shared-services/tsconfig.json --noEmit`、`tsc -p packages/shared-services/tsconfig.json`、`node ../../scripts/generate-exports.mjs`、`node ../../scripts/verify-volcengine-speech.mjs`；pnpm wrapper 当前被 ignored-builds 策略拦截 |
+| 48 | `validateMemoTaskRequest` 改为 trim 后判断 `audioUrl/resourceUrl`，拦截空白字符串，并补 smoke | 标注步骤 10、14 的 memo 输入边界补强完成 | 下一轮修正 memo taskId 归一化空字符串阻断 fallback 的问题 | 已通过直接 TypeScript 构建与 `node ../../scripts/verify-volcengine-speech.mjs` |
+| 49 | memo task 归一化的字符串读取改为 trim 后非空才有效，修正空 `task_id` 阻断 fallback taskId，并补 smoke | 标注步骤 10 的任务结果归一化边界补强完成 | 下一轮补 WebSocket `close()` 主动关闭后的本地状态清理与文档说明 | 待运行直接 TypeScript 与 smoke 验证 |

@@ -1,19 +1,23 @@
-import { BadGatewayException, Injectable, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { YamlConfig } from '@dofe/infra-common';
-import { HttpService } from '@nestjs/axios';
-import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { Logger } from 'winston';
-import { firstValueFrom } from 'rxjs';
-import { TosClient } from '@volcengine/tos-sdk';
-import { parseBuffer } from 'music-metadata';
-import { Signer } from '@volcengine/openapi';
-import { getKeysConfig, initKeysConfig } from '@dofe/infra-common';
-import { StorageCredentialsConfig, TtsConfig } from '@dofe/infra-common';
-import { FeatureNotConfiguredError } from '@dofe/infra-common';
-import { FileStorageService } from '../file-storage/file-storage.service';
-import { TtsRequestDto, TtsResultDto, TtsResponseDto } from './dto/tts.dto';
-import { environmentUtil as environment } from '@dofe/infra-utils';
+import { BadGatewayException, Injectable, Inject } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { YamlConfig } from "@dofe/infra-common";
+import { HttpService } from "@nestjs/axios";
+import { WINSTON_MODULE_PROVIDER } from "nest-winston";
+import { Logger } from "winston";
+import { firstValueFrom } from "rxjs";
+import { TosClient } from "@volcengine/tos-sdk";
+import { parseBuffer } from "music-metadata";
+import { Signer } from "@volcengine/openapi";
+import { getKeysConfig, initKeysConfig } from "@dofe/infra-common";
+import { StorageCredentialsConfig, TtsConfig } from "@dofe/infra-common";
+import { FeatureNotConfiguredError } from "@dofe/infra-common";
+import { FileStorageService } from "../file-storage/file-storage.service";
+import { TtsRequestDto, TtsResultDto, TtsResponseDto } from "./dto/tts.dto";
+import { environmentUtil as environment } from "@dofe/infra-utils";
+import {
+  createTtsChunkReducerState,
+  reduceTtsChunk,
+} from "./tts-stream-reducer";
 
 /**
  * Volcengine TTS服务
@@ -21,10 +25,10 @@ import { environmentUtil as environment } from '@dofe/infra-utils';
  */
 
 const hotList = [
-  'ICL_zh_male_BV144_paoxiaoge_v1_tob',
-  'zh_male_sunwukong_mars_bigtts',
-  'zh_male_xionger_mars_bigtts',
-  'zh_male_zhubajie_mars_bigtts',
+  "ICL_zh_male_BV144_paoxiaoge_v1_tob",
+  "zh_male_sunwukong_mars_bigtts",
+  "zh_male_xionger_mars_bigtts",
+  "zh_male_zhubajie_mars_bigtts",
 ];
 
 export interface VolcengineTtsConfig {
@@ -62,7 +66,7 @@ export class VolcengineTtsClient {
   private ttsConfig!: VolcengineTtsConfig;
   private ttsUrl!: string;
   private tosClient: TosClient | null = null;
-  private cloudUrl: string = '';
+  private cloudUrl: string = "";
 
   /**
    * 构造函数（NestJS DI 路径）
@@ -100,7 +104,7 @@ export class VolcengineTtsClient {
   static resolveConfig(configService: ConfigService): VolcengineTtsConfig {
     const config = getKeysConfig()?.tts as TtsConfig | undefined;
     if (!config || !config.volcengine) {
-      throw new FeatureNotConfiguredError('tts', 'keys.tts');
+      throw new FeatureNotConfiguredError("tts", "keys.tts");
     }
 
     const volcengineConfig = config.volcengine;
@@ -111,13 +115,13 @@ export class VolcengineTtsClient {
     // Direct TOS access is a storage-client capability; SSO-only consumers do
     // not need buckets.
     const bucketConfigs =
-      configService.get<YamlConfig['buckets']>('buckets') ?? [];
+      configService.get<YamlConfig["buckets"]>("buckets") ?? [];
     if (bucketConfigs.length === 0) {
-      throw new FeatureNotConfiguredError('storage-client', 'buckets');
+      throw new FeatureNotConfiguredError("storage-client", "buckets");
     }
 
     const tosBucket = bucketConfigs.find(
-      (b) => b.vendor === 'tos' && b.bucket === volcengineConfig.bucket,
+      (b) => b.vendor === "tos" && b.bucket === volcengineConfig.bucket,
     );
 
     if (!tosBucket) {
@@ -127,20 +131,20 @@ export class VolcengineTtsClient {
     }
 
     if (!storageConfig?.accessKey || !storageConfig?.secretKey) {
-      throw new Error('TOS storage credentials not found in keys/config.json');
+      throw new Error("TOS storage credentials not found in keys/config.json");
     }
 
     return {
       endpoint:
         volcengineConfig.endpoint ||
-        'https://openspeech.bytedance.com/api/v3/tts/unidirectional',
-      apiKey: volcengineConfig.apiKey || '',
-      resourceId: volcengineConfig.resourceId || '',
-      region: volcengineConfig.region || 'cn-shanghai',
-      accessKey: volcengineConfig.accessKey || '',
-      secretKey: volcengineConfig.secretKey || '',
+        "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
+      apiKey: volcengineConfig.apiKey || "",
+      resourceId: volcengineConfig.resourceId || "",
+      region: volcengineConfig.region || "cn-shanghai",
+      accessKey: volcengineConfig.accessKey || "",
+      secretKey: volcengineConfig.secretKey || "",
       tos: {
-        region: tosBucket.region || 'cn-shanghai',
+        region: tosBucket.region || "cn-shanghai",
         endpoint: VolcengineTtsClient.extractTosEndpoint(
           tosBucket.tosEndpoint || tosBucket.endpoint,
         ),
@@ -208,10 +212,10 @@ export class VolcengineTtsClient {
    */
   private static extractTosEndpoint(endpointUrl: string): string {
     if (!endpointUrl) {
-      return 'tos-cn-shanghai.volces.com';
+      return "tos-cn-shanghai.volces.com";
     }
     // 移除协议前缀
-    return endpointUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    return endpointUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
   }
 
   /**
@@ -219,7 +223,7 @@ export class VolcengineTtsClient {
    */
   private initializeTOS(): void {
     if (!this.ttsConfig.tos) {
-      this.logger.warn('火山云TOS配置未提供，云存储功能将无法使用');
+      this.logger.warn("火山云TOS配置未提供，云存储功能将无法使用");
       return;
     }
 
@@ -228,7 +232,7 @@ export class VolcengineTtsClient {
         this.ttsConfig.tos;
 
       if (!accessKeyId || !accessKeySecret) {
-        this.logger.warn('火山云TOS配置不完整，云存储功能可能无法使用');
+        this.logger.warn("火山云TOS配置不完整，云存储功能可能无法使用");
         this.tosClient = null;
         return;
       }
@@ -243,7 +247,7 @@ export class VolcengineTtsClient {
       });
 
       if (environment.isProduction()) {
-        this.logger.info('VolcengineTtsClient module initialized TOS client', {
+        this.logger.info("VolcengineTtsClient module initialized TOS client", {
           region,
           endpoint,
           bucket,
@@ -251,7 +255,7 @@ export class VolcengineTtsClient {
           accessKeySecret,
         });
       } else {
-        this.logger.debug('VolcengineTtsClient module initialized TOS client', {
+        this.logger.debug("VolcengineTtsClient module initialized TOS client", {
           region,
           endpoint,
           bucket,
@@ -274,19 +278,19 @@ export class VolcengineTtsClient {
     const missingVars = [];
 
     if (!this.ttsConfig.apiKey) {
-      missingVars.push('apiKey');
+      missingVars.push("apiKey");
     }
 
     if (!this.ttsConfig.resourceId) {
-      missingVars.push('resourceId');
+      missingVars.push("resourceId");
     }
 
     if (missingVars.length > 0) {
-      this.logger.warn(`缺少TTS配置项: ${missingVars.join(', ')}`);
-      this.logger.warn('TTS服务可能无法正常工作，请检查配置文件');
+      this.logger.warn(`缺少TTS配置项: ${missingVars.join(", ")}`);
+      this.logger.warn("TTS服务可能无法正常工作，请检查配置文件");
     } else {
       if (environment.isProduction()) {
-        this.logger.info('TTS configuration validated successfully');
+        this.logger.info("TTS configuration validated successfully");
       }
     }
   }
@@ -311,7 +315,7 @@ export class VolcengineTtsClient {
   private async getAudioDuration(audioData: Buffer): Promise<number> {
     try {
       const metadata = await parseBuffer(audioData, {
-        mimeType: 'audio/mpeg',
+        mimeType: "audio/mpeg",
       });
       return (metadata.format.duration || 0) * 1000; // 转换为毫秒
     } catch (error) {
@@ -336,7 +340,7 @@ export class VolcengineTtsClient {
     try {
       this.logger.info(`开始上传音频数据到火山云TOS: ${fileName}`);
       if (!this.tosClient || !this.ttsConfig.tos) {
-        throw new Error('火山云TOS客户端未初始化');
+        throw new Error("火山云TOS客户端未初始化");
       }
 
       // 生成TOS对象键
@@ -347,7 +351,7 @@ export class VolcengineTtsClient {
         bucket: this.ttsConfig.tos.bucket,
         key: objectKey,
         body: audioData,
-        contentType: 'audio/mpeg',
+        contentType: "audio/mpeg",
       });
 
       return {
@@ -378,11 +382,11 @@ export class VolcengineTtsClient {
       const payload = {
         req_params: {
           text: request.text,
-          model: 'seed-tts-1.1',
+          model: "seed-tts-1.1",
           speaker:
             request.speaker ||
-            (await this.getRandomVoice('🔥热门推荐')).voice.id ||
-            'zh_male_beijingxiaoye_emo_v2_mars_bigtts',
+            (await this.getRandomVoice("🔥热门推荐")).voice.id ||
+            "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
           additions: JSON.stringify({
             disable_markdown_filter: true,
             enable_language_detector: true,
@@ -398,7 +402,7 @@ export class VolcengineTtsClient {
             },
           }),
           audio_params: {
-            format: 'mp3',
+            format: "mp3",
             sample_rate: 32000,
             speech_rate: request.speech_rate || 0,
             loudness_rate: request.loudness_rate || 0,
@@ -428,10 +432,10 @@ export class VolcengineTtsClient {
    */
   private buildHeaders(): Record<string, string> {
     return {
-      'x-api-key': this.ttsConfig.apiKey,
-      'X-Api-Resource-Id': this.ttsConfig.resourceId,
-      Connection: 'keep-alive',
-      'Content-Type': 'application/json',
+      "x-api-key": this.ttsConfig.apiKey,
+      "X-Api-Resource-Id": this.ttsConfig.resourceId,
+      Connection: "keep-alive",
+      "Content-Type": "application/json",
     };
   }
 
@@ -443,17 +447,17 @@ export class VolcengineTtsClient {
     payload: any,
   ): Promise<TtsResultDto> {
     try {
-      this.logger.info('发送TTS请求到字节跳动API');
+      this.logger.info("发送TTS请求到字节跳动API");
 
       const response = await firstValueFrom(
         this.httpService.post(this.ttsUrl, payload, {
           headers,
-          responseType: 'stream',
+          responseType: "stream",
         }),
       );
 
       // 获取日志ID
-      const logId = response.headers['x-tt-logid'];
+      const logId = response.headers["x-tt-logid"];
       this.logger.info(`请求日志ID: ${logId}`);
 
       // 处理流式响应
@@ -461,9 +465,9 @@ export class VolcengineTtsClient {
     } catch (error: any) {
       this.logger.error(`TTS API请求失败: ${error.message}`);
       if (error.response) {
-        this.logger.error('响应状态:', error.response.status);
-        this.logger.error('响应头:', error.response.headers);
-        this.logger.error('响应数据:', error.response.data);
+        this.logger.error("响应状态:", error.response.status);
+        this.logger.error("响应头:", error.response.headers);
+        this.logger.error("响应数据:", error.response.data);
       }
       throw new BadGatewayException(`TTS API请求失败: ${error.message}`);
     }
@@ -471,28 +475,28 @@ export class VolcengineTtsClient {
 
   /**
    * 处理流式响应
+   *
+   * @description 行缓冲与 TOS/日志逻辑保留在本方法；每行 JSON 的协议分支归约委托到纯函数
+   * {@link reduceTtsChunk}（见 tts-stream-reducer），可在无密钥环境下 smoke 验证。
    */
   private async processStreamResponse(
     stream: any,
     logId: string,
   ): Promise<TtsResultDto> {
     return new Promise((resolve, reject) => {
-      let audioData = Buffer.alloc(0);
-      let totalAudioSize = 0;
-      let hasError = false;
-      let errorMessage = '';
-      let buffer = ''; // 用于缓存不完整的数据
+      const state = createTtsChunkReducerState();
+      let buffer = ""; // 用于缓存不完整的数据
 
-      stream.on('data', (chunk: Buffer) => {
+      stream.on("data", (chunk: Buffer) => {
         try {
           // 将新数据添加到缓冲区
           buffer += chunk.toString();
 
           // 按行分割数据
-          const lines = buffer.split('\n');
+          const lines = buffer.split("\n");
 
           // 保留最后一个可能不完整的行
-          buffer = lines.pop() || '';
+          buffer = lines.pop() || "";
 
           for (const line of lines) {
             if (!line.trim()) continue;
@@ -502,30 +506,15 @@ export class VolcengineTtsClient {
               continue;
             }
 
-            // 处理音频数据
-            if (data.code === 0 && data.data) {
-              const audioChunk = Buffer.from(data.data, 'base64');
-              audioData = Buffer.concat([audioData, audioChunk]);
-              totalAudioSize += audioChunk.length;
-              continue;
-            }
+            reduceTtsChunk(state, data);
 
-            // 处理句子信息
-            if (data.code === 0 && data.sentence) {
-              continue;
-            }
-
-            // 处理完成信号
-            if (data.code === 20000000) {
-              this.logger.info('TTS合成完成');
+            if (state.completed) {
+              this.logger.info("TTS合成完成");
               break;
             }
 
-            // 处理错误
-            if (data.code > 0) {
-              hasError = true;
-              errorMessage = data.message || `错误码: ${data.code}`;
-              this.logger.error(`TTS API错误: ${errorMessage}`);
+            if (state.error) {
+              this.logger.error(`TTS API错误: ${state.error}`);
               break;
             }
           }
@@ -536,8 +525,10 @@ export class VolcengineTtsClient {
         }
       });
 
-      stream.on('end', async () => {
-        this.logger.info(`流式响应结束，总音频大小: ${totalAudioSize} bytes`);
+      stream.on("end", async () => {
+        this.logger.info(
+          `流式响应结束，总音频大小: ${state.audioBuffer.length} bytes`,
+        );
 
         // 处理缓冲区中剩余的数据
         if (buffer.trim()) {
@@ -546,54 +537,42 @@ export class VolcengineTtsClient {
           );
           const data = this.safeJsonParse(buffer);
           if (data) {
-            // 处理音频数据
-            if (data.code === 0 && data.data) {
-              const audioChunk = Buffer.from(data.data, 'base64');
-              audioData = Buffer.concat([audioData, audioChunk]);
-              totalAudioSize += audioChunk.length;
-              this.logger.debug(
-                `收到缓冲区音频数据块，大小: ${audioChunk.length} bytes`,
-              );
+            const previousError = state.error;
+            reduceTtsChunk(state, data);
+            if (state.completed) {
+              this.logger.info("TTS合成完成（缓冲区）");
             }
-
-            // 处理完成信号
-            if (data.code === 20000000) {
-              this.logger.info('TTS合成完成（缓冲区）');
-            }
-
-            // 处理错误
-            if (data.code > 0) {
-              hasError = true;
-              errorMessage = data.message || `错误码: ${data.code}`;
-              this.logger.error(`TTS API错误（缓冲区）: ${errorMessage}`);
+            if (state.error && state.error !== previousError) {
+              this.logger.error(`TTS API错误（缓冲区）: ${state.error}`);
             }
           }
         }
 
-        if (hasError) {
-          this.logger.error(`TTS处理过程中发生错误: ${errorMessage}`);
+        if (state.error) {
+          this.logger.error(`TTS处理过程中发生错误: ${state.error}`);
           resolve({
             success: false,
-            error: errorMessage,
+            error: state.error,
           });
           return;
         }
 
-        if (audioData.length === 0) {
-          this.logger.warn('未收到任何音频数据');
+        if (state.audioBuffer.length === 0) {
+          this.logger.warn("未收到任何音频数据");
           resolve({
             success: false,
-            error: '未收到音频数据',
+            error: "未收到音频数据",
           });
           return;
         }
 
+        const audioData = state.audioBuffer;
         this.logger.info(
           `准备上传音频数据到云存储，大小: ${audioData.length} bytes`,
         );
 
         // 生成文件名
-        const fileName = `tts_${Date.now()}_${logId || 'unknown'}.mp3`;
+        const fileName = `tts_${Date.now()}_${logId || "unknown"}.mp3`;
 
         const audioDuration = await this.getAudioDuration(audioData);
 
@@ -601,7 +580,7 @@ export class VolcengineTtsClient {
         this.uploadAudioToCloud(audioData, fileName)
           .then((cloudResult) => {
             if (cloudResult.success) {
-              this.logger.info('音频数据上传到云存储成功');
+              this.logger.info("音频数据上传到云存储成功");
               resolve({
                 success: true,
                 audio: cloudResult.cloudUrl,
@@ -624,7 +603,7 @@ export class VolcengineTtsClient {
           });
       });
 
-      stream.on('error', (error: Error) => {
+      stream.on("error", (error: Error) => {
         this.logger.error(`流处理错误: ${error.message}`);
         reject(error);
       });
@@ -659,7 +638,7 @@ export class VolcengineTtsClient {
    */
   async getRandomVoice(
     category?: string,
-    gender?: 'female' | 'male',
+    gender?: "female" | "male",
   ): Promise<any> {
     const voiceData = await this.voiceList();
 
@@ -690,7 +669,7 @@ export class VolcengineTtsClient {
     });
 
     if (allVoices.length === 0) {
-      throw new Error('没有可用的音色数据');
+      throw new Error("没有可用的音色数据");
     }
 
     // 随机选择一个性别分组
@@ -714,12 +693,12 @@ export class VolcengineTtsClient {
   async voiceList(): Promise<any> {
     const list = await this.volcengineApi({
       params: {
-        Action: 'ListBigModelTTSTimbres',
-        Version: '2025-05-20',
+        Action: "ListBigModelTTSTimbres",
+        Version: "2025-05-20",
       },
       body: {},
-      method: 'POST',
-      Service: 'speech_saas_prod',
+      method: "POST",
+      Service: "speech_saas_prod",
     }).then((res) => {
       return res.Result?.Timbres ?? [];
     });
@@ -737,7 +716,7 @@ export class VolcengineTtsClient {
 
         // 检查是否包含"多语种"分类，如果有则跳过整个声音
         const hasMultiLanguage = timbre.Categories.some(
-          (categoryInfo: any) => categoryInfo.Category === '多语种',
+          (categoryInfo: any) => categoryInfo.Category === "多语种",
         );
 
         if (hasMultiLanguage) {
@@ -754,13 +733,13 @@ export class VolcengineTtsClient {
               Category: category,
               groups: [
                 {
-                  gender_title: '女声',
-                  gender_type: 'female',
+                  gender_title: "女声",
+                  gender_type: "female",
                   items: [],
                 },
                 {
-                  gender_title: '男声',
-                  gender_type: 'male',
+                  gender_title: "男声",
+                  gender_type: "male",
                   items: [],
                 },
               ],
@@ -772,8 +751,8 @@ export class VolcengineTtsClient {
           // 根据性别找到对应的分组
           const genderGroup = categoryData.groups.find(
             (group: any) =>
-              (gender === '女' && group.gender_type === 'female') ||
-              (gender === '男' && group.gender_type === 'male'),
+              (gender === "女" && group.gender_type === "female") ||
+              (gender === "男" && group.gender_type === "male"),
           );
 
           if (genderGroup) {
@@ -827,7 +806,7 @@ export class VolcengineTtsClient {
 
         // 检查是否包含"多语种"分类，如果有则跳过
         const hasMultiLanguage = timbre.Categories.some(
-          (categoryInfo: any) => categoryInfo.Category === '多语种',
+          (categoryInfo: any) => categoryInfo.Category === "多语种",
         );
 
         if (hasMultiLanguage) {
@@ -856,8 +835,8 @@ export class VolcengineTtsClient {
               emotion: emotion.Emotion,
               emotion_type: emotion.EmotionType,
               demo_text: emotion.DemoText,
-              gender: gender === '女' ? 'female' : 'male',
-              gender_title: gender === '女' ? '女声' : '男声',
+              gender: gender === "女" ? "female" : "male",
+              gender_title: gender === "女" ? "女声" : "男声",
             });
           }
         });
@@ -872,11 +851,11 @@ export class VolcengineTtsClient {
     });
 
     return {
-      Category: '🔥热门推荐',
+      Category: "🔥热门推荐",
       groups: [
         {
-          gender_title: '热门音色',
-          gender_type: 'hot',
+          gender_title: "热门音色",
+          gender_type: "hot",
           items: sortedHotItems,
         },
       ],
@@ -889,15 +868,15 @@ export class VolcengineTtsClient {
   async volcengineApi({
     body = {},
     params,
-    method = 'POST',
+    method = "POST",
     Service,
   }: {
     params: any;
     body?: any;
-    method?: 'POST' | 'GET' | 'PUT' | 'DELETE' | 'PATCH';
+    method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH";
     Service: string;
   }) {
-    const baseUrl = 'https://open.volcengineapi.com';
+    const baseUrl = "https://open.volcengineapi.com";
     const openApiRequestData = {
       region: this.ttsConfig.region,
       method,
@@ -926,7 +905,9 @@ export class VolcengineTtsClient {
       );
       return response.data;
     } catch (error: unknown) {
-      this.logger.error(`火山引擎API调用失败: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `火山引擎API调用失败: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return undefined;
     }
   }

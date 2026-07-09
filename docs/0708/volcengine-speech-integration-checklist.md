@@ -39,3 +39,12 @@
 - WebSocket 关闭后不可复用原 session；如需继续发送，应重新 `connect`，发送前可用 `session.isOpen()` 判断连接是否可用。
 - 不在日志中输出 API Key、Access Key 或原始音频 Base64。
 - 旧 `volcengine-tts`、`openspeech`、`streaming-asr` 调用路径未被改变。
+
+## 联调尝试记录（2026-07-09）
+
+用提供的测试凭证对流式 ASR（SAUC bigmodel）做了一次实时握手探针（凭证仅经环境变量传入，未写入任何文件；探针脚本为一次性、未提交）：
+
+- 端点确认：`wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async`，资源 ID `volc.seedasr.sauc.duration`。加上 `X-Api-Resource-Id` 后握手响应由 400 变为 401，说明端点与资源路径正确。
+- 鉴权未通过：`X-Api-App-Key` + `X-Api-Access-Key`（分别用 `appAccessToken` 与 `appAccessSecret` 各试一次）均返回 401。提供的测试凭证当前无法通过该端点鉴权（疑似过期或属不同应用/Token 需刷新）。
+- 影响：握手阶段即被拒，统一 `VolcengineWebSocketCodec` 编码的 init/音频帧尚未能送达服务端验证。鉴权代码未被循环 41-46 的委托改动（本轮只委托了帧编码），401 属凭证/鉴权问题，非代码回归。
+- 待补：换用有效（未过期、匹配该应用）的 SAUC 凭证，或先走 Token 刷新流程后，即可用同一探针验证 codec 编码帧是否被服务端接受（init 帧后服务端应返回正常响应帧而非错误帧）。

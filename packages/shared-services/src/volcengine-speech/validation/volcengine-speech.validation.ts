@@ -42,7 +42,7 @@ export function validateCreateAudioRequest(request: CreateAudioRequest): void {
 export function validateMemoTaskRequest(
   request: VolcengineSpeechTaskRequest,
 ): void {
-  if (!request.audioUrl && !request.resourceUrl) {
+  if (!hasText(request.audioUrl) && !hasText(request.resourceUrl)) {
     throwValidation('audioUrl or resourceUrl is required', 'audioUrl');
   }
 }
@@ -129,6 +129,10 @@ function assertRange(
 
 function throwValidation(message: string, field?: string): never {
   throw new VolcengineSpeechValidationError(message, field);
+}
+
+function hasText(value: string | undefined): boolean {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function hasAudioReference(reference: VolcengineSpeechReference): boolean {

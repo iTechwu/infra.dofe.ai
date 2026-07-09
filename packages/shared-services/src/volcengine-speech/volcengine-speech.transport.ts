@@ -13,6 +13,7 @@ import {
   assertVolcengineSpeechSuccess,
   normalizeVolcengineHttpError,
 } from './errors';
+import { readVolcengineHeader } from './headers';
 import { buildVolcengineSpeechHeaders } from './auth';
 
 @Injectable()
@@ -64,14 +65,14 @@ export class VolcengineSpeechTransport {
         );
         assertVolcengineSpeechSuccess({
           body: response.data,
-          logId: getHeader(response.headers, 'x-tt-logid'),
+          logId: readVolcengineHeader(response.headers, 'x-tt-logid'),
           requestId,
         });
         return response;
       },
       { requestId },
     );
-    const logId = getHeader(response.headers, 'x-tt-logid');
+    const logId = readVolcengineHeader(response.headers, 'x-tt-logid');
 
     return {
       data: (response.data.data ?? response.data.result ?? response.data) as T,
@@ -102,7 +103,7 @@ export class VolcengineSpeechTransport {
     return {
       stream: response.data,
       requestId: headers['X-Api-Request-Id'],
-      logId: getHeader(response.headers, 'x-tt-logid'),
+      logId: readVolcengineHeader(response.headers, 'x-tt-logid'),
     };
   }
 
@@ -129,39 +130,6 @@ export class VolcengineSpeechTransport {
 
     throw lastError;
   }
-}
-
-function getHeader(
-  headers: Record<string, unknown> | undefined,
-  name: string,
-): string | undefined {
-  if (!headers) {
-    return undefined;
-  }
-  const get = (headers as { get?: (headerName: string) => unknown }).get;
-  const valueFromGetter = typeof get === 'function'
-    ? get.call(headers, name) ?? get.call(headers, name.toLowerCase())
-    : undefined;
-  const value = valueFromGetter ?? findHeaderValue(headers, name);
-  if (Array.isArray(value)) {
-    return value[0] === undefined || value[0] === null
-      ? undefined
-      : String(value[0]);
-  }
-  return value === undefined || value === null ? undefined : String(value);
-}
-
-function findHeaderValue(
-  headers: Record<string, unknown>,
-  name: string,
-): unknown {
-  const normalizedName = name.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() === normalizedName) {
-      return value;
-    }
-  }
-  return undefined;
 }
 
 function isRetryableError(error: unknown): boolean {
