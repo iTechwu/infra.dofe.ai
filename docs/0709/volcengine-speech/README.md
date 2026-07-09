@@ -34,7 +34,7 @@ Latest local verification in this workstream:
 - `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`
 - `git diff --check`
 
-Latest closeout: Loop 43.
+Latest closeout: Loop 49.
 
 ## Current Implementation Status
 
@@ -50,9 +50,12 @@ Latest closeout: Loop 43.
   connection attempts.
 - WebSocket codec rejects unsupported frame headers and has smoke coverage for
   gzip-compressed error frames and malformed frame rejection.
+- Unified HTTP transport has smoke coverage for JSON, stream, header-status,
+  body-code failures, 5xx retry, and direct package export.
 - Simultaneous interpretation has a dedicated WebSocket client; real vendor
   validation is still credentials-gated.
-- Public package exports for `volcengine-speech/asr` and
-  `volcengine-speech/task-result` are covered by require smoke.
+- Public package exports for `volcengine-speech/asr`,
+  `volcengine-speech/task-result`, and
+  `volcengine-speech/volcengine-speech.transport` are covered by require smoke.
 - Legacy delegation boundaries are documented without requiring breaking
   rewrites.

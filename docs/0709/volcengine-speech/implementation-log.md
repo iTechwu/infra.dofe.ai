@@ -633,3 +633,87 @@ pnpm --filter @dofe/infra-shared-services typecheck
 pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 git diff --check
 ```
+
+## Loop 44: Unified Transport HTTP Contract Smoke
+
+**审查待实施项**：复查 smoke 覆盖时发现 `VolcengineSpeechTransport` 作为统一 HTTP 底座，
+目前主要通过 helper、ASR fake transport 和 legacy TTS helper 间接覆盖；缺少直接证明
+`post`、`postStream`、`postHeaderStatus` 会正确传递 request id、timeout、custom header 和
+trim 后 log id 的无密钥测试。
+
+**实施**：在 `verify-volcengine-speech.mjs` 中导入 `VolcengineSpeechTransport`，使用 fake
+`HttpService.post` 覆盖：JSON 成功、body code 失败、stream 返回、header-status 成功和
+header-status 失败。
+
+**标注文档**：新增 Follow-Up Step 12，记录 unified HTTP transport contract smoke 的目标、
+范围、不做和受益。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 45: Unified Transport Retry Smoke
+
+**审查待实施项**：统一 retry executor 已有独立 smoke，legacy TTS HTTP request 也有 retry
+smoke，但 `VolcengineSpeechTransport.executeWithRetry` 还没有直接证明 5xx HTTP 错误会归一化并重试。
+
+**实施**：新增 retrying transport fake：第一次 `post` 抛 axios-like 503，第二次返回成功；
+以 `{ ...resolved, maxRetries: 1 }` 创建 transport，断言调用两次并返回第二次的 trim 后 log id。
+
+**标注文档**：Follow-Up Step 12 的范围包含 5xx retry 的 transport 层 smoke。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 46: Transport Direct Export Smoke
+
+**审查待实施项**：`VolcengineSpeechTransport` 被 unified client 和业务 client 复用，且
+package exports 由生成脚本维护；新增直接使用后应确认发布包 direct subpath 不会漏导出。
+
+**实施**：扩展 package export smoke，验证
+`@dofe/infra-shared-services/volcengine-speech/volcengine-speech.transport`
+可 require 且导出 `VolcengineSpeechTransport`。
+
+**标注文档**：Follow-Up Step 12 的范围包含 direct transport package export smoke。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 47: Transport README Alignment
+
+**审查待实施项**：新增 transport 层 smoke 后，package README 的 local verification 仍只列出
+auth/header、package exports、task result 和 legacy delegation，没有体现统一 HTTP transport
+contract 已进入默认无密钥验证。
+
+**实施**：更新 package README 的 Local Verification 说明，补充 unified HTTP transport behavior。
+
+**标注文档**：用户可见验证范围与新增 transport smoke 对齐。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 48: Transport Plan Alignment
+
+**审查待实施项**：执行计划已有 codec 和 resilience hardening，但缺少统一 HTTP transport
+contract 的独立后续项；这会让后续读者误以为 HTTP 底座仍只靠业务 client 间接覆盖。
+
+**实施**：新增 Follow-Up Step 12 和 Checkpoint G，明确目标、范围、不做、受益：
+`post`、`postStream`、`postHeaderStatus`、body-code failure、header-status failure、5xx retry 和
+direct package export smoke 均已完成。
+
+**标注文档**：执行计划准确记录 transport contract smoke 的完成状态和真实供应商 HTTP 调用边界。
+
+**验证**：待本轮后续统一运行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+## Loop 49: Transport Contract Verification Closeout
+
+**审查待实施项**：Loop 44 到 Loop 48 完成后，需要确认 unified transport JSON/stream/
+header-status/retry smoke、direct export smoke、README 和计划同步没有破坏构建或无密钥验证。
+
+**实施**：执行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+**标注文档**：本条记录作为 Loop 44 到 Loop 48 的统一验证结果；目录 README 的 latest
+closeout 更新为 Loop 49。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```

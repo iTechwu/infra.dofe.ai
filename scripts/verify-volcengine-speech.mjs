@@ -466,6 +466,34 @@ await assert.rejects(
     ),
   /invalid transport audio/,
 );
+let transportRetryAttempts = 0;
+const retryingTransport = VolcengineSpeechTransport.create(
+  {
+    post() {
+      transportRetryAttempts += 1;
+      if (transportRetryAttempts === 1) {
+        throw {
+          isAxiosError: true,
+          message: 'Request failed with status code 503',
+          response: { status: 503, headers: { 'x-tt-logid': ' retry-log-1 ' } },
+        };
+      }
+      return of({
+        headers: { 'x-tt-logid': ' retry-log-2 ' },
+        data: { code: 0, data: { retried: true } },
+      });
+    },
+  },
+  { ...resolved, maxRetries: 1 },
+);
+const retryingTransportResult = await retryingTransport.post(
+  'https://example.test/retry',
+  {},
+  { requestId: 'transport-retry-req' },
+);
+assert.equal(transportRetryAttempts, 2);
+assert.deepEqual(retryingTransportResult.data, { retried: true });
+assert.equal(retryingTransportResult.logId, 'retry-log-2');
 
 const asrCalls = [];
 const asrClient = new VolcengineAsrClient({
@@ -927,6 +955,8 @@ const exportedInterpretationClient = sharedServicesRequire('@dofe/infra-shared-s
 assert.equal(typeof exportedInterpretationClient.VolcengineInterpretationClient, 'function');
 const exportedTaskResult = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/task-result');
 assert.equal(typeof exportedTaskResult.normalizeBodyTaskResult, 'function');
+const exportedSpeechTransport = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/volcengine-speech.transport');
+assert.equal(typeof exportedSpeechTransport.VolcengineSpeechTransport, 'function');
 
 let ttsHttpUnauthorizedCalls = 0;
 await assert.rejects(

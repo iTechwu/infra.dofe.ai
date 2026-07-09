@@ -222,8 +222,9 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 `verify:volcengine-speech` builds the package and runs a no-secret smoke check
 for WebSocket frame encoding/decoding, product WebSocket init/send/close
 sessions, connection failure cleanup, error frame parsing, malformed frame
-rejection, explicit config resolution, auth/header generation, package exports,
-task result normalization, and selected legacy delegation boundaries.
+rejection, explicit config resolution, auth/header generation, unified HTTP
+transport behavior, package exports, task result normalization, and selected
+legacy delegation boundaries.
 
 ## Volcengine References
 

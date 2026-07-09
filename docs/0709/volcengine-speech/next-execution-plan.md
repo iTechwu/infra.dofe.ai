@@ -241,3 +241,31 @@ unsupported version/header/serialization/compression。
 - Gzip-compressed error frame 有 decode smoke 覆盖。
 - Unsupported version/header size/serialization/compression 均有明确错误。
 - README 的本地验证范围已包含 malformed frame rejection。
+
+## Follow-Up Step 12: Unified HTTP Transport Contract Smoke
+
+**状态**：已完成无密钥实现。Loop 44 到 Loop 48 已补 unified transport 的 JSON、
+stream、header-status、body-code failure、retry 和 direct package export smoke；真实供应商 HTTP
+调用仍按 `real-api-checklist.md` 显式执行。
+
+**目标**：把 `VolcengineSpeechTransport` 作为统一 HTTP 底座的行为锁住，避免只在 helper 或
+业务 client fake transport 层有覆盖。
+
+**范围**：无密钥 fake `HttpService.post` 覆盖 `post`、`postStream`、`postHeaderStatus`；
+校验 request id、custom header、timeout、`responseType: stream`、trim 后 log id、
+header-status success/failure、body code failure 和 5xx retry；补
+`volcengine-speech/volcengine-speech.transport` 子路径 export smoke。
+
+**不做**：不在默认验证里调用真实火山 HTTP endpoint；不改变 transport public method 名称；
+不把业务 client 的字段映射塞进 transport 层。
+
+**受益**：audio generation、HTTP streaming TTS、ASR、memo、voice 等 HTTP 能力共享更稳定的
+request/response/retry/trace 契约，后续真实 API 问题更容易定位到业务 payload 或供应商侧。
+
+### Checkpoint G: HTTP Transport Contract
+
+- 状态：已完成无密钥收口。
+- Unified transport JSON/stream/header-status 行为有 smoke 覆盖。
+- Body-code failure 与 header-status failure 有统一错误路径覆盖。
+- 5xx retry 通过 transport 层 smoke 覆盖。
+- Direct transport package export 有 require smoke 覆盖。
