@@ -421,6 +421,10 @@
       "types": "./dist/volcengine-speech/realtime/realtime.client.d.ts",
       "default": "./dist/volcengine-speech/realtime/realtime.client.js"
     },
+    "./volcengine-speech/retry": {
+      "types": "./dist/volcengine-speech/retry.d.ts",
+      "default": "./dist/volcengine-speech/retry.js"
+    },
     "./volcengine-speech/tts-streaming": {
       "types": "./dist/volcengine-speech/tts-streaming/index.d.ts",
       "default": "./dist/volcengine-speech/tts-streaming/index.js"
@@ -472,6 +476,10 @@
     "./volcengine-tts/dto/tts.dto": {
       "types": "./dist/volcengine-tts/dto/tts.dto.d.ts",
       "default": "./dist/volcengine-tts/dto/tts.dto.js"
+    },
+    "./volcengine-tts/tts-config": {
+      "types": "./dist/volcengine-tts/tts-config.d.ts",
+      "default": "./dist/volcengine-tts/tts-config.js"
     },
     "./volcengine-tts/tts-payload": {
       "types": "./dist/volcengine-tts/tts-payload.d.ts",

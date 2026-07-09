@@ -19,7 +19,17 @@ import {
   reduceTtsChunk,
 } from "./tts-stream-reducer";
 import { buildTtsPayload } from "./tts-payload";
+import {
+  resolveVolcengineTtsRuntimeConfig,
+  VolcengineTtsRuntimeConfigInput,
+} from "./tts-config";
 import { readVolcengineHeader } from "../volcengine-speech/headers";
+import { buildVolcengineAuthHeaders } from "../volcengine-speech/auth";
+import { executeVolcengineRetry } from "../volcengine-speech/retry";
+import {
+  normalizeVolcengineHttpError,
+  VolcengineSpeechError,
+} from "../volcengine-speech/errors";
 
 /**
  * Volcengine TTS服务
@@ -40,6 +50,10 @@ export interface VolcengineTtsConfig {
   region: string;
   accessKey: string;
   secretKey: string;
+  timeoutMs?: number;
+  timeout?: number;
+  maxRetries?: number;
+  retryCount?: number;
   tos?: {
     region: string;
     endpoint: string;
@@ -110,6 +124,9 @@ export class VolcengineTtsClient {
     }
 
     const volcengineConfig = config.volcengine;
+    const volcengineRuntimeConfig =
+      volcengineConfig as typeof volcengineConfig &
+        VolcengineTtsRuntimeConfigInput;
     const storageConfig = getKeysConfig()?.storage?.tos as
       | StorageCredentialsConfig
       | undefined;
@@ -138,13 +155,18 @@ export class VolcengineTtsClient {
 
     return {
       endpoint:
-        volcengineConfig.endpoint ||
+        volcengineRuntimeConfig.endpoint ||
         "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
       apiKey: volcengineConfig.apiKey || "",
       resourceId: volcengineConfig.resourceId || "",
       region: volcengineConfig.region || "cn-shanghai",
       accessKey: volcengineConfig.accessKey || "",
       secretKey: volcengineConfig.secretKey || "",
+      timeoutMs:
+        volcengineRuntimeConfig.timeoutMs ?? volcengineRuntimeConfig.timeout,
+      maxRetries:
+        volcengineRuntimeConfig.maxRetries ??
+        volcengineRuntimeConfig.retryCount,
       tos: {
         region: tosBucket.region || "cn-shanghai",
         endpoint: VolcengineTtsClient.extractTosEndpoint(
@@ -164,8 +186,16 @@ export class VolcengineTtsClient {
    * @param {VolcengineTtsConfig} config - 完整的 TTS 配置（含 TOS）
    */
   protected applyConfig(config: VolcengineTtsConfig): void {
-    this.ttsConfig = config;
-    this.ttsUrl = config.endpoint;
+    const runtimeConfig = resolveVolcengineTtsRuntimeConfig(
+      config as VolcengineTtsRuntimeConfigInput,
+    );
+    this.ttsConfig = {
+      ...config,
+      endpoint: runtimeConfig.endpoint,
+      timeoutMs: runtimeConfig.timeoutMs,
+      maxRetries: runtimeConfig.maxRetries,
+    };
+    this.ttsUrl = runtimeConfig.endpoint;
     this.validateConfiguration();
     this.initializeTOS();
   }
@@ -410,8 +440,14 @@ export class VolcengineTtsClient {
    */
   private buildHeaders(): Record<string, string> {
     return {
-      "x-api-key": this.ttsConfig.apiKey,
-      "X-Api-Resource-Id": this.ttsConfig.resourceId,
+      // 认证头委托到统一 buildVolcengineAuthHeaders（仅负责 X-Api-Key / X-Api-Resource-Id）
+      ...buildVolcengineAuthHeaders({
+        authMode: "api-key",
+        apiKey: this.ttsConfig.apiKey,
+        appId: "",
+        accessKey: "",
+        resourceId: this.ttsConfig.resourceId,
+      }),
       Connection: "keep-alive",
       "Content-Type": "application/json",
     };
@@ -427,11 +463,21 @@ export class VolcengineTtsClient {
     try {
       this.logger.info("发送TTS请求到字节跳动API");
 
-      const response = await firstValueFrom(
-        this.httpService.post(this.ttsUrl, payload, {
-          headers,
-          responseType: "stream",
-        }),
+      const response = await executeVolcengineRetry(
+        () =>
+          firstValueFrom(
+            this.httpService.post(this.ttsUrl, payload, {
+              headers,
+              responseType: "stream",
+              timeout: this.ttsConfig.timeoutMs,
+            }),
+          ),
+        {
+          maxRetries: this.ttsConfig.maxRetries ?? 0,
+          normalizeError: (error) => normalizeVolcengineHttpError(error),
+          isRetryableError: (error) =>
+            error instanceof VolcengineSpeechError && error.retryable,
+        },
       );
 
       // 获取日志ID（委托到共享 readVolcengineHeader，大小写不敏感 + 兼容 AxiosHeaders）

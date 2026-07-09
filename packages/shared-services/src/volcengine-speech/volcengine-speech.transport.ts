@@ -14,6 +14,7 @@ import {
   normalizeVolcengineHttpError,
 } from './errors';
 import { readVolcengineHeader } from './headers';
+import { executeVolcengineRetry } from './retry';
 import { buildVolcengineSpeechHeaders } from './auth';
 
 @Injectable()
@@ -111,24 +112,11 @@ export class VolcengineSpeechTransport {
     operation: () => Promise<T>,
     context: { requestId?: string } = {},
   ): Promise<T> {
-    let lastError: unknown;
-    for (let attempt = 0; attempt <= this.config.maxRetries; attempt += 1) {
-      try {
-        return await operation();
-      } catch (error) {
-        const normalized = normalizeVolcengineHttpError(error, context);
-        lastError = normalized;
-        if (
-          attempt >= this.config.maxRetries ||
-          !isRetryableError(normalized)
-        ) {
-          throw normalized;
-        }
-        await delay(getRetryDelayMs(attempt));
-      }
-    }
-
-    throw lastError;
+    return executeVolcengineRetry(operation, {
+      maxRetries: this.config.maxRetries,
+      normalizeError: (error) => normalizeVolcengineHttpError(error, context),
+      isRetryableError,
+    });
   }
 }
 
@@ -136,12 +124,4 @@ function isRetryableError(error: unknown): boolean {
   // All HTTP/network errors are normalized to VolcengineSpeechError before
   // reaching the retry loop; any other error is a non-retryable caller bug.
   return error instanceof VolcengineSpeechError && error.retryable;
-}
-
-function getRetryDelayMs(attempt: number): number {
-  return Math.min(1000 * 2 ** attempt, 5000);
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

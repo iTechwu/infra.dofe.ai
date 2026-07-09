@@ -1,6 +1,6 @@
 # Volcengine Speech Delegation Audit
 
-日期：2026-07-08（循环 8 初稿）/ 2026-07-09（循环 42 据实复核、循环 51-52 推进）
+日期：2026-07-08（循环 8 初稿）/ 2026-07-09（循环 42 据实复核、循环 51-52 推进、循环 56-59 推进 config/retry）
 
 ## 结论
 
@@ -8,7 +8,7 @@
 
 - `openspeech` 的出站帧编码已委托到统一 `VolcengineWebSocketCodec`（循环 41，逐字节结构一致，零行为变更）。
 - `streaming-asr` 无自有火山协议代码，复用 `openspeech` 的 `VolcengineStreamingAsrProvider`，自动继承循环 41 的委托。
-- `volcengine-tts` 已完成：完成码常量复用（循环 42）、`X-Tt-Logid` 捕获委托（循环 51）、请求体与 NDJSON 归约抽纯（循环 44/52）；鉴权头/配置/重试仍需测试保护后再委托。
+- `volcengine-tts` 已完成：完成码常量复用（循环 42）、`X-Tt-Logid` 捕获委托（循环 51）、请求体与 NDJSON 归约抽纯（循环 44/52）、认证头委托（循环 53-54，核心 api-key/resource-id 逻辑已共享）、runtime config 校验委托（循环 57）与显式开启的 HTTP retry 委托（循环 59，默认 0 次重试保持兼容）；NDJSON+TOS 主链路仍需测试保护后再评估进一步委托。
 
 ## 已完成委托
 
@@ -31,9 +31,21 @@
 - 已委托：`executeTtsRequest` 的 logId 读取从直取 `response.headers["x-tt-logid"]` 改为共享 `readVolcengineHeader(response.headers, "x-tt-logid")`，大小写不敏感且兼容 axios v1 的 AxiosHeaders（`.get()`）。
 - 行为影响：原直取在 axios v1 AxiosHeaders 实例上可能取到 `undefined`（导致 TOS 文件名落 `unknown`）；委托后能稳定捕获 logId。这是日志/TOS 对象 key 的可观测改进，不改变合成主链路语义，`processStreamResponse` 的 `logId` 形参相应放宽为 `string | undefined`。
 
+### `volcengine-tts` — 认证头委托（循环 53-54）
+
+- 从统一 `buildVolcengineSpeechHeaders` 抽出 `buildVolcengineAuthHeaders`（纯函数），只负责 `X-Api-Key`（api-key 模式）或 `X-Api-App-Id` + `X-Api-Access-Key`（legacy）及可选 `X-Api-Resource-Id`；不含 `Content-Type`、自定义 header、`X-Api-Request-Id`。
+- `volcengine-tts.buildHeaders` 改用 `buildVolcengineAuthHeaders` 生成认证头，`Connection: keep-alive` 与 `Content-Type` 仍由旧 client 自管（非完整统一请求头形状，但认证逻辑已收敛）。
+- 行为差异：header key 大小写从 `x-api-key` 变为 `X-Api-Key`（HTTP 不区分大小写，语义不变）。不新增 `X-Api-Request-Id`，不删除 `Connection`。已纳入无密钥 smoke（api-key / legacy）。
+
 ### `volcengine-tts` — 测试保护（循环 44、52）
 
 - 已抽出纯模块并纳入无密钥 smoke：`tts-stream-reducer.ts`（NDJSON 归约，`reduceTtsChunk`/`createTtsChunkReducerState`，并修复完成码缓冲区误判）、`tts-payload.ts`（请求体构造，`buildTtsPayload`/`TTS_DEFAULT_MODEL`）。默认 speaker 的随机解析（依赖 OpenAPI）仍留在 client 内。
+
+### `volcengine-tts` — config/retry 委托（循环 56-59）
+
+- config：统一 speech 配置校验 helper 已导出为 `normalizeVolcengineEndpoint`、`normalizeVolcenginePositiveNumber`、`normalizeVolcengineNonNegativeInteger`；旧 TTS 新增 `tts-config.ts` 复用这些 helper 归一化 endpoint、timeout 和 maxRetries。
+- retry：统一 `executeVolcengineRetry` / `getVolcengineRetryDelayMs` 已从 `VolcengineSpeechTransport` 抽成共享 helper，旧 TTS 的 HTTP 请求阶段复用该 helper 和 `normalizeVolcengineHttpError`。
+- 兼容性：旧 TTS 默认 `maxRetries=0`，未显式配置时保持历史“无重试”；仅当 `maxRetries` 或 `retryCount` 显式配置时才重试。`timeoutMs/timeout` 也仅在显式配置时传给 HTTP 请求。
 
 ## 暂不委托（需测试保护）
 
@@ -41,9 +53,6 @@
 
 | 候选项 | 行为差异（委托后会改变） | 风险 |
 | --- | --- | --- |
-| 鉴权头生成 | 统一 `buildVolcengineSpeechHeaders` 会新增 `X-Api-Request-Id`、改变 key 大小写、去掉 `Connection: keep-alive` | 请求头集合变化，服务器侧行为未在无密钥环境验证 |
-| 显式配置解析 | 统一 `VolcengineSpeechConfig` 形状与 `VolcengineTtsConfig`（含 TOS、bucket、secretKey）不一致 | 配置字段映射重写，影响初始化与 TOS |
-| HTTP 请求重试 | 现实现无重试；统一 transport 有 `maxRetries` 指数退避 | 流式 TTS 请求在连接阶段失败时会重发，计费与首包时序变化 |
 | NDJSON 流式 + TOS 上传 | 统一 `ttsStreaming` 只返回裸流，不解析行分隔 JSON、不上传 TOS | 主合成链路语义不同，非“底层委托”而是行为重写 |
 
 `openspeech` / `streaming-asr` 的下列项同样保留：
@@ -59,6 +68,6 @@
 
 ## 后续推荐
 
-1. 为 `volcengine-tts` 的鉴权头与 HTTP 调用增加无密钥兼容 smoke（mock `HttpService` + mock TOS——注意 client 经 `@dofe/infra-common` 间接依赖 `@prisma/client`，mock smoke 需先 `prisma generate` 或继续以纯模块方式覆盖），再评估鉴权头与 HTTP 重试委托（logId 已于循环 51 委托完成）。
+1. 为 `volcengine-tts` 的 HTTP 调用增加 mock `HttpService` + mock TOS 兼容测试，覆盖显式 `maxRetries` 的真实重试次数、非重试 4xx、TOS 上传成功/失败路径（注意 client 经 `@dofe/infra-common` 间接依赖 `@prisma/client`，mock smoke 需先 `prisma generate` 或继续以纯模块方式覆盖）。
 2. 真实火山 API 联调稳定后，评估 `openspeech` 的 `parseServerResponse` 是否在保留 size 校验前提下部分复用统一 `decode`。
 3. `streaming-asr` 暂无独立委托点；其底层复用随 `openspeech` provider 推进而收敛。

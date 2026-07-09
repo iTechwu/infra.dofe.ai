@@ -10,9 +10,13 @@ import {
 } from '../packages/shared-services/dist/volcengine-speech/protocol/index.js';
 import {
   buildVolcengineSpeechHeaders as buildHeaders,
+  buildVolcengineAuthHeaders,
 } from '../packages/shared-services/dist/volcengine-speech/auth/index.js';
 import {
   resolveVolcengineSpeechConfig as resolveConfig,
+  normalizeVolcengineEndpoint,
+  normalizeVolcengineNonNegativeInteger,
+  normalizeVolcenginePositiveNumber,
 } from '../packages/shared-services/dist/volcengine-speech/config/volcengine-speech.defaults.js';
 import {
   validateCreateAudioRequest,
@@ -33,6 +37,10 @@ import {
   TTS_DEFAULT_MODEL,
 } from '../packages/shared-services/dist/volcengine-tts/tts-payload.js';
 import {
+  resolveVolcengineTtsRuntimeConfig,
+  VOLCENGINE_TTS_DEFAULT_MAX_RETRIES,
+} from '../packages/shared-services/dist/volcengine-tts/tts-config.js';
+import {
   VolcengineSpeechError,
   VolcengineSpeechValidationError,
   isRetryableVolcengineSpeechCode,
@@ -42,6 +50,10 @@ import {
 import {
   readVolcengineHeader,
 } from '../packages/shared-services/dist/volcengine-speech/headers.js';
+import {
+  executeVolcengineRetry,
+  getVolcengineRetryDelayMs,
+} from '../packages/shared-services/dist/volcengine-speech/retry.js';
 
 const codec = new VolcengineWebSocketCodec();
 
@@ -100,6 +112,12 @@ assert.throws(() => resolveConfig({ apiKey: 'test-api-key', timeoutMs: 0 }), /ti
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', maxRetries: -1 }), /maxRetries/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', endpoints: { memo: '   ' } }), /endpoints.memo/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', endpoints: { memo: 'not-url' } }), /absolute URL/);
+assert.equal(normalizeVolcengineEndpoint(' https://example.test/api ', 'endpoint'), 'https://example.test/api');
+assert.throws(() => normalizeVolcengineEndpoint('ftp://example.test/api', 'endpoint'), /http, https, ws, or wss/);
+assert.equal(normalizeVolcenginePositiveNumber(1, 'timeoutMs'), 1);
+assert.throws(() => normalizeVolcenginePositiveNumber(0, 'timeoutMs'), /positive number/);
+assert.equal(normalizeVolcengineNonNegativeInteger(0, 'maxRetries'), 0);
+assert.throws(() => normalizeVolcengineNonNegativeInteger(1.2, 'maxRetries'), /non-negative integer/);
 
 const headers = buildHeaders(resolved, { requestId: 'request-1' });
 assert.equal(headers['X-Api-Key'], 'test-api-key');
@@ -129,6 +147,29 @@ const protectedHeaders = buildHeaders(resolved, {
 assert.equal(protectedHeaders['X-Api-Request-Id'], 'trusted-request');
 assert.equal(protectedHeaders['X-Api-Key'], 'test-api-key');
 assert.equal(protectedHeaders['X-Custom-Trace'], 'trace-2');
+
+// shared auth headers (extracted for volcengine-tts delegation)
+const authHeaders = buildVolcengineAuthHeaders({
+  authMode: 'api-key',
+  apiKey: 'ak',
+  appId: '',
+  accessKey: '',
+  resourceId: 'rid',
+});
+assert.equal(authHeaders['X-Api-Key'], 'ak');
+assert.equal(authHeaders['X-Api-Resource-Id'], 'rid');
+assert.equal(authHeaders['X-Api-Request-Id'], undefined); // auth-only, no request-id
+
+const legacyAuthHeaders = buildVolcengineAuthHeaders({
+  authMode: 'legacy',
+  apiKey: '',
+  appId: 'app',
+  accessKey: 'acc',
+  resourceId: '',
+});
+assert.equal(legacyAuthHeaders['X-Api-App-Id'], 'app');
+assert.equal(legacyAuthHeaders['X-Api-Access-Key'], 'acc');
+assert.equal(legacyAuthHeaders['X-Api-Resource-Id'], undefined);
 
 validateCreateAudioRequest({
   model: 'seed-audio-1.0',
@@ -325,6 +366,19 @@ assert.equal(ttsPayload.req_params.audio_params.speech_rate, 2);
 assert.equal(ttsPayload.req_params.audio_params.loudness_rate, 3);
 assert.equal(JSON.parse(ttsPayload.req_params.additions).post_process.pitch, -1);
 
+const ttsRuntimeConfig = resolveVolcengineTtsRuntimeConfig({
+  endpoint: ' https://example.test/tts ',
+  timeoutMs: 1000,
+  maxRetries: 2,
+});
+assert.equal(ttsRuntimeConfig.endpoint, 'https://example.test/tts');
+assert.equal(ttsRuntimeConfig.timeoutMs, 1000);
+assert.equal(ttsRuntimeConfig.maxRetries, 2);
+assert.equal(resolveVolcengineTtsRuntimeConfig({}).maxRetries, VOLCENGINE_TTS_DEFAULT_MAX_RETRIES);
+assert.throws(() => resolveVolcengineTtsRuntimeConfig({ endpoint: 'not-url' }), /absolute URL/);
+assert.throws(() => resolveVolcengineTtsRuntimeConfig({ timeoutMs: 0 }), /timeoutMs/);
+assert.throws(() => resolveVolcengineTtsRuntimeConfig({ maxRetries: -1 }), /maxRetries/);
+
 // shared header reader (consolidated from transport getHeader + errors readLogId)
 assert.equal(readVolcengineHeader(undefined, 'x-tt-logid'), undefined);
 assert.equal(readVolcengineHeader({ 'x-tt-logid': 'log-1' }, 'x-tt-logid'), 'log-1');
@@ -340,5 +394,29 @@ assert.equal(
   ),
   'log-axios',
 );
+
+assert.equal(getVolcengineRetryDelayMs(0), 1000);
+assert.equal(getVolcengineRetryDelayMs(3), 5000);
+let retryAttempts = 0;
+const retryResult = await executeVolcengineRetry(
+  async () => {
+    retryAttempts += 1;
+    if (retryAttempts < 3) {
+      throw new VolcengineSpeechError({
+        message: 'temporary',
+        code: 55000031,
+      });
+    }
+    return 'ok';
+  },
+  {
+    maxRetries: 2,
+    isRetryableError: (error) =>
+      error instanceof VolcengineSpeechError && error.retryable,
+    sleep: async () => {},
+  },
+);
+assert.equal(retryResult, 'ok');
+assert.equal(retryAttempts, 3);
 
 process.stdout.write('[verify-volcengine-speech] ok\n');

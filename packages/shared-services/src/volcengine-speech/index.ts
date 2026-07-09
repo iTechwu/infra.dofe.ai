@@ -1,5 +1,6 @@
 export * from './types';
 export * from './headers';
+export * from './retry';
 export * from './auth';
 export * from './config/volcengine-speech.defaults';
 export * from './config/volcengine-speech.config';

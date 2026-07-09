@@ -70,6 +70,10 @@ the Volcengine `X-Tt-Logid`, the request id, and a `retryable` flag, so every
 failed request exposes the same tracing fields. 5xx, timeouts, and connection
 errors are retried per `maxRetries`; 4xx are not.
 
+Legacy `volcengine-tts` reuses the same endpoint, timeout, maxRetries
+validation helpers and retry executor for its HTTP request phase. Its default
+`maxRetries` is `0`, so retry is opt-in for that legacy path.
+
 After a WebSocket session closes or `close()` is called, the client clears the
 underlying connection reference. Create a new session instead of reusing the closed one. Call
 `session.isOpen()` before sending to check whether the connection is still

@@ -57,8 +57,8 @@ export function resolveVolcengineSpeechConfig(
       speechConfig.authMode ?? (speechConfig.apiKey ? 'api-key' : 'legacy'),
     region: speechConfig.region ?? defaultVolcengineSpeechConfig.region,
     endpoints: normalizeEndpoints(endpoints),
-    timeoutMs: normalizePositiveNumber(timeoutMs, 'timeoutMs'),
-    maxRetries: normalizeNonNegativeInteger(maxRetries, 'maxRetries'),
+    timeoutMs: normalizeVolcenginePositiveNumber(timeoutMs, 'timeoutMs'),
+    maxRetries: normalizeVolcengineNonNegativeInteger(maxRetries, 'maxRetries'),
   };
 }
 
@@ -66,26 +66,26 @@ function normalizeEndpoints(
   endpoints: VolcengineSpeechEndpointConfig,
 ): VolcengineSpeechEndpointConfig {
   return {
-    audioGeneration: normalizeEndpoint(
+    audioGeneration: normalizeVolcengineEndpoint(
       endpoints.audioGeneration,
       'endpoints.audioGeneration',
     ),
-    ttsStreaming: normalizeEndpoint(
+    ttsStreaming: normalizeVolcengineEndpoint(
       endpoints.ttsStreaming,
       'endpoints.ttsStreaming',
     ),
-    ttsWebSocket: normalizeEndpoint(
+    ttsWebSocket: normalizeVolcengineEndpoint(
       endpoints.ttsWebSocket,
       'endpoints.ttsWebSocket',
     ),
-    realtime: normalizeEndpoint(endpoints.realtime, 'endpoints.realtime'),
-    podcast: normalizeEndpoint(endpoints.podcast, 'endpoints.podcast'),
-    memo: normalizeEndpoint(endpoints.memo, 'endpoints.memo'),
-    voice: normalizeEndpoint(endpoints.voice, 'endpoints.voice'),
+    realtime: normalizeVolcengineEndpoint(endpoints.realtime, 'endpoints.realtime'),
+    podcast: normalizeVolcengineEndpoint(endpoints.podcast, 'endpoints.podcast'),
+    memo: normalizeVolcengineEndpoint(endpoints.memo, 'endpoints.memo'),
+    voice: normalizeVolcengineEndpoint(endpoints.voice, 'endpoints.voice'),
   };
 }
 
-function normalizeEndpoint(value: string, field: string): string {
+export function normalizeVolcengineEndpoint(value: string, field: string): string {
   const endpoint = value.trim();
   if (!endpoint) {
     throw new Error(`${field} is required`);
@@ -103,14 +103,14 @@ function normalizeEndpoint(value: string, field: string): string {
   return endpoint;
 }
 
-function normalizePositiveNumber(value: number, field: string): number {
+export function normalizeVolcenginePositiveNumber(value: number, field: string): number {
   if (!Number.isFinite(value) || value <= 0) {
     throw new Error(`${field} must be a positive number`);
   }
   return value;
 }
 
-function normalizeNonNegativeInteger(value: number, field: string): number {
+export function normalizeVolcengineNonNegativeInteger(value: number, field: string): number {
   if (!Number.isInteger(value) || value < 0) {
     throw new Error(`${field} must be a non-negative integer`);
   }

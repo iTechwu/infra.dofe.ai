@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import {
+  VolcengineSpeechAuthMode,
   VolcengineSpeechRequestOptions,
   VolcengineSpeechResolvedConfig,
 } from '../types';
@@ -13,30 +14,65 @@ const RESERVED_HEADER_NAMES = new Set([
   'x-api-resource-id',
 ]);
 
+/** 认证所需的最小字段集，供旧模块复用而不依赖完整的 resolved config */
+export interface VolcengineSpeechAuthConfig {
+  authMode: VolcengineSpeechAuthMode;
+  apiKey: string;
+  appId: string;
+  accessKey: string;
+  resourceId: string;
+}
+
+/**
+ * 构建火山引擎认证头（不含 Content-Type、自定义 header、request id）。
+ *
+ * @description 从 {@link buildVolcengineSpeechHeaders} 抽出的认证核心，只负责
+ * `X-Api-Key`（或旧版 `X-Api-App-Id` + `X-Api-Access-Key`）和可选 `X-Api-Resource-Id`。
+ * 旧模块（如 `volcengine-tts`）可通过 {@link VolcengineSpeechAuthConfig} 直接调用，
+ * 无需构造完整的 {@link VolcengineSpeechResolvedConfig}（含 endpoints 校验）。
+ */
+export function buildVolcengineAuthHeaders(
+  auth: VolcengineSpeechAuthConfig,
+): Record<string, string> {
+  const headers: Record<string, string> = {};
+
+  if (auth.authMode === 'api-key') {
+    if (auth.apiKey) {
+      headers['X-Api-Key'] = auth.apiKey;
+    }
+  } else {
+    if (auth.appId) {
+      headers['X-Api-App-Id'] = auth.appId;
+    }
+    if (auth.accessKey) {
+      headers['X-Api-Access-Key'] = auth.accessKey;
+    }
+  }
+
+  if (auth.resourceId) {
+    headers['X-Api-Resource-Id'] = auth.resourceId;
+  }
+
+  return headers;
+}
+
+/**
+ * 构建完整的火山引擎 HTTP 请求头（含 Content-Type、自定义 header 过滤、
+ * 认证头和 X-Api-Request-Id）。
+ */
 export function buildVolcengineSpeechHeaders(
   config: VolcengineSpeechResolvedConfig,
   options: VolcengineSpeechRequestOptions = {},
 ): Record<string, string> {
   validateRequestOptions(options);
   const requestId = options.requestId ?? randomUUID();
-  const headers: Record<string, string> = {
+
+  return {
     'Content-Type': 'application/json',
     ...getCustomHeaders(options.headers),
     'X-Api-Request-Id': requestId,
+    ...buildVolcengineAuthHeaders(config),
   };
-
-  if (config.authMode === 'api-key') {
-    headers['X-Api-Key'] = config.apiKey;
-  } else {
-    headers['X-Api-App-Id'] = config.appId;
-    headers['X-Api-Access-Key'] = config.accessKey;
-  }
-
-  if (config.resourceId) {
-    headers['X-Api-Resource-Id'] = config.resourceId;
-  }
-
-  return headers;
 }
 
 function getCustomHeaders(
