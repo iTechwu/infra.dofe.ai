@@ -341,6 +341,126 @@
       "types": "./dist/verify/verify.module.d.ts",
       "default": "./dist/verify/verify.module.js"
     },
+    "./volcengine-speech": {
+      "types": "./dist/volcengine-speech/index.d.ts",
+      "default": "./dist/volcengine-speech/index.js"
+    },
+    "./volcengine-speech/audio-generation": {
+      "types": "./dist/volcengine-speech/audio-generation/index.d.ts",
+      "default": "./dist/volcengine-speech/audio-generation/index.js"
+    },
+    "./volcengine-speech/audio-generation/audio-generation.client": {
+      "types": "./dist/volcengine-speech/audio-generation/audio-generation.client.d.ts",
+      "default": "./dist/volcengine-speech/audio-generation/audio-generation.client.js"
+    },
+    "./volcengine-speech/auth": {
+      "types": "./dist/volcengine-speech/auth/index.d.ts",
+      "default": "./dist/volcengine-speech/auth/index.js"
+    },
+    "./volcengine-speech/auth/volcengine-speech-auth": {
+      "types": "./dist/volcengine-speech/auth/volcengine-speech-auth.d.ts",
+      "default": "./dist/volcengine-speech/auth/volcengine-speech-auth.js"
+    },
+    "./volcengine-speech/config/volcengine-speech.config": {
+      "types": "./dist/volcengine-speech/config/volcengine-speech.config.d.ts",
+      "default": "./dist/volcengine-speech/config/volcengine-speech.config.js"
+    },
+    "./volcengine-speech/config/volcengine-speech.defaults": {
+      "types": "./dist/volcengine-speech/config/volcengine-speech.defaults.d.ts",
+      "default": "./dist/volcengine-speech/config/volcengine-speech.defaults.js"
+    },
+    "./volcengine-speech/errors": {
+      "types": "./dist/volcengine-speech/errors/index.d.ts",
+      "default": "./dist/volcengine-speech/errors/index.js"
+    },
+    "./volcengine-speech/errors/volcengine-speech.errors": {
+      "types": "./dist/volcengine-speech/errors/volcengine-speech.errors.d.ts",
+      "default": "./dist/volcengine-speech/errors/volcengine-speech.errors.js"
+    },
+    "./volcengine-speech/memo": {
+      "types": "./dist/volcengine-speech/memo/index.d.ts",
+      "default": "./dist/volcengine-speech/memo/index.js"
+    },
+    "./volcengine-speech/memo/memo.client": {
+      "types": "./dist/volcengine-speech/memo/memo.client.d.ts",
+      "default": "./dist/volcengine-speech/memo/memo.client.js"
+    },
+    "./volcengine-speech/memo/memo.normalizer": {
+      "types": "./dist/volcengine-speech/memo/memo.normalizer.d.ts",
+      "default": "./dist/volcengine-speech/memo/memo.normalizer.js"
+    },
+    "./volcengine-speech/podcast": {
+      "types": "./dist/volcengine-speech/podcast/index.d.ts",
+      "default": "./dist/volcengine-speech/podcast/index.js"
+    },
+    "./volcengine-speech/podcast/podcast.client": {
+      "types": "./dist/volcengine-speech/podcast/podcast.client.d.ts",
+      "default": "./dist/volcengine-speech/podcast/podcast.client.js"
+    },
+    "./volcengine-speech/protocol": {
+      "types": "./dist/volcengine-speech/protocol/index.d.ts",
+      "default": "./dist/volcengine-speech/protocol/index.js"
+    },
+    "./volcengine-speech/protocol/websocket-codec": {
+      "types": "./dist/volcengine-speech/protocol/websocket-codec.d.ts",
+      "default": "./dist/volcengine-speech/protocol/websocket-codec.js"
+    },
+    "./volcengine-speech/protocol/websocket-session": {
+      "types": "./dist/volcengine-speech/protocol/websocket-session.d.ts",
+      "default": "./dist/volcengine-speech/protocol/websocket-session.js"
+    },
+    "./volcengine-speech/realtime": {
+      "types": "./dist/volcengine-speech/realtime/index.d.ts",
+      "default": "./dist/volcengine-speech/realtime/index.js"
+    },
+    "./volcengine-speech/realtime/realtime.client": {
+      "types": "./dist/volcengine-speech/realtime/realtime.client.d.ts",
+      "default": "./dist/volcengine-speech/realtime/realtime.client.js"
+    },
+    "./volcengine-speech/tts-streaming": {
+      "types": "./dist/volcengine-speech/tts-streaming/index.d.ts",
+      "default": "./dist/volcengine-speech/tts-streaming/index.js"
+    },
+    "./volcengine-speech/tts-streaming/tts-streaming.client": {
+      "types": "./dist/volcengine-speech/tts-streaming/tts-streaming.client.d.ts",
+      "default": "./dist/volcengine-speech/tts-streaming/tts-streaming.client.js"
+    },
+    "./volcengine-speech/types": {
+      "types": "./dist/volcengine-speech/types.d.ts",
+      "default": "./dist/volcengine-speech/types.js"
+    },
+    "./volcengine-speech/validation": {
+      "types": "./dist/volcengine-speech/validation/index.d.ts",
+      "default": "./dist/volcengine-speech/validation/index.js"
+    },
+    "./volcengine-speech/validation/volcengine-speech.validation": {
+      "types": "./dist/volcengine-speech/validation/volcengine-speech.validation.d.ts",
+      "default": "./dist/volcengine-speech/validation/volcengine-speech.validation.js"
+    },
+    "./volcengine-speech/voice": {
+      "types": "./dist/volcengine-speech/voice/index.d.ts",
+      "default": "./dist/volcengine-speech/voice/index.js"
+    },
+    "./volcengine-speech/voice/voice.client": {
+      "types": "./dist/volcengine-speech/voice/voice.client.d.ts",
+      "default": "./dist/volcengine-speech/voice/voice.client.js"
+    },
+    "./volcengine-speech/volcengine-speech.client": {
+      "types": "./dist/volcengine-speech/volcengine-speech.client.d.ts",
+      "default": "./dist/volcengine-speech/volcengine-speech.client.js"
+    },
+    "./volcengine-speech/volcengine-speech.factory": {
+      "types": "./dist/volcengine-speech/volcengine-speech.factory.d.ts",
+      "default": "./dist/volcengine-speech/volcengine-speech.factory.js"
+    },
+    "./volcengine-speech/volcengine-speech.module": {
+      "types": "./dist/volcengine-speech/volcengine-speech.module.d.ts",
+      "default": "./dist/volcengine-speech/volcengine-speech.module.js"
+    },
+    "./volcengine-speech/volcengine-speech.transport": {
+      "types": "./dist/volcengine-speech/volcengine-speech.transport.d.ts",
+      "default": "./dist/volcengine-speech/volcengine-speech.transport.js"
+    },
     "./volcengine-tts": {
       "types": "./dist/volcengine-tts/index.d.ts",
       "default": "./dist/volcengine-tts/index.js"
@@ -362,6 +482,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
+    "verify:volcengine-speech": "pnpm run build && node ../../scripts/verify-volcengine-speech.mjs",
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
