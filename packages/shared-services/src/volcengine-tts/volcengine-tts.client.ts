@@ -14,22 +14,17 @@ import { FeatureNotConfiguredError } from "@dofe/infra-common";
 import { FileStorageService } from "../file-storage/file-storage.service";
 import { TtsRequestDto, TtsResultDto, TtsResponseDto } from "./dto/tts.dto";
 import { environmentUtil as environment } from "@dofe/infra-utils";
-import {
-  createTtsChunkReducerState,
-  reduceTtsChunk,
-} from "./tts-stream-reducer";
+import { resolveTtsResponseStream } from "./tts-stream-processor";
 import { buildTtsPayload } from "./tts-payload";
+import {
+  createTtsResponseStreamResolver,
+  executeTtsHttpRequest,
+} from "./tts-http-request";
 import {
   resolveVolcengineTtsRuntimeConfig,
   VolcengineTtsRuntimeConfigInput,
 } from "./tts-config";
-import { readVolcengineHeader } from "../volcengine-speech/headers";
 import { buildVolcengineAuthHeaders } from "../volcengine-speech/auth";
-import { executeVolcengineRetry } from "../volcengine-speech/retry";
-import {
-  normalizeVolcengineHttpError,
-  VolcengineSpeechError,
-} from "../volcengine-speech/errors";
 
 /**
  * Volcengine TTS服务
@@ -458,34 +453,44 @@ export class VolcengineTtsClient {
    */
   private async executeTtsRequest(
     headers: Record<string, string>,
-    payload: any,
+    payload: ReturnType<typeof buildTtsPayload>,
   ): Promise<TtsResultDto> {
     try {
       this.logger.info("发送TTS请求到字节跳动API");
 
-      const response = await executeVolcengineRetry(
-        () =>
+      return await executeTtsHttpRequest({
+        url: this.ttsUrl,
+        headers,
+        payload,
+        timeoutMs: this.ttsConfig.timeoutMs,
+        maxRetries: this.ttsConfig.maxRetries ?? 0,
+        post: ({ url, payload: requestPayload, headers: requestHeaders, timeoutMs }) =>
           firstValueFrom(
-            this.httpService.post(this.ttsUrl, payload, {
-              headers,
+            this.httpService.post(url, requestPayload, {
+              headers: requestHeaders,
               responseType: "stream",
-              timeout: this.ttsConfig.timeoutMs,
+              timeout: timeoutMs,
             }),
           ),
-        {
-          maxRetries: this.ttsConfig.maxRetries ?? 0,
-          normalizeError: (error) => normalizeVolcengineHttpError(error),
-          isRetryableError: (error) =>
-            error instanceof VolcengineSpeechError && error.retryable,
-        },
-      );
-
-      // 获取日志ID（委托到共享 readVolcengineHeader，大小写不敏感 + 兼容 AxiosHeaders）
-      const logId = readVolcengineHeader(response.headers, "x-tt-logid");
-      this.logger.info(`请求日志ID: ${logId}`);
-
-      // 处理流式响应
-      return await this.processStreamResponse(response.data, logId);
+        resolveStream: createTtsResponseStreamResolver({
+          getAudioDuration: (audioData) => this.getAudioDuration(audioData),
+          uploadAudio: (audioData, fileName) =>
+            this.uploadAudioToCloud(audioData, fileName),
+          onParseError: (error, line) => {
+            this.logger.debug(
+              `JSON解析失败: ${error.message}, 数据: ${line.substring(0, 50)}...`,
+            );
+          },
+          onState: (state) => {
+            if (state.completed) {
+              this.logger.info("TTS合成完成");
+            }
+            if (state.error) {
+              this.logger.error(`TTS API错误: ${state.error}`);
+            }
+          },
+        }),
+      });
     } catch (error: any) {
       this.logger.error(`TTS API请求失败: ${error.message}`);
       if (error.response) {
@@ -507,131 +512,32 @@ export class VolcengineTtsClient {
     stream: any,
     logId: string | undefined,
   ): Promise<TtsResultDto> {
-    return new Promise((resolve, reject) => {
-      const state = createTtsChunkReducerState();
-      let buffer = ""; // 用于缓存不完整的数据
-
-      stream.on("data", (chunk: Buffer) => {
-        try {
-          // 将新数据添加到缓冲区
-          buffer += chunk.toString();
-
-          // 按行分割数据
-          const lines = buffer.split("\n");
-
-          // 保留最后一个可能不完整的行
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (!line.trim()) continue;
-
-            const data = this.safeJsonParse(line);
-            if (!data) {
-              continue;
-            }
-
-            reduceTtsChunk(state, data);
-
-            if (state.completed) {
-              this.logger.info("TTS合成完成");
-              break;
-            }
-
-            if (state.error) {
-              this.logger.error(`TTS API错误: ${state.error}`);
-              break;
-            }
-          }
-        } catch (parseError) {
-          this.logger.error(
-            `解析响应数据失败: ${(parseError as Error).message}`,
-          );
-        }
-      });
-
-      stream.on("end", async () => {
-        this.logger.info(
-          `流式响应结束，总音频大小: ${state.audioBuffer.length} bytes`,
+    const result = await createTtsResponseStreamResolver({
+      getAudioDuration: (audioData) => this.getAudioDuration(audioData),
+      uploadAudio: (audioData, fileName) =>
+        this.uploadAudioToCloud(audioData, fileName),
+      onParseError: (error, line) => {
+        this.logger.debug(
+          `JSON解析失败: ${error.message}, 数据: ${line.substring(0, 50)}...`,
         );
-
-        // 处理缓冲区中剩余的数据
-        if (buffer.trim()) {
-          this.logger.debug(
-            `处理缓冲区剩余数据: ${buffer.substring(0, 100)}...`,
-          );
-          const data = this.safeJsonParse(buffer);
-          if (data) {
-            const previousError = state.error;
-            reduceTtsChunk(state, data);
-            if (state.completed) {
-              this.logger.info("TTS合成完成（缓冲区）");
-            }
-            if (state.error && state.error !== previousError) {
-              this.logger.error(`TTS API错误（缓冲区）: ${state.error}`);
-            }
-          }
+      },
+      onState: (state) => {
+        if (state.completed) {
+          this.logger.info("TTS合成完成");
         }
-
         if (state.error) {
-          this.logger.error(`TTS处理过程中发生错误: ${state.error}`);
-          resolve({
-            success: false,
-            error: state.error,
-          });
-          return;
+          this.logger.error(`TTS API错误: ${state.error}`);
         }
+      },
+    })({ stream, logId });
 
-        if (state.audioBuffer.length === 0) {
-          this.logger.warn("未收到任何音频数据");
-          resolve({
-            success: false,
-            error: "未收到音频数据",
-          });
-          return;
-        }
+    if (result.success) {
+      this.logger.info("音频数据上传到云存储成功");
+    } else if (result.error) {
+      this.logger.error(`TTS处理失败: ${result.error}`);
+    }
 
-        const audioData = state.audioBuffer;
-        this.logger.info(
-          `准备上传音频数据到云存储，大小: ${audioData.length} bytes`,
-        );
-
-        // 生成文件名
-        const fileName = `tts_${Date.now()}_${logId || "unknown"}.mp3`;
-
-        const audioDuration = await this.getAudioDuration(audioData);
-
-        // 直接上传到云存储
-        this.uploadAudioToCloud(audioData, fileName)
-          .then((cloudResult) => {
-            if (cloudResult.success) {
-              this.logger.info("音频数据上传到云存储成功");
-              resolve({
-                success: true,
-                audio: cloudResult.cloudUrl,
-                duration: audioDuration,
-              });
-            } else {
-              this.logger.error(`云存储上传失败: ${cloudResult.error}`);
-              resolve({
-                success: false,
-                error: cloudResult.error,
-              });
-            }
-          })
-          .catch((error) => {
-            this.logger.error(`云存储上传异常: ${error.message}`);
-            resolve({
-              success: false,
-              error: error.message,
-            });
-          });
-      });
-
-      stream.on("error", (error: Error) => {
-        this.logger.error(`流处理错误: ${error.message}`);
-        reject(error);
-      });
-    });
+    return result;
   }
 
   /**

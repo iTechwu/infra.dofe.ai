@@ -177,7 +177,7 @@ echo "  Version bumped to $NEW_VERSION; internal package ranges set to ^$NEW_VER
 echo ""
 
 # ──────────────────────────────────────────────────────────────────────
-# Build the specific package
+# Build and package exports smoke
 # ──────────────────────────────────────────────────────────────────────
 echo "Building package $PACKAGE..."
 
@@ -190,6 +190,10 @@ if [ "$HAS_BUILD" = "yes" ]; then
 else
   echo "  No build script found, skipping build."
 fi
+echo ""
+
+echo "Verifying package exports..."
+pnpm verify:package-exports
 echo ""
 
 # ──────────────────────────────────────────────────────────────────────

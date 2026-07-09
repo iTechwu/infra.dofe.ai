@@ -3,6 +3,7 @@ import {
   VolcengineSpeechReference,
   VolcengineSpeechRequestOptions,
   VolcengineSpeechTaskRequest,
+  VolcengineAsrRequest,
 } from '../types';
 import { VolcengineSpeechValidationError } from '../errors';
 
@@ -47,6 +48,18 @@ export function validateMemoTaskRequest(
   }
 }
 
+export function validateAsrRequest(request: VolcengineAsrRequest): void {
+  if (!hasText(request.audioUrl)) {
+    throwValidation('audioUrl is required', 'audioUrl');
+  }
+  if (request.callbackUrl !== undefined && !hasText(request.callbackUrl)) {
+    throwValidation('callbackUrl must be a non-empty string', 'callbackUrl');
+  }
+  if (request.resourceId !== undefined && !hasText(request.resourceId)) {
+    throwValidation('resourceId must be a non-empty string', 'resourceId');
+  }
+}
+
 export function validateRequiredString(value: string, field: string): void {
   if (!value.trim()) {
     throwValidation(`${field} is required`, field);
@@ -58,6 +71,15 @@ export function validateRequestOptions(
 ): void {
   if (options.requestId !== undefined) {
     validateRequiredString(options.requestId, 'requestId');
+  }
+  if (options.resourceId !== undefined) {
+    validateRequiredString(options.resourceId, 'resourceId');
+  }
+  if (
+    options.sequence !== undefined &&
+    (!Number.isInteger(options.sequence) || options.sequence === 0)
+  ) {
+    throwValidation('sequence must be a non-zero integer', 'sequence');
   }
   if (
     options.timeoutMs !== undefined &&

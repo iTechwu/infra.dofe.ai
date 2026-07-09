@@ -1,15 +1,35 @@
 packages:
   - "packages/*"
+peerDependencyRules:
+  allowedVersions:
+    '@dofe/*': "*"
+    bcrypt: ">=5.1.0"
+    dotenv: ">=16.0.0"
+    eslint: "10"
+  missingPeersAllowed:
+    '@dofe/infra-contracts': true
+    '@dofe/infra-common': true
+    '@dofe/infra-utils': true
+    '@dofe/infra-redis': true
+    '@dofe/infra-prisma': true
+    '@dofe/infra-jwt': true
+    '@dofe/infra-i18n': true
+    '@dofe/infra-clients': true
+    '@dofe/infra-rabbitmq': true
+    '@dofe/infra-shared-db': true
+    '@dofe/infra-shared-services': true
+onlyBuiltDependencies:
+  - '@nestjs/core'
 allowBuilds:
-  '@alicloud/openapi-core': set this to true or false
-  '@scarf/scarf': set this to true or false
-  bcrypt: set this to true or false
-  cpu-features: set this to true or false
-  esbuild: set this to true or false
-  protobufjs: set this to true or false
-  ssh2: set this to true or false
-  tos-crc64-js: set this to true or false
-  unrs-resolver: set this to true or false
+  '@alicloud/openapi-core': true
+  '@scarf/scarf': false
+  bcrypt: true
+  cpu-features: true
+  esbuild: true
+  protobufjs: true
+  ssh2: true
+  tos-crc64-js: true
+  unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@dofe/infra-clients@0.1.86'
   - '@dofe/infra-common@0.1.86'

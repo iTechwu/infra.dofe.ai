@@ -6,6 +6,9 @@ export interface VolcengineSpeechEndpointConfig {
   audioGeneration: string;
   ttsStreaming: string;
   ttsWebSocket: string;
+  asrStandard: string;
+  asrFast: string;
+  asrOffPeak: string;
   realtime: string;
   podcast: string;
   memo: string;
@@ -43,6 +46,8 @@ export interface VolcengineSpeechResolvedConfig {
 
 export interface VolcengineSpeechRequestOptions {
   requestId?: string;
+  resourceId?: string;
+  sequence?: number;
   headers?: Record<string, string>;
   timeoutMs?: number;
 }
@@ -180,11 +185,23 @@ export interface VolcengineSpeechTaskRequest {
 export interface VolcengineSpeechTaskResult<T = unknown> {
   taskId: string;
   status?: string;
+  statusCode?: string;
+  statusMessage?: string;
   result?: T;
   error?: string;
   requestId?: string;
   logId?: string;
   raw: unknown;
+}
+
+export type VolcengineAsrMode = 'standard' | 'fast' | 'offPeak';
+
+export interface VolcengineAsrRequest {
+  audioUrl: string;
+  callbackUrl?: string;
+  mode?: VolcengineAsrMode;
+  resourceId?: string;
+  options?: Record<string, unknown>;
 }
 
 export interface VolcengineVoiceRequest {

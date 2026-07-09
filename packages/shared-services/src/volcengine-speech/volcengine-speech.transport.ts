@@ -6,10 +6,12 @@ import {
   VolcengineSpeechRequestOptions,
   VolcengineSpeechResolvedConfig,
   VolcengineSpeechResult,
+  VolcengineSpeechTaskResult,
 } from './types';
 import { VolcengineSpeechConfigService } from './config/volcengine-speech.config';
 import {
   VolcengineSpeechError,
+  assertVolcengineHeaderStatusSuccess,
   assertVolcengineSpeechSuccess,
   normalizeVolcengineHttpError,
 } from './errors';
@@ -105,6 +107,51 @@ export class VolcengineSpeechTransport {
       stream: response.data,
       requestId: headers['X-Api-Request-Id'],
       logId: readVolcengineHeader(response.headers, 'x-tt-logid'),
+    };
+  }
+
+  async postHeaderStatus<T = unknown>(
+    url: string,
+    payload: unknown,
+    options: VolcengineSpeechRequestOptions = {},
+  ): Promise<VolcengineSpeechTaskResult<T>> {
+    const headers = this.buildHeaders(options);
+    const requestId = headers['X-Api-Request-Id'];
+    const response = await this.executeWithRetry(
+      () =>
+        firstValueFrom(
+          this.httpService.post<T>(url, payload, {
+            headers,
+            timeout: options.timeoutMs ?? this.config.timeoutMs,
+          }),
+        ),
+      { requestId },
+    );
+    const logId = readVolcengineHeader(response.headers, 'x-tt-logid');
+    const statusCode = readVolcengineHeader(
+      response.headers,
+      'x-api-status-code',
+    );
+    const statusMessage = readVolcengineHeader(
+      response.headers,
+      'x-api-message',
+    );
+    assertVolcengineHeaderStatusSuccess({
+      statusCode,
+      statusMessage,
+      logId,
+      requestId,
+      raw: response.data,
+    });
+
+    return {
+      taskId: logId ?? requestId,
+      statusCode,
+      statusMessage,
+      result: response.data,
+      requestId,
+      logId,
+      raw: response.data,
     };
   }
 

@@ -15,6 +15,8 @@
     "lint": "eslint 'packages/*/src/**/*.ts' --fix",
     "typecheck": "pnpm -r --stream run typecheck",
     "verify:storage-feature-boundary": "node scripts/check-storage-feature-boundary.mjs",
+    "verify:shared-primitives-boundary": "node scripts/check-shared-primitives-boundary.mjs",
+    "verify:package-exports": "node scripts/verify-package-exports.mjs",
     "verify:published-package": "node scripts/verify-published-package.mjs",
     "publish:all": "bash scripts/publish-all.sh",
     "publish": "bash scripts/publish-single.sh",
@@ -39,32 +41,6 @@
     "publish:vector": "bash scripts/publish-single.sh vector",
     "publish:web-runtime": "bash scripts/publish-single.sh web-runtime",
     "publish:workspace": "bash scripts/publish-single.sh workspace"
-  },
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "@dofe/*": "*",
-        "bcrypt": ">=5.1.0",
-        "dotenv": ">=16.0.0",
-        "eslint": "10"
-      },
-      "missingPeersAllowed": {
-        "@dofe/infra-contracts": true,
-        "@dofe/infra-common": true,
-        "@dofe/infra-utils": true,
-        "@dofe/infra-redis": true,
-        "@dofe/infra-prisma": true,
-        "@dofe/infra-jwt": true,
-        "@dofe/infra-i18n": true,
-        "@dofe/infra-clients": true,
-        "@dofe/infra-rabbitmq": true,
-        "@dofe/infra-shared-db": true,
-        "@dofe/infra-shared-services": true
-      }
-    },
-    "onlyBuiltDependencies": [
-      "@nestjs/core"
-    ]
   },
   "devDependencies": {
     "@dofe/infra-contracts": "workspace:*",

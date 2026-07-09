@@ -345,6 +345,14 @@
       "types": "./dist/volcengine-speech/index.d.ts",
       "default": "./dist/volcengine-speech/index.js"
     },
+    "./volcengine-speech/asr": {
+      "types": "./dist/volcengine-speech/asr/index.d.ts",
+      "default": "./dist/volcengine-speech/asr/index.js"
+    },
+    "./volcengine-speech/asr/asr.client": {
+      "types": "./dist/volcengine-speech/asr/asr.client.d.ts",
+      "default": "./dist/volcengine-speech/asr/asr.client.js"
+    },
     "./volcengine-speech/audio-generation": {
       "types": "./dist/volcengine-speech/audio-generation/index.d.ts",
       "default": "./dist/volcengine-speech/audio-generation/index.js"
@@ -481,13 +489,25 @@
       "types": "./dist/volcengine-tts/tts-config.d.ts",
       "default": "./dist/volcengine-tts/tts-config.js"
     },
+    "./volcengine-tts/tts-http-request": {
+      "types": "./dist/volcengine-tts/tts-http-request.d.ts",
+      "default": "./dist/volcengine-tts/tts-http-request.js"
+    },
     "./volcengine-tts/tts-payload": {
       "types": "./dist/volcengine-tts/tts-payload.d.ts",
       "default": "./dist/volcengine-tts/tts-payload.js"
     },
+    "./volcengine-tts/tts-stream-processor": {
+      "types": "./dist/volcengine-tts/tts-stream-processor.d.ts",
+      "default": "./dist/volcengine-tts/tts-stream-processor.js"
+    },
     "./volcengine-tts/tts-stream-reducer": {
       "types": "./dist/volcengine-tts/tts-stream-reducer.d.ts",
       "default": "./dist/volcengine-tts/tts-stream-reducer.js"
+    },
+    "./volcengine-tts/tts-stream-result": {
+      "types": "./dist/volcengine-tts/tts-stream-result.d.ts",
+      "default": "./dist/volcengine-tts/tts-stream-result.js"
     },
     "./volcengine-tts/volcengine-tts.client": {
       "types": "./dist/volcengine-tts/volcengine-tts.client.d.ts",

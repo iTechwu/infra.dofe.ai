@@ -38,16 +38,30 @@ for npm metadata propagation.
 
 ## 3. Verify Exports
 
-For newly added subpaths, run a small Node/TypeScript smoke import from the
-consumer or package test:
+Before publishing, run the local build and package self-reference exports
+smoke:
 
 ```bash
-node -e "require('@dofe/infra-docker/docker-image-puller')"
-node -e "require('@dofe/infra-docker/docker-sandbox-runner')"
+pnpm build
+pnpm verify:package-exports
 ```
 
-If a subpath fails to resolve, fix package `exports` and republish. Do not deep
-import `dist/*` from consumers.
+`scripts/publish-single.sh` and `scripts/publish-all.sh` also run the package
+exports smoke before publishing; keep the explicit command here as a readable
+pre-flight check when preparing a release.
+
+For newly added subpaths that are not covered by the default smoke list, pass
+them explicitly. Use `:resolve` for runtime-heavy Nest/Prisma entrypoints and
+default `require` mode for lightweight modules:
+
+```bash
+node scripts/verify-package-exports.mjs @dofe/infra-docker/docker-image-puller
+node scripts/verify-package-exports.mjs @dofe/infra-shared-services/volcengine-speech:resolve
+```
+
+After publishing, repeat a consumer install/build smoke in the upgraded
+consumer repository. If a subpath fails to resolve, fix package `exports` and
+republish. Do not deep import `dist/*` from consumers.
 
 ## 4. Keep Release Changes Scoped
 

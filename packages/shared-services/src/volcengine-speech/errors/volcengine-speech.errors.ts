@@ -76,6 +76,29 @@ export function assertVolcengineSpeechSuccess(params: {
   });
 }
 
+export function assertVolcengineHeaderStatusSuccess(params: {
+  statusCode?: string;
+  statusMessage?: string;
+  logId?: string;
+  requestId?: string;
+  raw?: unknown;
+}): void {
+  const statusCode = params.statusCode;
+  if (!statusCode || statusCode === String(VOLCENGINE_SPEECH_SUCCESS_CODE)) {
+    return;
+  }
+
+  throw new VolcengineSpeechError({
+    message:
+      params.statusMessage ??
+      `Volcengine speech request failed: ${statusCode}`,
+    code: statusCode,
+    logId: params.logId,
+    requestId: params.requestId,
+    raw: params.raw,
+  });
+}
+
 const RETRYABLE_NETWORK_CODES = new Set([
   'ECONNRESET',
   'ETIMEDOUT',

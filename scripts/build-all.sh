@@ -11,7 +11,7 @@
 #
 # Steps:
 #   1. Clean _dist_tmp
-#   2. Single tsc compilation → _dist_tmp/
+#   2. Single tsc compilation -> _dist_tmp/
 #   3. Distribute output to each package's dist/
 #   4. Clean _dist_tmp
 #   5. Copy i18n locale resources
@@ -33,7 +33,7 @@ rm -rf _dist_tmp
 # Step 2: Single-pass TypeScript compilation
 # ---------------------------------------------------------------------------
 echo "=== Step 2/6: Compiling all packages with tsconfig.build-all.json ==="
-npx tsc -p tsconfig.build-all.json
+pnpm exec tsc -p tsconfig.build-all.json
 
 # Validate that compilation produced output
 if [ ! -d "_dist_tmp" ]; then

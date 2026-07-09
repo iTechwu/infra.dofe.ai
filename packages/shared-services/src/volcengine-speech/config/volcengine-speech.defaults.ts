@@ -9,6 +9,9 @@ export const defaultVolcengineSpeechEndpoints: VolcengineSpeechEndpointConfig =
     audioGeneration: 'https://openspeech.bytedance.com/api/v3/tts/create',
     ttsStreaming: 'https://openspeech.bytedance.com/api/v3/tts/unidirectional',
     ttsWebSocket: 'wss://openspeech.bytedance.com/api/v3/tts/bidirectional',
+    asrStandard: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
+    asrFast: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
+    asrOffPeak: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     realtime: 'wss://openspeech.bytedance.com/api/v3/realtime/dialogue',
     podcast: 'wss://openspeech.bytedance.com/api/v3/podcast',
     memo: 'https://openspeech.bytedance.com/api/v3/memo',
@@ -77,6 +80,15 @@ function normalizeEndpoints(
     ttsWebSocket: normalizeVolcengineEndpoint(
       endpoints.ttsWebSocket,
       'endpoints.ttsWebSocket',
+    ),
+    asrStandard: normalizeVolcengineEndpoint(
+      endpoints.asrStandard,
+      'endpoints.asrStandard',
+    ),
+    asrFast: normalizeVolcengineEndpoint(endpoints.asrFast, 'endpoints.asrFast'),
+    asrOffPeak: normalizeVolcengineEndpoint(
+      endpoints.asrOffPeak,
+      'endpoints.asrOffPeak',
     ),
     realtime: normalizeVolcengineEndpoint(endpoints.realtime, 'endpoints.realtime'),
     podcast: normalizeVolcengineEndpoint(endpoints.podcast, 'endpoints.podcast'),

@@ -3,4 +3,7 @@ export * from './volcengine-tts.client';
 export * from './tts-stream-reducer';
 export * from './tts-payload';
 export * from './tts-config';
+export * from './tts-stream-result';
+export * from './tts-stream-processor';
+export * from './tts-http-request';
 export * from './dto/tts.dto';

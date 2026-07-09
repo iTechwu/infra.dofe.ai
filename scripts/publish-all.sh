@@ -206,6 +206,10 @@ else
   bash scripts/build-all.sh
   echo ""
 
+  echo "Verifying package exports..."
+  pnpm verify:package-exports
+  echo ""
+
   # ──────────────────────────────────────────────────────────────────────
   # Commit & tag
   # ──────────────────────────────────────────────────────────────────────
@@ -216,6 +220,12 @@ else
   echo "Creating tag v${NEW_VERSION}..."
   git tag "v${NEW_VERSION}"
 
+  echo ""
+fi
+
+if $PUBLISH_ONLY; then
+  echo "Verifying package exports before publish-only retry..."
+  pnpm verify:package-exports
   echo ""
 fi
 

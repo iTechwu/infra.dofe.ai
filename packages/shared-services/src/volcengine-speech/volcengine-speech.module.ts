@@ -10,6 +10,7 @@ import { VolcengineMemoClient } from './memo';
 import { VolcengineVoiceClient } from './voice';
 import { VolcengineRealtimeSpeechClient } from './realtime';
 import { VolcenginePodcastClient } from './podcast';
+import { VolcengineAsrClient } from './asr';
 
 @Module({
   imports: [ConfigModule, HttpModule],
@@ -18,6 +19,7 @@ import { VolcenginePodcastClient } from './podcast';
     VolcengineSpeechTransport,
     VolcengineAudioGenerationClient,
     VolcengineTtsStreamingClient,
+    VolcengineAsrClient,
     VolcengineMemoClient,
     VolcengineVoiceClient,
     VolcengineRealtimeSpeechClient,
@@ -29,6 +31,7 @@ import { VolcenginePodcastClient } from './podcast';
     VolcengineSpeechConfigService,
     VolcengineAudioGenerationClient,
     VolcengineTtsStreamingClient,
+    VolcengineAsrClient,
     VolcengineMemoClient,
     VolcengineVoiceClient,
     VolcengineRealtimeSpeechClient,

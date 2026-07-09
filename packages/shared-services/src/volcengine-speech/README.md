@@ -16,6 +16,7 @@ import {
 
 - `audioGeneration`: non-streaming audio generation.
 - `ttsStreaming`: HTTP streaming TTS and WebSocket TTS session entry.
+- `asr`: recording-file ASR HTTP tasks for standard, fast, and off-peak modes.
 - `voice`: voice/resource APIs.
 - `realtime`: end-to-end realtime speech model WebSocket sessions.
 - `podcast`: podcast WebSocket v3 sessions.
@@ -37,6 +38,7 @@ const client = createVolcengineSpeechClient(
     apiKey: provider.apiKey,
     endpoints: {
       audioGeneration: 'https://openspeech.bytedance.com/api/v3/tts/create',
+      asrStandard: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     },
   },
   { httpService },
@@ -54,13 +56,15 @@ be configured explicitly when they differ from the defaults.
 ## Request Options
 
 Each HTTP or WebSocket entry accepts request options for `requestId`,
-non-reserved custom headers, and per-request timeout. Authentication headers,
-`X-Api-Request-Id`, and `X-Api-Resource-Id` are managed by the client and cannot
-be overridden through custom headers.
+`resourceId`, `sequence`, non-reserved custom headers, and per-request timeout.
+Authentication headers, `X-Api-Request-Id`, `X-Api-Resource-Id`, and
+`X-Api-Sequence` are managed by the client and cannot be overridden through
+custom headers.
 
 `timeoutMs` must be a positive number. `maxRetries` must be a non-negative
-integer. Per-request `requestId` and custom header names/values must be
-non-empty strings. Local request validation throws
+integer. Per-request `requestId`, `resourceId`, and custom header names/values
+must be non-empty strings. `sequence` must be a non-zero integer. Local request
+validation throws
 `VolcengineSpeechValidationError`; upstream HTTP or WebSocket failures throw or
 emit `VolcengineSpeechError`.
 
@@ -104,6 +108,25 @@ const { stream, logId } = await client.ttsStreaming.synthesizeStream({
   audio_config: { format: 'mp3', sample_rate: 24000 },
 });
 ```
+
+### Recording File ASR
+
+```ts
+const submitted = await client.asr.submitTask({
+  mode: 'fast',
+  audioUrl: 'https://example.test/audio.mp3',
+});
+
+const transcript = await client.asr.queryTask(submitted.taskId, 'fast');
+```
+
+`asr.submitTask` manages the v3 HTTP submit headers for the selected mode:
+`X-Api-Resource-Id` defaults to the corresponding standard, fast, or off-peak
+resource id, and `X-Api-Sequence` defaults to `-1` for URL-based file tasks.
+`asr.queryTask` sends the task id through `X-Tt-Logid`, matching the v3 query
+flow. Override `endpoints.asrStandard`, `endpoints.asrFast`, or
+`endpoints.asrOffPeak` when Volcengine changes the deployment URL or a tenant
+needs a dedicated endpoint.
 
 ### TTS WebSocket
 
@@ -168,3 +191,13 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 `verify:volcengine-speech` builds the package and runs a no-secret smoke check
 for WebSocket frame encoding/decoding, error frame parsing, explicit config
 resolution, and auth header generation.
+
+## Volcengine References
+
+- 录音文件识别标准版 HTTP: https://www.volcengine.com/docs/6561/1354868?lang=zh
+- 录音文件极速版识别 HTTP: https://www.volcengine.com/docs/6561/1631584?lang=zh
+- 录音文件识别闲时版 HTTP: https://www.volcengine.com/docs/6561/1840838?lang=zh
+- 端到端实时语音大模型 API: https://www.volcengine.com/docs/6561/1594356?lang=zh
+- 播客 API WebSocket v3: https://www.volcengine.com/docs/6561/1668014?lang=zh
+- 同声传译 2.0 API: https://www.volcengine.com/docs/6561/1756902?lang=zh
+- 豆包语音妙记 API: https://www.volcengine.com/docs/6561/1798094?lang=zh

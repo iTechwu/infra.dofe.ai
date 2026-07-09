@@ -8,7 +8,7 @@
 
 - `openspeech` 的出站帧编码已委托到统一 `VolcengineWebSocketCodec`（循环 41，逐字节结构一致，零行为变更）。
 - `streaming-asr` 无自有火山协议代码，复用 `openspeech` 的 `VolcengineStreamingAsrProvider`，自动继承循环 41 的委托。
-- `volcengine-tts` 已完成：完成码常量复用（循环 42）、`X-Tt-Logid` 捕获委托（循环 51）、请求体与 NDJSON 归约抽纯（循环 44/52）、认证头委托（循环 53-54，核心 api-key/resource-id 逻辑已共享）、runtime config 校验委托（循环 57）与显式开启的 HTTP retry 委托（循环 59，默认 0 次重试保持兼容）；NDJSON+TOS 主链路仍需测试保护后再评估进一步委托。
+- `volcengine-tts` 已完成：完成码常量复用（循环 42）、`X-Tt-Logid` 捕获委托（循环 51）、请求体与 NDJSON 归约抽纯（循环 44/52）、认证头委托（循环 53-54，核心 api-key/resource-id 逻辑已共享）、runtime config 校验委托（循环 57）、显式开启的 HTTP retry 委托（循环 59，默认 0 次重试保持兼容）、TOS 结果映射纯模块化（循环 63）、HTTP stream 处理纯模块化（循环 66）与 HTTP request runner mock 覆盖（循环 67-68）；新增 helper 已通过正式 package exports smoke（循环 70），并在循环 71-72 沉淀为根命令 `pnpm verify:package-exports`。后续只剩真实 `HttpService`/Nest DI 集成测试或真实火山联调保护。
 
 ## 已完成委托
 
@@ -37,9 +37,9 @@
 - `volcengine-tts.buildHeaders` 改用 `buildVolcengineAuthHeaders` 生成认证头，`Connection: keep-alive` 与 `Content-Type` 仍由旧 client 自管（非完整统一请求头形状，但认证逻辑已收敛）。
 - 行为差异：header key 大小写从 `x-api-key` 变为 `X-Api-Key`（HTTP 不区分大小写，语义不变）。不新增 `X-Api-Request-Id`，不删除 `Connection`。已纳入无密钥 smoke（api-key / legacy）。
 
-### `volcengine-tts` — 测试保护（循环 44、52）
+### `volcengine-tts` — 测试保护（循环 44、52、63）
 
-- 已抽出纯模块并纳入无密钥 smoke：`tts-stream-reducer.ts`（NDJSON 归约，`reduceTtsChunk`/`createTtsChunkReducerState`，并修复完成码缓冲区误判）、`tts-payload.ts`（请求体构造，`buildTtsPayload`/`TTS_DEFAULT_MODEL`）。默认 speaker 的随机解析（依赖 OpenAPI）仍留在 client 内。
+- 已抽出纯模块并纳入无密钥 smoke：`tts-stream-reducer.ts`（NDJSON 归约，`reduceTtsChunk`/`createTtsChunkReducerState`，并修复完成码缓冲区误判）、`tts-payload.ts`（请求体构造，`buildTtsPayload`/`TTS_DEFAULT_MODEL`）、`tts-stream-result.ts`（流归约后的 legacy 结果映射，覆盖上游错误、空音频、TOS 上传成功/失败/异常）。默认 speaker 的随机解析（依赖 OpenAPI）仍留在 client 内。
 
 ### `volcengine-tts` — config/retry 委托（循环 56-59）
 
@@ -47,13 +47,13 @@
 - retry：统一 `executeVolcengineRetry` / `getVolcengineRetryDelayMs` 已从 `VolcengineSpeechTransport` 抽成共享 helper，旧 TTS 的 HTTP 请求阶段复用该 helper 和 `normalizeVolcengineHttpError`。
 - 兼容性：旧 TTS 默认 `maxRetries=0`，未显式配置时保持历史“无重试”；仅当 `maxRetries` 或 `retryCount` 显式配置时才重试。`timeoutMs/timeout` 也仅在显式配置时传给 HTTP 请求。
 
-## 暂不委托（需测试保护）
+## 暂不委托（需真实集成或联调保护）
 
-`volcengine-tts` 的下列项经复核判定为“委托会改变线上行为”，在引入无密钥兼容测试或真实联调回归保护前不动：
+`volcengine-tts` 的下列项经复核判定为默认 smoke 之外的更重验证，在具备 Nest/Prisma/TOS 测试环境或真实联调回归保护前不动：
 
 | 候选项 | 行为差异（委托后会改变） | 风险 |
 | --- | --- | --- |
-| NDJSON 流式 + TOS 上传 | 统一 `ttsStreaming` 只返回裸流，不解析行分隔 JSON、不上传 TOS | 主合成链路语义不同，非“底层委托”而是行为重写 |
+| 真实 `HttpService`/Nest DI 集成 | 纯归约、请求体、认证、retry、TOS 结果映射、HTTP stream 和 request runner 已有无密钥 smoke；尚未实例化 Nest module 跑真实 `HttpService` | 需要 Prisma/Nest/TOS 依赖环境或真实联调，不纳入默认 smoke |
 
 `openspeech` / `streaming-asr` 的下列项同样保留：
 
@@ -68,6 +68,6 @@
 
 ## 后续推荐
 
-1. 为 `volcengine-tts` 的 HTTP 调用增加 mock `HttpService` + mock TOS 兼容测试，覆盖显式 `maxRetries` 的真实重试次数、非重试 4xx、TOS 上传成功/失败路径（注意 client 经 `@dofe/infra-common` 间接依赖 `@prisma/client`，mock smoke 需先 `prisma generate` 或继续以纯模块方式覆盖）。
+1. 如需要进一步接近生产路径，可在具备 Prisma/Nest 依赖环境时增加 `VolcengineTtsClient.create` 或 Nest testing module 集成测试，验证真实 `HttpService` observable 与 TOS mock 注入；默认 smoke 已用纯模块覆盖 HTTP request runner、retry、logId、stream 和 TOS 结果契约。
 2. 真实火山 API 联调稳定后，评估 `openspeech` 的 `parseServerResponse` 是否在保留 size 校验前提下部分复用统一 `decode`。
 3. `streaming-asr` 暂无独立委托点；其底层复用随 `openspeech` provider 推进而收敛。

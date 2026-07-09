@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { Readable } from 'node:stream';
 import { gzipSync } from 'node:zlib';
 import {
   VOLCENGINE_WS_COMPRESSION,
@@ -20,6 +22,7 @@ import {
 } from '../packages/shared-services/dist/volcengine-speech/config/volcengine-speech.defaults.js';
 import {
   validateCreateAudioRequest,
+  validateAsrRequest,
   validateMemoTaskRequest,
   validateRequestOptions,
   validateRequiredString,
@@ -32,6 +35,15 @@ import {
   createTtsChunkReducerState,
   reduceTtsChunk,
 } from '../packages/shared-services/dist/volcengine-tts/tts-stream-reducer.js';
+import {
+  resolveTtsStreamResult,
+} from '../packages/shared-services/dist/volcengine-tts/tts-stream-result.js';
+import {
+  resolveTtsResponseStream,
+} from '../packages/shared-services/dist/volcengine-tts/tts-stream-processor.js';
+import {
+  executeTtsHttpRequest,
+} from '../packages/shared-services/dist/volcengine-tts/tts-http-request.js';
 import {
   buildTtsPayload,
   TTS_DEFAULT_MODEL,
@@ -56,6 +68,9 @@ import {
 } from '../packages/shared-services/dist/volcengine-speech/retry.js';
 
 const codec = new VolcengineWebSocketCodec();
+const sharedServicesRequire = createRequire(
+  new URL('../packages/shared-services/package.json', import.meta.url),
+);
 
 const jsonFrame = codec.decode(codec.encodeJsonRequest({ text: 'hello' }, 1));
 assert.equal(jsonFrame.messageType, VOLCENGINE_WS_MESSAGE_TYPE.FULL_CLIENT_REQUEST);
@@ -108,6 +123,7 @@ const resolved = resolveConfig({
 });
 assert.equal(resolved.authMode, 'api-key');
 assert.equal(resolved.endpoints.audioGeneration, 'https://example.test/create');
+assert.equal(resolved.endpoints.asrStandard, 'https://openspeech.bytedance.com/api/v3/auc/bigmodel');
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', timeoutMs: 0 }), /timeoutMs/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', maxRetries: -1 }), /maxRetries/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', endpoints: { memo: '   ' } }), /endpoints.memo/);
@@ -122,6 +138,15 @@ assert.throws(() => normalizeVolcengineNonNegativeInteger(1.2, 'maxRetries'), /n
 const headers = buildHeaders(resolved, { requestId: 'request-1' });
 assert.equal(headers['X-Api-Key'], 'test-api-key');
 assert.equal(headers['X-Api-Request-Id'], 'request-1');
+const asrSubmitHeaders = buildHeaders(resolved, {
+  requestId: 'asr-request',
+  resourceId: 'volc.bigasr.auc.fast',
+  sequence: -1,
+  headers: { 'X-Api-Sequence': 'spoofed', 'X-Trace': 'trace-asr' },
+});
+assert.equal(asrSubmitHeaders['X-Api-Resource-Id'], 'volc.bigasr.auc.fast');
+assert.equal(asrSubmitHeaders['X-Api-Sequence'], '-1');
+assert.equal(asrSubmitHeaders['X-Trace'], 'trace-asr');
 
 const legacy = resolveConfig({
   authMode: 'legacy',
@@ -132,7 +157,7 @@ const legacyHeaders = buildHeaders(legacy, {
   requestId: 'legacy-request',
   headers: { 'X-Custom-Trace': 'trace-1' },
 });
-assert.equal(legacyHeaders['X-Api-App-Id'], 'app-id');
+assert.equal(legacyHeaders['X-Api-App-Key'], 'app-id');
 assert.equal(legacyHeaders['X-Api-Access-Key'], 'access-key');
 assert.equal(legacyHeaders['X-Custom-Trace'], 'trace-1');
 
@@ -167,7 +192,7 @@ const legacyAuthHeaders = buildVolcengineAuthHeaders({
   accessKey: 'acc',
   resourceId: '',
 });
-assert.equal(legacyAuthHeaders['X-Api-App-Id'], 'app');
+assert.equal(legacyAuthHeaders['X-Api-App-Key'], 'app');
 assert.equal(legacyAuthHeaders['X-Api-Access-Key'], 'acc');
 assert.equal(legacyAuthHeaders['X-Api-Resource-Id'], undefined);
 
@@ -196,11 +221,22 @@ assert.throws(
 );
 assert.throws(() => validateMemoTaskRequest({}), /audioUrl or resourceUrl/);
 assert.throws(() => validateMemoTaskRequest({ audioUrl: '   ' }), /audioUrl or resourceUrl/);
+validateAsrRequest({ audioUrl: 'https://example.test/audio.mp3' });
+assert.throws(() => validateAsrRequest({ audioUrl: '   ' }), /audioUrl/);
+assert.throws(
+  () =>
+    validateAsrRequest({
+      audioUrl: 'https://example.test/audio.mp3',
+      resourceId: ' ',
+    }),
+  /resourceId/,
+);
 assert.throws(
   () => validateRequiredString('   ', 'taskId'),
   VolcengineSpeechValidationError,
 );
 assert.throws(() => validateRequestOptions({ requestId: ' ' }), /requestId/);
+assert.throws(() => validateRequestOptions({ sequence: 0 }), /sequence/);
 assert.throws(() => validateRequestOptions({ timeoutMs: 0 }), /timeoutMs/);
 assert.throws(
   () => validateRequestOptions({ headers: { 'X-Trace': '' } }),
@@ -346,6 +382,116 @@ assert.equal(defaultErrorState.error, '错误码: 45000002');
 // empty reducer state has no audio (processStreamResponse maps this to "未收到音频数据")
 assert.equal(createTtsChunkReducerState().audioBuffer.length, 0);
 
+const emptyStreamResult = await resolveTtsStreamResult({
+  state: createTtsChunkReducerState(),
+  getAudioDuration: async () => 0,
+  uploadAudio: async () => ({ success: true, cloudUrl: 'unused' }),
+});
+assert.deepEqual(emptyStreamResult, {
+  success: false,
+  error: '未收到音频数据',
+});
+
+const failedStreamState = createTtsChunkReducerState();
+failedStreamState.error = 'invalid params';
+const failedStreamResult = await resolveTtsStreamResult({
+  state: failedStreamState,
+  getAudioDuration: async () => 0,
+  uploadAudio: async () => {
+    throw new Error('should not upload');
+  },
+});
+assert.deepEqual(failedStreamResult, {
+  success: false,
+  error: 'invalid params',
+});
+
+const uploadState = createTtsChunkReducerState();
+uploadState.audioBuffer = Buffer.from([1, 2, 3]);
+let uploadedFileName = '';
+const uploadedResult = await resolveTtsStreamResult({
+  state: uploadState,
+  logId: 'log-tts',
+  now: () => 123,
+  getAudioDuration: async (audioData) => {
+    assert.deepEqual([...audioData], [1, 2, 3]);
+    return 456;
+  },
+  uploadAudio: async (audioData, fileName) => {
+    assert.deepEqual([...audioData], [1, 2, 3]);
+    uploadedFileName = fileName;
+    return { success: true, cloudUrl: 'https://cdn.test/audio.mp3' };
+  },
+});
+assert.equal(uploadedFileName, 'tts_123_log-tts.mp3');
+assert.deepEqual(uploadedResult, {
+  success: true,
+  audio: 'https://cdn.test/audio.mp3',
+  duration: 456,
+});
+
+const uploadFailureResult = await resolveTtsStreamResult({
+  state: uploadState,
+  now: () => 123,
+  getAudioDuration: async () => 456,
+  uploadAudio: async () => ({ success: false, error: 'tos failed' }),
+});
+assert.deepEqual(uploadFailureResult, {
+  success: false,
+  error: 'tos failed',
+});
+
+const uploadThrowsResult = await resolveTtsStreamResult({
+  state: uploadState,
+  now: () => 123,
+  getAudioDuration: async () => 456,
+  uploadAudio: async () => {
+    throw new Error('tos unavailable');
+  },
+});
+assert.deepEqual(uploadThrowsResult, {
+  success: false,
+  error: 'tos unavailable',
+});
+
+let streamUploadedFileName = '';
+const splitNdjsonStreamResult = await resolveTtsResponseStream({
+  stream: Readable.from([
+    JSON.stringify({ code: 0, data: Buffer.from([4, 5]).toString('base64') }) + '\n',
+    JSON.stringify({ code: 0, sentence: { text: 'ignored' } }) + '\n',
+    JSON.stringify({ code: 0, data: Buffer.from([6]).toString('base64') }),
+  ]),
+  logId: 'stream-log',
+  now: () => 789,
+  getAudioDuration: async (audioData) => {
+    assert.deepEqual([...audioData], [4, 5, 6]);
+    return 321;
+  },
+  uploadAudio: async (audioData, fileName) => {
+    assert.deepEqual([...audioData], [4, 5, 6]);
+    streamUploadedFileName = fileName;
+    return { success: true, cloudUrl: 'https://cdn.test/stream.mp3' };
+  },
+});
+assert.equal(streamUploadedFileName, 'tts_789_stream-log.mp3');
+assert.deepEqual(splitNdjsonStreamResult, {
+  success: true,
+  audio: 'https://cdn.test/stream.mp3',
+  duration: 321,
+});
+
+const streamUpstreamErrorResult = await resolveTtsResponseStream({
+  stream: Readable.from([JSON.stringify({ code: 45000001, message: 'bad tts' })]),
+  getAudioDuration: async () => 0,
+  uploadAudio: async () => {
+    throw new Error('should not upload errored stream');
+  },
+});
+assert.deepEqual(streamUpstreamErrorResult, {
+  success: false,
+  error: 'bad tts',
+});
+
 // volcengine-tts payload builder (delegated from textToSpeech)
 const ttsPayload = buildTtsPayload(
   {
@@ -365,6 +511,97 @@ assert.equal(ttsPayload.req_params.audio_params.sample_rate, 32000);
 assert.equal(ttsPayload.req_params.audio_params.speech_rate, 2);
 assert.equal(ttsPayload.req_params.audio_params.loudness_rate, 3);
 assert.equal(JSON.parse(ttsPayload.req_params.additions).post_process.pitch, -1);
+
+let ttsHttpPostCalls = 0;
+let ttsHttpResolveLogId = '';
+const ttsHttpResult = await executeTtsHttpRequest({
+  url: 'https://example.test/tts',
+  headers: { 'X-Api-Key': 'ak' },
+  payload: ttsPayload,
+  timeoutMs: 1234,
+  maxRetries: 0,
+  post: async ({ url, payload, headers, timeoutMs }) => {
+    ttsHttpPostCalls += 1;
+    assert.equal(url, 'https://example.test/tts');
+    assert.equal(payload, ttsPayload);
+    assert.equal(headers['X-Api-Key'], 'ak');
+    assert.equal(timeoutMs, 1234);
+    return {
+      headers: { 'X-Tt-Logid': 'http-log' },
+      data: Readable.from([JSON.stringify({ code: 0, data: 'AAEC' })]),
+    };
+  },
+  resolveStream: async ({ stream, logId }) => {
+    ttsHttpResolveLogId = logId;
+    let body = '';
+    for await (const chunk of stream) {
+      body += chunk.toString();
+    }
+    assert.equal(JSON.parse(body).data, 'AAEC');
+    return { success: true, audio: 'https://cdn.test/http.mp3' };
+  },
+});
+assert.equal(ttsHttpPostCalls, 1);
+assert.equal(ttsHttpResolveLogId, 'http-log');
+assert.deepEqual(ttsHttpResult, {
+  success: true,
+  audio: 'https://cdn.test/http.mp3',
+});
+
+const exportedTtsHttpRequest = sharedServicesRequire('@dofe/infra-shared-services/volcengine-tts/tts-http-request');
+assert.equal(typeof exportedTtsHttpRequest.executeTtsHttpRequest, 'function');
+const exportedTtsStreamProcessor = sharedServicesRequire('@dofe/infra-shared-services/volcengine-tts/tts-stream-processor');
+assert.equal(typeof exportedTtsStreamProcessor.resolveTtsResponseStream, 'function');
+const exportedTtsStreamResult = sharedServicesRequire('@dofe/infra-shared-services/volcengine-tts/tts-stream-result');
+assert.equal(typeof exportedTtsStreamResult.resolveTtsStreamResult, 'function');
+
+let ttsHttpUnauthorizedCalls = 0;
+await assert.rejects(
+  () =>
+    executeTtsHttpRequest({
+      url: 'https://example.test/tts',
+      headers: { 'X-Api-Key': 'ak' },
+      payload: ttsPayload,
+      maxRetries: 3,
+      post: async () => {
+        ttsHttpUnauthorizedCalls += 1;
+        throw {
+          isAxiosError: true,
+          message: 'Request failed with status code 401',
+          response: { status: 401, headers: { 'x-tt-logid': 'log-401' } },
+        };
+      },
+      resolveStream: async () => {
+        throw new Error('should not resolve unauthorized stream');
+      },
+    }),
+  /401/,
+);
+assert.equal(ttsHttpUnauthorizedCalls, 1);
+
+let ttsHttpRetryCalls = 0;
+await assert.rejects(
+  () =>
+    executeTtsHttpRequest({
+      url: 'https://example.test/tts',
+      headers: { 'X-Api-Key': 'ak' },
+      payload: ttsPayload,
+      maxRetries: 2,
+      post: async () => {
+        ttsHttpRetryCalls += 1;
+        throw {
+          isAxiosError: true,
+          message: 'Request failed with status code 503',
+          response: { status: 503, headers: { 'x-tt-logid': 'log-503' } },
+        };
+      },
+      resolveStream: async () => {
+        throw new Error('should not resolve failed stream');
+      },
+    }),
+  /503/,
+);
+assert.equal(ttsHttpRetryCalls, 3);
 
 const ttsRuntimeConfig = resolveVolcengineTtsRuntimeConfig({
   endpoint: ' https://example.test/tts ',
@@ -418,5 +655,49 @@ const retryResult = await executeVolcengineRetry(
 );
 assert.equal(retryResult, 'ok');
 assert.equal(retryAttempts, 3);
+
+let exhaustedAttempts = 0;
+await assert.rejects(
+  () =>
+    executeVolcengineRetry(
+      async () => {
+        exhaustedAttempts += 1;
+        throw new VolcengineSpeechError({
+          message: 'still temporary',
+          code: 55000031,
+        });
+      },
+      {
+        maxRetries: 1,
+        isRetryableError: (error) =>
+          error instanceof VolcengineSpeechError && error.retryable,
+        sleep: async () => {},
+      },
+    ),
+  /still temporary/,
+);
+assert.equal(exhaustedAttempts, 2);
+
+let nonRetryableAttempts = 0;
+await assert.rejects(
+  () =>
+    executeVolcengineRetry(
+      async () => {
+        nonRetryableAttempts += 1;
+        throw new VolcengineSpeechError({
+          message: 'bad request',
+          code: 45000001,
+        });
+      },
+      {
+        maxRetries: 3,
+        isRetryableError: (error) =>
+          error instanceof VolcengineSpeechError && error.retryable,
+        sleep: async () => {},
+      },
+    ),
+  /bad request/,
+);
+assert.equal(nonRetryableAttempts, 1);
 
 process.stdout.write('[verify-volcengine-speech] ok\n');
