@@ -29,6 +29,10 @@ import {
   reduceTtsChunk,
 } from '../packages/shared-services/dist/volcengine-tts/tts-stream-reducer.js';
 import {
+  buildTtsPayload,
+  TTS_DEFAULT_MODEL,
+} from '../packages/shared-services/dist/volcengine-tts/tts-payload.js';
+import {
   VolcengineSpeechError,
   VolcengineSpeechValidationError,
   isRetryableVolcengineSpeechCode,
@@ -268,6 +272,8 @@ const idleSession = new VolcengineWebSocketSession(
   { url: 'wss://example.test/dialogue' },
 );
 assert.equal(idleSession.isOpen(), false);
+idleSession.close();
+assert.equal(idleSession.isOpen(), false);
 assert.throws(() => idleSession.sendJson({ text: 'hi' }), /not open/);
 assert.throws(() => idleSession.sendAudio(Buffer.from([1, 2, 3, 4])), /not open/);
 
@@ -298,6 +304,26 @@ assert.equal(defaultErrorState.error, '错误码: 45000002');
 
 // empty reducer state has no audio (processStreamResponse maps this to "未收到音频数据")
 assert.equal(createTtsChunkReducerState().audioBuffer.length, 0);
+
+// volcengine-tts payload builder (delegated from textToSpeech)
+const ttsPayload = buildTtsPayload(
+  {
+    text: 'hello',
+    speaker: 'ignored-by-builder',
+    pitch: -1,
+    speech_rate: 2,
+    loudness_rate: 3,
+  },
+  'speaker-id',
+);
+assert.equal(ttsPayload.req_params.text, 'hello');
+assert.equal(ttsPayload.req_params.model, TTS_DEFAULT_MODEL);
+assert.equal(ttsPayload.req_params.speaker, 'speaker-id');
+assert.equal(ttsPayload.req_params.audio_params.format, 'mp3');
+assert.equal(ttsPayload.req_params.audio_params.sample_rate, 32000);
+assert.equal(ttsPayload.req_params.audio_params.speech_rate, 2);
+assert.equal(ttsPayload.req_params.audio_params.loudness_rate, 3);
+assert.equal(JSON.parse(ttsPayload.req_params.additions).post_process.pitch, -1);
 
 // shared header reader (consolidated from transport getHeader + errors readLogId)
 assert.equal(readVolcengineHeader(undefined, 'x-tt-logid'), undefined);

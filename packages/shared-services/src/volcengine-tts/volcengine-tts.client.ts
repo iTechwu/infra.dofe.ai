@@ -18,6 +18,8 @@ import {
   createTtsChunkReducerState,
   reduceTtsChunk,
 } from "./tts-stream-reducer";
+import { buildTtsPayload } from "./tts-payload";
+import { readVolcengineHeader } from "../volcengine-speech/headers";
 
 /**
  * Volcengine TTS服务
@@ -378,37 +380,13 @@ export class VolcengineTtsClient {
       // 构建请求头
       const headers = this.buildHeaders();
 
-      // 构建请求体
-      const payload = {
-        req_params: {
-          text: request.text,
-          model: "seed-tts-1.1",
-          speaker:
-            request.speaker ||
-            (await this.getRandomVoice("🔥热门推荐")).voice.id ||
-            "zh_male_beijingxiaoye_emo_v2_mars_bigtts",
-          additions: JSON.stringify({
-            disable_markdown_filter: true,
-            enable_language_detector: true,
-            enable_latex_tn: true,
-            disable_default_bit_rate: true,
-            max_length_to_filter_parenthesis: 0,
-            cache_config: {
-              text_type: 1,
-              use_cache: true,
-            },
-            post_process: {
-              pitch: request.pitch || 0,
-            },
-          }),
-          audio_params: {
-            format: "mp3",
-            sample_rate: 32000,
-            speech_rate: request.speech_rate || 0,
-            loudness_rate: request.loudness_rate || 0,
-          },
-        },
-      };
+      // 解析 speaker（默认走音色列表随机选取，依赖 OpenAPI，保留在 client 内）
+      const speaker =
+        request.speaker ||
+        (await this.getRandomVoice("🔥热门推荐")).voice.id ||
+        "zh_male_beijingxiaoye_emo_v2_mars_bigtts";
+      // 构建请求体（委托到纯函数 buildTtsPayload，便于无密钥 smoke 验证请求契约）
+      const payload = buildTtsPayload(request, speaker);
 
       // 执行TTS请求
       const result = await this.executeTtsRequest(headers, payload);
@@ -456,8 +434,8 @@ export class VolcengineTtsClient {
         }),
       );
 
-      // 获取日志ID
-      const logId = response.headers["x-tt-logid"];
+      // 获取日志ID（委托到共享 readVolcengineHeader，大小写不敏感 + 兼容 AxiosHeaders）
+      const logId = readVolcengineHeader(response.headers, "x-tt-logid");
       this.logger.info(`请求日志ID: ${logId}`);
 
       // 处理流式响应
@@ -481,7 +459,7 @@ export class VolcengineTtsClient {
    */
   private async processStreamResponse(
     stream: any,
-    logId: string,
+    logId: string | undefined,
   ): Promise<TtsResultDto> {
     return new Promise((resolve, reject) => {
       const state = createTtsChunkReducerState();

@@ -123,7 +123,9 @@ export class VolcengineWebSocketSession<TEvent = unknown> {
   }
 
   close(): void {
-    this.ws?.close();
+    const ws = this.ws;
+    this.ws = undefined;
+    ws?.close();
   }
 
   private handleMessage(data: WebSocketMessageData): void {

@@ -473,6 +473,10 @@
       "types": "./dist/volcengine-tts/dto/tts.dto.d.ts",
       "default": "./dist/volcengine-tts/dto/tts.dto.js"
     },
+    "./volcengine-tts/tts-payload": {
+      "types": "./dist/volcengine-tts/tts-payload.d.ts",
+      "default": "./dist/volcengine-tts/tts-payload.js"
+    },
     "./volcengine-tts/tts-stream-reducer": {
       "types": "./dist/volcengine-tts/tts-stream-reducer.d.ts",
       "default": "./dist/volcengine-tts/tts-stream-reducer.js"
