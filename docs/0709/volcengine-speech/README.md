@@ -34,7 +34,7 @@ Latest local verification in this workstream:
 - `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`
 - `git diff --check`
 
-Latest closeout: Loop 31.
+Latest closeout: Loop 43.
 
 ## Current Implementation Status
 
@@ -45,6 +45,11 @@ Latest closeout: Loop 31.
 - TTS WebSocket, realtime, podcast, and simultaneous interpretation clients
   have local WebSocket session smoke coverage for init, event, post-connect
   JSON/audio sends, close callbacks, and closed-session state.
+- Shared header reading trims whitespace and ignores blank trace/status values.
+- WebSocket sessions support client close code/reason and clean up failed
+  connection attempts.
+- WebSocket codec rejects unsupported frame headers and has smoke coverage for
+  gzip-compressed error frames and malformed frame rejection.
 - Simultaneous interpretation has a dedicated WebSocket client; real vendor
   validation is still credentials-gated.
 - Public package exports for `volcengine-speech/asr` and

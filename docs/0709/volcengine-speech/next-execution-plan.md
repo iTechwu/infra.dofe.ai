@@ -5,8 +5,8 @@
 Source README: `packages/shared-services/src/volcengine-speech/README.md`.
 
 Current unified client already exposes these capability groups:
-`audioGeneration`, `ttsStreaming`, `asr`, `voice`, `realtime`, `podcast`,
-`memo`, `protocol`, and `errors`.
+`audioGeneration`, `ttsStreaming`, `asr`, `voice`, `realtime`,
+`interpretation`, `podcast`, `memo`, `protocol`, and `errors`.
 
 The next work should optimize around the README contract: new integrations use
 `volcengine-speech`; legacy `volcengine-tts`, `openspeech`, and `streaming-asr`
@@ -189,3 +189,55 @@ semantics。
 - Dedicated `client.interpretation.connect` 入口已提供。
 - Local WebSocket session smoke 覆盖 init/event/request options。
 - Package README、real API checklist 和 delegation matrix 已同步。
+
+## Follow-Up Step 10: WebSocket And Header Resilience Hardening
+
+**状态**：已完成无密钥实现。Loop 32 到 Loop 36 已补 header value trim、主动 close
+code/reason、连接失败 session cleanup、对应 smoke 和 README 说明；真实供应商异常帧仍按
+`real-api-checklist.md` 执行凭证门控验证。
+
+**目标**：收紧 shared header reader 与 WebSocket session 在异常/关闭边界上的语义，避免
+空白 trace header、连接失败残留 session 或无法记录 client-side close reason。
+
+**范围**：`readVolcengineHeader` 对普通值和数组值做 trim；`VolcengineWebSocketSession`
+在 connect failure 时清理内部连接引用；`close()` 支持可选 code/reason；无密钥 smoke
+覆盖 header trim、client-initiated close callback 和 connect failure cleanup。
+
+**不做**：不改变 WebSocket callback 名称；不引入自动重连；不把真实供应商断连行为纳入默认
+CI；不删除已有 `close()` 无参数调用方式。
+
+**受益**：调用方在失败、关闭和追踪字段异常时得到更稳定的本地语义，后续真实 API 联调时更容易
+定位供应商断连与本地调用错误。
+
+### Checkpoint E: Resilience Hardening
+
+- 状态：已完成无密钥收口。
+- Header reader trim 与空白过滤有 smoke 覆盖。
+- WebSocket client 主动 close code/reason 和 `onClose` 有 smoke 覆盖。
+- WebSocket connect failure 会触发 `onError` 并保持 session unusable。
+
+## Follow-Up Step 11: WebSocket Codec Negative-Path Hardening
+
+**状态**：已完成无密钥实现。Loop 38 到 Loop 41 已补 codec header guard、gzip error
+frame support、malformed frame smoke、README 和计划说明；真实供应商未知扩展帧仍按
+`real-api-checklist.md` 记录并决定是否扩大协议支持。
+
+**目标**：让共享 WebSocket codec 在供应商异常帧、代理损坏帧或未来协议扩展帧下给出稳定、
+可诊断的本地错误，而不是依赖 Buffer 越界、JSON parse 或 gzip 底层异常。
+
+**范围**：校验 frame version、header size、serialization、compression；error frame 解析尊重
+header size；支持 gzip-compressed error payload；无密钥 smoke 覆盖 gzip error frame 和
+unsupported version/header/serialization/compression。
+
+**不做**：不支持未知协议版本；不把未知 serialization/compression 静默透传；不在默认验证中
+调用真实供应商；不改变已支持的 JSON/audio frame 编码格式。
+
+**受益**：realtime、podcast、TTS WebSocket、同声传译和 legacy openspeech 复用同一 codec
+时，协议异常会以稳定错误进入 `onError` 或本地验证，减少线上排查的不确定性。
+
+### Checkpoint F: Codec Negative Paths
+
+- 状态：已完成无密钥收口。
+- Gzip-compressed error frame 有 decode smoke 覆盖。
+- Unsupported version/header size/serialization/compression 均有明确错误。
+- README 的本地验证范围已包含 malformed frame rejection。

@@ -87,12 +87,16 @@ import {
 import {
   VolcengineTtsStreamingClient,
 } from '../packages/shared-services/dist/volcengine-speech/tts-streaming/index.js';
+import {
+  VolcengineSpeechTransport,
+} from '../packages/shared-services/dist/volcengine-speech/volcengine-speech.transport.js';
 
 const codec = new VolcengineWebSocketCodec();
 const sharedServicesRequire = createRequire(
   new URL('../packages/shared-services/package.json', import.meta.url),
 );
 const { WebSocketServer } = sharedServicesRequire('ws');
+const { of } = sharedServicesRequire('rxjs');
 
 const jsonFrame = codec.decode(codec.encodeJsonRequest({ text: 'hello' }, 1));
 assert.equal(jsonFrame.messageType, VOLCENGINE_WS_MESSAGE_TYPE.FULL_CLIENT_REQUEST);
@@ -129,6 +133,42 @@ errorPayload.copy(errorFrame, 12);
 const decodedError = codec.decode(errorFrame);
 assert.equal(decodedError.errorCode, 45000001);
 assert.equal(decodedError.json, 'bad request');
+const gzipErrorPayload = gzipSync(Buffer.from('compressed bad request', 'utf-8'));
+const gzipErrorFrame = Buffer.alloc(12 + gzipErrorPayload.length);
+gzipErrorFrame[0] = (0b0001 << 4) | 0b0001;
+gzipErrorFrame[1] = VOLCENGINE_WS_MESSAGE_TYPE.ERROR_RESPONSE << 4;
+gzipErrorFrame[2] = (VOLCENGINE_WS_SERIALIZATION.NONE << 4) | VOLCENGINE_WS_COMPRESSION.GZIP;
+gzipErrorFrame.writeUInt32BE(45000002, 4);
+gzipErrorFrame.writeUInt32BE(gzipErrorPayload.length, 8);
+gzipErrorPayload.copy(gzipErrorFrame, 12);
+const decodedGzipError = codec.decode(gzipErrorFrame);
+assert.equal(decodedGzipError.errorCode, 45000002);
+assert.equal(decodedGzipError.json, 'compressed bad request');
+
+const unsupportedVersionFrame = Buffer.from(initFrame);
+unsupportedVersionFrame[0] = (0b0010 << 4) | 0b0001;
+assert.throws(
+  () => codec.decode(unsupportedVersionFrame),
+  /Unsupported Volcengine WebSocket frame version/,
+);
+const invalidHeaderSizeFrame = Buffer.from(initFrame);
+invalidHeaderSizeFrame[0] = (0b0001 << 4) | 0b0000;
+assert.throws(
+  () => codec.decode(invalidHeaderSizeFrame),
+  /Invalid Volcengine WebSocket frame header size/,
+);
+const unsupportedSerializationFrame = Buffer.from(initFrame);
+unsupportedSerializationFrame[2] = (0b1111 << 4) | VOLCENGINE_WS_COMPRESSION.GZIP;
+assert.throws(
+  () => codec.decode(unsupportedSerializationFrame),
+  /Unsupported Volcengine WebSocket serialization/,
+);
+const unsupportedCompressionFrame = Buffer.from(initFrame);
+unsupportedCompressionFrame[2] = (VOLCENGINE_WS_SERIALIZATION.JSON << 4) | 0b1111;
+assert.throws(
+  () => codec.decode(unsupportedCompressionFrame),
+  /Unsupported Volcengine WebSocket compression/,
+);
 
 const serverPayload = gzipSync(Buffer.from(JSON.stringify({ event: 'ok' })));
 const serverFrame = Buffer.alloc(8 + serverPayload.length);
@@ -322,6 +362,110 @@ assert.throws(
   /non-empty string/,
 );
 validateRequestOptions({ headers: { 'X-Trace': 'ok' } });
+
+const transportCalls = [];
+const transport = VolcengineSpeechTransport.create(
+  {
+    post(url, payload, config) {
+      transportCalls.push({ url, payload, config });
+      if (url.endsWith('/json')) {
+        return of({
+          headers: { 'x-tt-logid': ' transport-log ' },
+          data: { code: 0, data: { ok: true } },
+        });
+      }
+      if (url.endsWith('/body-error')) {
+        return of({
+          headers: { 'x-tt-logid': ' body-error-log ' },
+          data: { code: 45000001, message: 'bad body' },
+        });
+      }
+      if (url.endsWith('/stream')) {
+        return of({
+          headers: { 'x-tt-logid': ' stream-log ' },
+          data: Readable.from(['stream-bytes']),
+        });
+      }
+      if (url.endsWith('/header-status')) {
+        return of({
+          headers: {
+            'x-tt-logid': ' header-log ',
+            'x-api-status-code': ' 20000000 ',
+            'x-api-message': ' ok ',
+          },
+          data: { transcript: 'hello transport' },
+        });
+      }
+      if (url.endsWith('/header-status-error')) {
+        return of({
+          headers: {
+            'x-tt-logid': ' header-error-log ',
+            'x-api-status-code': ' 45000001 ',
+            'x-api-message': ' invalid transport audio ',
+          },
+          data: { upstream: 'raw error' },
+        });
+      }
+      throw new Error(`Unexpected transport URL: ${url}`);
+    },
+  },
+  resolved,
+);
+const transportPost = await transport.post(
+  'https://example.test/json',
+  { text: 'hello' },
+  {
+    requestId: 'transport-json-req',
+    timeoutMs: 1234,
+    headers: { 'X-Trace': 'transport-trace' },
+  },
+);
+assert.deepEqual(transportPost.data, { ok: true });
+assert.equal(transportPost.requestId, 'transport-json-req');
+assert.equal(transportPost.logId, 'transport-log');
+assert.equal(transportCalls[0].config.timeout, 1234);
+assert.equal(transportCalls[0].config.headers['X-Trace'], 'transport-trace');
+assert.equal(transportCalls[0].config.headers['X-Api-Request-Id'], 'transport-json-req');
+await assert.rejects(
+  () =>
+    transport.post(
+      'https://example.test/body-error',
+      {},
+      { requestId: 'transport-body-error-req' },
+    ),
+  /bad body/,
+);
+const transportStream = await transport.postStream(
+  'https://example.test/stream',
+  { text: 'stream' },
+  { requestId: 'transport-stream-req' },
+);
+assert.equal(transportStream.requestId, 'transport-stream-req');
+assert.equal(transportStream.logId, 'stream-log');
+assert.equal(transportCalls[2].config.responseType, 'stream');
+let transportStreamBody = '';
+for await (const chunk of transportStream.stream) {
+  transportStreamBody += chunk.toString();
+}
+assert.equal(transportStreamBody, 'stream-bytes');
+const transportHeaderStatus = await transport.postHeaderStatus(
+  'https://example.test/header-status',
+  { audio: { url: 'https://example.test/audio.mp3' } },
+  { requestId: 'transport-header-req' },
+);
+assert.equal(transportHeaderStatus.statusCode, '20000000');
+assert.equal(transportHeaderStatus.statusMessage, 'ok');
+assert.equal(transportHeaderStatus.logId, 'header-log');
+assert.deepEqual(transportHeaderStatus.result, { transcript: 'hello transport' });
+await assert.rejects(
+  () =>
+    transport.postHeaderStatus(
+      'https://example.test/header-status-error',
+      {},
+      { requestId: 'transport-header-error-req' },
+    ),
+  /invalid transport audio/,
+);
 
 const asrCalls = [];
 const asrClient = new VolcengineAsrClient({
@@ -1118,6 +1262,82 @@ async function verifyWebSocketErrorCallback() {
   assert.match(errors[0].message, /bad websocket request/);
   session.close();
   await new Promise((resolve) => server.close(resolve));
+}
+
+async function verifyWebSocketClientInitiatedClose() {
+  const server = new WebSocketServer({ port: 0 });
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+  const url = `ws://127.0.0.1:${address.port}`;
+
+  const serverClosed = new Promise((resolve) => {
+    server.once('connection', (ws) => {
+      ws.on('close', (code, reason) => {
+        resolve({ code, reason: reason.toString() });
+      });
+    });
+  });
+
+  const closes = [];
+  const session = new VolcengineWebSocketSession(
+    {
+      buildHeaders() {
+        return { 'X-Api-Key': 'test-api-key' };
+      },
+      getConfig() {
+        return { timeoutMs: 1000 };
+      },
+    },
+    {
+      url,
+      callbacks: {
+        onClose: (code, reason) => {
+          closes.push({ code, reason: reason.toString() });
+        },
+      },
+    },
+  );
+  await session.connect();
+  assert.equal(session.isOpen(), true);
+  session.close(1000, 'client-done');
+  assert.equal(session.isOpen(), false);
+  assert.deepEqual(await serverClosed, { code: 1000, reason: 'client-done' });
+  await waitFor(() => closes.length === 1);
+  assert.equal(closes[0].code, 1000);
+  assert.equal(closes[0].reason, 'client-done');
+  await new Promise((resolve) => server.close(resolve));
+}
+
+async function verifyWebSocketConnectFailureCleanup() {
+  const server = new WebSocketServer({ port: 0 });
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+  const url = `ws://127.0.0.1:${address.port}`;
+  await new Promise((resolve) => server.close(resolve));
+
+  const errors = [];
+  const session = new VolcengineWebSocketSession(
+    {
+      buildHeaders() {
+        return { 'X-Api-Key': 'test-api-key' };
+      },
+      getConfig() {
+        return { timeoutMs: 1000 };
+      },
+    },
+    {
+      url,
+      callbacks: {
+        onError: (error) => errors.push(error),
+      },
+    },
+  );
+  await assert.rejects(() => session.connect());
+  assert.equal(session.isOpen(), false);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0].message, /ECONNREFUSED|connect/);
 }
 
 async function waitFor(predicate) {

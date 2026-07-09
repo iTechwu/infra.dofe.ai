@@ -460,3 +460,176 @@ pnpm --filter @dofe/infra-shared-services typecheck
 pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 git diff --check
 ```
+
+## Loop 32: Header Reader Trim Hardening
+
+**审查待实施项**：审查 `readVolcengineHeader` 时发现普通字符串和数组 header 会原样返回；
+如果供应商或 axios-like mock 返回 `X-Tt-Logid: " log "` 或空白字符串，上层会记录带空格的
+log id，甚至把空白 header 当作有效值。
+
+**实施**：更新 `headers.ts`，对普通 header 值和数组项统一 `trim()`，空白值返回
+`undefined`；数组值跳过空白项后取第一个有效项。
+
+**标注文档**：新增 Follow-Up Step 10，记录 header/WebSocket resilience hardening 的目标、
+范围、不做和受益。
+
+**验证**：扩展 `verify:volcengine-speech` 的 header reader smoke，覆盖 trim 后的单值、
+数组值和空白过滤；专用 smoke 已通过。
+
+## Loop 33: WebSocket Client-Initiated Close Semantics
+
+**审查待实施项**：README 已说明 `session.close()` 后 session 不可复用，但当前 API 不能为
+正常客户端关闭传递 close code/reason，也没有无密钥 smoke 证明主动关闭会触发 `onClose`。
+
+**实施**：将 `VolcengineWebSocketSession.close()` 扩展为兼容性新增签名：
+`close(code?: number, reason?: string | Buffer)`；新增本地 WebSocket smoke，验证
+`session.close(1000, 'client-done')` 后 server 和 client `onClose` 都收到 code/reason，
+且 `isOpen()` 立即为 `false`。
+
+**标注文档**：README 的 WebSocket lifecycle 说明补充 optional close code/reason。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 34: WebSocket Connect Failure Cleanup
+
+**审查待实施项**：审查 connect error path 时发现连接失败会调用 `ws.close()`，但内部
+`this.ws` 依赖后续 close event 清理；失败场景应在 reject path 立即把 session 标为不可用。
+
+**实施**：在 `rejectConnect` 中确认当前 ws 后立即清空 `this.ws`；新增 connect failure
+smoke：关闭本地 server 后连接该端口，断言 `connect()` reject、`onError` 调用一次且
+`session.isOpen()` 为 `false`。
+
+**标注文档**：Follow-Up Step 10 的范围包含 connect failure cleanup，不把它混入业务协议能力。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 35: Resilience README Alignment
+
+**审查待实施项**：实现 Loop 32 到 Loop 34 后，package README 的本地验证范围和 WebSocket
+lifecycle 说明还没有反映 connection failure cleanup、close reason 与 header trim smoke。
+
+**实施**：更新 package README：说明 `session.close()` 可带 code/reason，连接失败会触发
+`onError` 并保持 session unusable；本地验证范围补充 connection failure cleanup 与
+auth/header generation。
+
+**标注文档**：用户可见契约与新增 resilience smoke 对齐。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 36: Resilience Plan Alignment
+
+**审查待实施项**：`next-execution-plan.md` 的后续项已收口到 Interpretation Client，但本轮
+新增的 header/WebSocket resilience hardening 需要在计划中留下独立范围，避免被误读成真实
+API 能力扩展。
+
+**实施**：新增 Follow-Up Step 10 和 Checkpoint E，明确目标、范围、不做、受益：
+header trim、主动 close code/reason、connect failure cleanup 和无密钥 smoke 均已完成；
+同时修正 Context 中 capability group 漏列 `interpretation` 的漂移。
+
+**标注文档**：执行计划准确记录本轮 hardening 的完成状态与真实供应商验证边界。
+
+**验证**：待本轮后续统一运行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+## Loop 37: Resilience Verification Closeout
+
+**审查待实施项**：Loop 32 到 Loop 36 完成后，需要确认 header trim、WebSocket close
+code/reason、connect failure cleanup、README 和计划同步没有破坏构建或无密钥 smoke。
+
+**实施**：执行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+**标注文档**：本条记录作为 Loop 32 到 Loop 36 的统一验证结果；目录 README 的 latest
+closeout 更新为 Loop 37。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```
+
+## Loop 38: WebSocket Codec Header Guard
+
+**审查待实施项**：审查 `VolcengineWebSocketCodec.decode` 时发现 frame version、header
+size、serialization 和 compression 没有显式支持范围校验；异常帧会落入 Buffer offset、
+gzip 或 JSON 的底层错误，诊断信息不稳定。
+
+**实施**：新增 codec header guard，明确只支持 version `1`、header size 至少 4 且不超过
+input length、serialization `none/json`、compression `none/gzip`；不支持的值抛出稳定错误。
+
+**标注文档**：新增 Follow-Up Step 11，记录 WebSocket codec negative-path hardening 的目标、
+范围、不做和受益。
+
+**验证**：待本轮后续统一运行 `verify:volcengine-speech`。
+
+## Loop 39: Gzip Error Frame And Malformed Frame Smoke
+
+**审查待实施项**：Loop 38 增加 codec guard 后，需要无密钥 smoke 证明正常帧不受影响，
+同时错误帧压缩与负例会走稳定路径。
+
+**实施**：扩展 `verify-volcengine-speech.mjs`：新增 gzip-compressed error frame decode；
+新增 unsupported version、invalid header size、unsupported serialization、unsupported
+compression 四类 malformed frame 断言。
+
+**标注文档**：Follow-Up Step 11 的 smoke 覆盖范围已包含正向 gzip error frame 和负向
+malformed frame rejection。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 40: Codec Error Frame Offset And Compression Support
+
+**审查待实施项**：`decodeErrorFrame` 固定从 offset 4 读取 error code 和 payload size；
+虽然当前编码 header size 为 4，但共享 codec 已公开 `headerSize`，错误帧解析应尊重该字段并支持
+gzip payload。
+
+**实施**：调整 `decodeErrorFrame`，使用 `frame.headerSize` 作为 error code 起始 offset；
+对 gzip error payload 执行 `gunzipSync` 后再归一化 `payload/json`。
+
+**标注文档**：Follow-Up Step 11 的范围记录 error frame 解析尊重 header size 与 gzip payload。
+
+**验证**：`pnpm --filter @dofe/infra-shared-services verify:volcengine-speech` 已通过。
+
+## Loop 41: Codec README Alignment
+
+**审查待实施项**：实现 codec negative-path hardening 后，README 的本地验证范围仍只写
+frame encoding/decoding 和 error frame parsing，没有说明 malformed frame rejection 和 gzip
+error payload。
+
+**实施**：更新 package README：说明 shared codec 会拒绝 unsupported frame version、
+invalid header size、unknown serialization/compression，并支持 plain/gzip error frame；
+本地验证范围补充 malformed frame rejection。
+
+**标注文档**：用户可见契约与 codec hardening 的实际行为一致。
+
+**验证**：待本轮后续统一运行 `git diff --check`。
+
+## Loop 42: Codec Plan Alignment
+
+**审查待实施项**：`next-execution-plan.md` 已有 WebSocket matrix 和 resilience hardening，
+但没有独立记录 codec 负向协议保护，后续读者可能把这轮理解成纯测试补丁。
+
+**实施**：新增 Follow-Up Step 11 和 Checkpoint F，明确目标、范围、不做、受益：
+frame header guard、gzip error frame、malformed frame smoke 均已完成；真实供应商未知扩展帧仍按
+checklist 记录。
+
+**标注文档**：执行计划准确记录 codec negative-path hardening 的完成状态与真实供应商边界。
+
+**验证**：待本轮后续统一运行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+## Loop 43: Codec Hardening Verification Closeout
+
+**审查待实施项**：Loop 38 到 Loop 42 完成后，需要确认 codec header guard、gzip error
+frame、malformed frame smoke、README 和计划同步没有破坏构建或无密钥验证。
+
+**实施**：执行 `typecheck`、`verify:volcengine-speech` 和 `git diff --check`。
+
+**标注文档**：本条记录作为 Loop 38 到 Loop 42 的统一验证结果；目录 README 的 latest
+closeout 更新为 Loop 43。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```

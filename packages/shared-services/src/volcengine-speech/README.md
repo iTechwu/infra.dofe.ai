@@ -82,11 +82,16 @@ validation helpers and retry executor for its HTTP request phase. Its default
 After a WebSocket session closes or `close()` is called, the client clears the
 underlying connection reference. Create a new session instead of reusing the
 closed one. Call `session.isOpen()` before sending to check whether the
-connection is still usable. The shared WebSocket session supports JSON frames,
-audio frames, last-packet audio frames, `onOpen`, `onEvent`, `onAudio`,
-`onError`, and `onClose`; product-specific event schemas remain exposed through
-the generic event callback until real vendor fixtures justify stronger typed
-normalization.
+connection is still usable. `session.close()` also accepts an optional close
+code and reason for product flows that need to report a normal client-side
+shutdown. Connection failures call `onError` and leave the session unusable.
+The shared WebSocket session supports JSON frames, audio frames,
+last-packet audio frames, `onOpen`, `onEvent`, `onAudio`, `onError`, and
+`onClose`; product-specific event schemas remain exposed through the generic
+event callback until real vendor fixtures justify stronger typed normalization.
+The shared codec rejects unsupported frame versions, invalid header sizes, and
+unknown serialization/compression flags before dispatching callbacks; error
+frames are normalized whether their payload is plain text or gzip-compressed.
 
 ## Examples
 
@@ -216,9 +221,9 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 
 `verify:volcengine-speech` builds the package and runs a no-secret smoke check
 for WebSocket frame encoding/decoding, product WebSocket init/send/close
-sessions, error frame parsing, explicit config resolution, auth header
-generation, package exports, task result normalization, and selected legacy
-delegation boundaries.
+sessions, connection failure cleanup, error frame parsing, malformed frame
+rejection, explicit config resolution, auth/header generation, package exports,
+task result normalization, and selected legacy delegation boundaries.
 
 ## Volcengine References
 

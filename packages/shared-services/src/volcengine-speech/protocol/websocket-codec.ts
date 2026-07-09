@@ -24,6 +24,8 @@ export const VOLCENGINE_WS_COMPRESSION = {
   GZIP: 0b0001,
 } as const;
 
+const VOLCENGINE_WS_VERSION = 0b0001;
+
 export interface VolcengineWebSocketFrame {
   version: number;
   headerSize: number;
@@ -84,6 +86,13 @@ export class VolcengineWebSocketCodec {
     const flags = input[1] & 0x0f;
     const serialization = (input[2] >> 4) & 0x0f;
     const compression = input[2] & 0x0f;
+    this.assertSupportedFrameHeader({
+      version,
+      headerSize,
+      serialization,
+      compression,
+      inputLength: input.length,
+    });
 
     if (messageType === VOLCENGINE_WS_MESSAGE_TYPE.ERROR_RESPONSE) {
       return this.decodeErrorFrame(input, {
@@ -179,21 +188,53 @@ export class VolcengineWebSocketCodec {
     input: Buffer,
     frame: Omit<VolcengineWebSocketFrame, 'payload' | 'isLast'>,
   ): VolcengineWebSocketFrame {
-    if (input.length < 12) {
+    const offset = frame.headerSize;
+    if (input.length < offset + 8) {
       throw new Error('Invalid Volcengine WebSocket error frame: too short');
     }
-    const errorCode = input.readUInt32BE(4);
-    const errorSize = input.readUInt32BE(8);
-    if (input.length < 12 + errorSize) {
+    const errorCode = input.readUInt32BE(offset);
+    const errorSize = input.readUInt32BE(offset + 4);
+    if (input.length < offset + 8 + errorSize) {
       throw new Error('Invalid Volcengine WebSocket error frame: incomplete payload');
     }
-    const payload = input.slice(12, 12 + errorSize);
+    const payload = input.slice(offset + 8, offset + 8 + errorSize);
+    const decompressed =
+      frame.compression === VOLCENGINE_WS_COMPRESSION.GZIP
+        ? gunzipSync(payload)
+        : payload;
     return {
       ...frame,
-      payload,
-      json: payload.toString('utf-8'),
+      payload: decompressed,
+      json: decompressed.toString('utf-8'),
       errorCode,
       isLast: true,
     };
+  }
+
+  private assertSupportedFrameHeader(params: {
+    version: number;
+    headerSize: number;
+    serialization: number;
+    compression: number;
+    inputLength: number;
+  }): void {
+    if (params.version !== VOLCENGINE_WS_VERSION) {
+      throw new Error(`Unsupported Volcengine WebSocket frame version: ${params.version}`);
+    }
+    if (params.headerSize < 4 || params.headerSize > params.inputLength) {
+      throw new Error(`Invalid Volcengine WebSocket frame header size: ${params.headerSize}`);
+    }
+    if (
+      params.serialization !== VOLCENGINE_WS_SERIALIZATION.NONE &&
+      params.serialization !== VOLCENGINE_WS_SERIALIZATION.JSON
+    ) {
+      throw new Error(`Unsupported Volcengine WebSocket serialization: ${params.serialization}`);
+    }
+    if (
+      params.compression !== VOLCENGINE_WS_COMPRESSION.NONE &&
+      params.compression !== VOLCENGINE_WS_COMPRESSION.GZIP
+    ) {
+      throw new Error(`Unsupported Volcengine WebSocket compression: ${params.compression}`);
+    }
   }
 }
