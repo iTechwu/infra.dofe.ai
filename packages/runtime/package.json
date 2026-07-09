@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-runtime",
-  "version": "0.1.86",
+  "version": "0.1.87",
   "description": "Runtime detection and invocation planning primitives for dofe.ai agents",
   "engines": {
     "node": ">=20.19.0"

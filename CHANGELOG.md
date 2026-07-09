@@ -1,3 +1,14 @@
+## [0.1.87] - 2026-07-09
+- feat(volcengine-speech): implement unified client architecture and API endpoints for audio generation, TTS streaming, and real-time speech processing
+- refactor(shared-services): enhance volcengine-speech with interpretation support and validation improvements
+- refactor(shared-services): streamline volcengine-speech and volcengine-tts with new ASR support and package exports verification
+- refactor(shared-services): enhance volcengine-tts with config validation and retry logic
+- refactor(shared-services): delegate volcengine-tts logId/payload and harden headers/memo/session
+- refactor(shared-services): harden volcengine-speech errors/headers and delegate old modules
+- chore: bump all packages to 0.1.87
+- test(volcengine-speech): enhance transport contract verification with unified HTTP smoke tests
+- test(volcengine-speech): add WebSocket client close and connect failure tests
+
 ## [0.1.86] - 2026-07-08
 - fix(clients): avoid prisma enum runtime import for file DTO
 
