@@ -1,3 +1,6 @@
+## [0.1.88] - 2026-07-09
+- feat(volcengine-speech): X-Api-Key-only auth + unified streamingAsr capability
+
 ## [0.1.87] - 2026-07-09
 - feat(volcengine-speech): implement unified client architecture and API endpoints for audio generation, TTS streaming, and real-time speech processing
 - refactor(shared-services): enhance volcengine-speech with interpretation support and validation improvements
