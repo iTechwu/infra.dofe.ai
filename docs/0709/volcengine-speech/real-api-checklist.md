@@ -8,7 +8,9 @@ Default local smoke and CI must stay no-secret and vendor-independent.
 ## Preconditions
 
 - Valid Volcengine account and enabled speech resources.
-- API key or legacy app key/access key configured outside the repository.
+- New-console APP Key (`apiKey`) configured outside the repository. Only the
+  `X-Api-Key` scheme is supported; the legacy `X-Api-App-Key` + `X-Api-Access-Key`
+  console credentials have been removed.
 - Resource ids confirmed for the target tenant.
 - Test audio URLs are public or reachable by Volcengine.
 - Callback URLs, when used, point to a disposable test receiver.
@@ -32,6 +34,7 @@ Core capability documents:
 - 录音文件识别标准版 HTTP: https://www.volcengine.com/docs/6561/1354868?lang=zh
 - 录音文件极速版识别 HTTP: https://www.volcengine.com/docs/6561/1631584?lang=zh
 - 录音文件识别闲时版 HTTP: https://www.volcengine.com/docs/6561/1840838?lang=zh
+- 大模型流式语音识别 API (SAUC): https://www.volcengine.com/docs/6561/1354869?lang=zh
 - 端到端实时语音大模型 API: https://www.volcengine.com/docs/6561/1594356?lang=zh
 - 播客 API WebSocket v3: https://www.volcengine.com/docs/6561/1668014?lang=zh
 - 同声传译 2.0 API: https://www.volcengine.com/docs/6561/1756902?lang=zh
@@ -126,6 +129,21 @@ Audio-related documents to check during real integration:
 - Official reference: https://www.volcengine.com/docs/6561/1594356?lang=zh
 - Evidence:
   - Request id:
+  - Init accepted:
+  - Audio send accepted:
+  - Event callback invoked:
+  - Close code:
+  - Result:
+
+### Streaming ASR (SAUC bigmodel)
+
+- Method: `client.streamingAsr.connect`.
+- Official reference: https://www.volcengine.com/docs/6561/1354869?lang=zh
+- Evidence:
+  - Request id:
+  - Resource id (e.g. `volc.bigasr.sauc.duration`/`concurrent` or
+    `volc.seedasr.sauc.duration`/`concurrent`):
+  - Endpoint variant (`bigmodel` / `bigmodel_nostream` / `bigmodel_async`):
   - Init accepted:
   - Audio send accepted:
   - Event callback invoked:

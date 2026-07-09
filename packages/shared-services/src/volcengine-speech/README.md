@@ -20,10 +20,31 @@ import {
 - `voice`: voice/resource APIs.
 - `realtime`: end-to-end realtime speech model WebSocket sessions.
 - `interpretation`: simultaneous interpretation 2.0 WebSocket sessions.
+- `streamingAsr`: big-model streaming ASR (SAUC) WebSocket sessions.
 - `podcast`: podcast WebSocket v3 sessions.
 - `memo`: Doubao speech memo task APIs.
 - `protocol`: shared WebSocket frame codec and session utilities.
 - `errors`: shared error mapping and retry classification.
+
+## Authentication
+
+This client uses the **new Volcengine console** auth scheme exclusively: the APP Key is
+sent as the `X-Api-Key` header on every HTTP and WebSocket call. The legacy
+`X-Api-App-Key` + `X-Api-Access-Key` (old console) scheme has been removed.
+
+Configure `apiKey` (the new-console APP Key) plus a `resourceId`:
+
+```ts
+const client = createVolcengineSpeechClient(
+  { apiKey: provider.apiKey, resourceId: provider.resourceId },
+  { httpService },
+);
+```
+
+`X-Api-Key`, `X-Api-Request-Id`, `X-Api-Resource-Id`, and `X-Api-Sequence` are reserved
+and managed by the client; they cannot be overridden through custom headers. Legacy
+modules (`volcengine-tts`, `openspeech`, `streaming-asr`) reuse the same
+`buildVolcengineAuthHeaders` helper and therefore also send `X-Api-Key` only.
 
 ## Migration Rule
 
@@ -170,6 +191,32 @@ session.sendAudio(audioFrame);
 session.sendAudio(Buffer.alloc(0), true);
 ```
 
+### Streaming ASR (big-model / SAUC)
+
+```ts
+const session = await client.streamingAsr.connect(
+  {
+    user: { uid: 'user-1' },
+    audio: { format: 'pcm', rate: 16000, bits: 16, channel: 1 },
+    request: { model_name: 'bigmodel' },
+  },
+  {
+    onEvent: (event) => handleAsrEvent(event),
+    onError: (error) => logger.error(error),
+  },
+  { resourceId: 'volc.bigasr.sauc.duration' },
+);
+
+session.sendAudio(audioFrame);
+session.sendAudio(Buffer.alloc(0), true);
+```
+
+`streamingAsr.connect` targets the big-model streaming ASR API
+(`wss://openspeech.bytedance.com/api/v3/sauc/bigmodel` by default). Override
+`endpoints.streamingAsr` to use `_nostream` (streaming input) or `_async`
+(bidirectional optimized) variants. The init payload mirrors the official
+`user` / `audio` / `request` schema; extra vendor fields pass through.
+
 ### Simultaneous Interpretation
 
 ```ts
@@ -221,8 +268,9 @@ pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 
 `verify:volcengine-speech` builds the package and runs a no-secret smoke check
 for WebSocket frame encoding/decoding, product WebSocket init/send/close
-sessions, connection failure cleanup, error frame parsing, malformed frame
-rejection, explicit config resolution, auth/header generation, unified HTTP
+sessions (TTS WebSocket, realtime, podcast, interpretation, streaming ASR),
+connection failure cleanup, error frame parsing, malformed frame rejection,
+explicit config resolution, X-Api-Key-only auth/header generation, unified HTTP
 transport behavior, package exports, task result normalization, and selected
 legacy delegation boundaries.
 
@@ -231,6 +279,7 @@ legacy delegation boundaries.
 - 录音文件识别标准版 HTTP: https://www.volcengine.com/docs/6561/1354868?lang=zh
 - 录音文件极速版识别 HTTP: https://www.volcengine.com/docs/6561/1631584?lang=zh
 - 录音文件识别闲时版 HTTP: https://www.volcengine.com/docs/6561/1840838?lang=zh
+- 大模型流式语音识别 API (SAUC, streamingAsr): https://www.volcengine.com/docs/6561/1354869?lang=zh
 - 端到端实时语音大模型 API: https://www.volcengine.com/docs/6561/1594356?lang=zh
 - 播客 API WebSocket v3: https://www.volcengine.com/docs/6561/1668014?lang=zh
 - 同声传译 2.0 API: https://www.volcengine.com/docs/6561/1756902?lang=zh

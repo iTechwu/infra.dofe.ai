@@ -441,6 +441,14 @@
       "types": "./dist/volcengine-speech/retry.d.ts",
       "default": "./dist/volcengine-speech/retry.js"
     },
+    "./volcengine-speech/streaming-asr": {
+      "types": "./dist/volcengine-speech/streaming-asr/index.d.ts",
+      "default": "./dist/volcengine-speech/streaming-asr/index.js"
+    },
+    "./volcengine-speech/streaming-asr/streaming-asr.client": {
+      "types": "./dist/volcengine-speech/streaming-asr/streaming-asr.client.d.ts",
+      "default": "./dist/volcengine-speech/streaming-asr/streaming-asr.client.js"
+    },
     "./volcengine-speech/task-result": {
       "types": "./dist/volcengine-speech/task-result.d.ts",
       "default": "./dist/volcengine-speech/task-result.js"

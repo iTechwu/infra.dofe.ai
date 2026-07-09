@@ -200,12 +200,10 @@ export class StreamingAsrService implements OnModuleDestroy {
     }
 
     const config: VolcengineSaucConfig = {
-      appKey: tosConfig.appKey,
-      appAccessToken: tosConfig.appAccessToken,
+      apiKey: tosConfig.apiKey,
       uid: tosConfig.uid,
       endpoint: tosConfig.sauc.endpoint,
       resourceId: tosConfig.sauc.resourceId,
-      appAccessSecret: tosConfig.appAccessSecret,
       accessKey: tosConfig.accessKey,
       secretKey: tosConfig.secretKey,
     };

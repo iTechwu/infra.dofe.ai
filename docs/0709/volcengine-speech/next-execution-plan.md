@@ -269,3 +269,40 @@ request/response/retry/trace 契约，后续真实 API 问题更容易定位到�
 - Body-code failure 与 header-status failure 有统一错误路径覆盖。
 - 5xx retry 通过 transport 层 smoke 覆盖。
 - Direct transport package export 有 require smoke 覆盖。
+
+## Follow-Up Step 13: X-Api-Key-Only Migration And Unified Streaming ASR
+
+**状态**：已完成无密钥实现。Loop 50 已删除旧版鉴权、新增 `streamingAsr` capability、
+迁移 legacy 模块与 `packages/common` schema，并补齐 smoke 与文档；真实供应商联调仍按
+`real-api-checklist.md` 凭证执行。
+
+**目标**：让所有火山云调用统一使用新版控制台 `X-Api-Key`（对应文档 1354869 新版鉴权），
+并把大模型流式语音识别（SAUC bigmodel）补齐为统一客户端能力。
+
+**范围**：
+- 统一 `volcengine-speech` 删除 `authMode`/`legacy` 分支与 `appId`/`accessKey`/`appKey`/
+  `appAccessKey` 字段；`buildVolcengineAuthHeaders` 只发 `X-Api-Key`。
+- 新增 `VolcengineStreamingAsrClient`（endpoint `wss://.../api/v3/sauc/bigmodel`）、
+  `VolcengineStreamingAsrRequest` 类型、`validateStreamingAsrRequest` 与 factory/module/
+  client/index 接线。
+- legacy `openspeech`（AUC + SAUC provider）、`streaming-asr` service、`openspeech.factory`
+  迁移到 `apiKey`；`volcengine-tts` 改用 `{ apiKey, resourceId }`。
+- `packages/common` 的 openspeech zod schema 用 `apiKey` 替换 `appKey`/`appAccessToken`/
+  `appAccessSecret`。
+- smoke 移除 legacy 鉴权断言、新增 `streamingAsr` WebSocket smoke 与子路径导出校验。
+
+**不做**：不重写 legacy provider 的领域逻辑（reconnect/heartbeat/transcript）；不在默认 CI
+调用真实火山 API；不保留旧版控制台鉴权兼容（属破坏性变更）。
+
+**受益**：火山云调用统一走 `X-Api-Key`，降低旧版控制台废弃后的鉴权维护成本；流式识别
+作为统一能力可直接被新集成使用，与文档 1354869 一致。
+
+### Checkpoint H: X-Api-Key-Only And Streaming ASR
+
+- 状态：已完成无密钥收口。
+- 代码中无 `X-Api-App-Key` / `X-Api-Access-Key` 发头路径，`buildVolcengineAuthHeaders`
+  只发 `X-Api-Key`。
+- `streamingAsr` capability 有本地 WebSocket smoke 覆盖 init/send/close，并校验
+  `x-api-key` 握手头。
+- `./volcengine-speech/streaming-asr` 子路径导出可解析。
+- 破坏性：部署需改用新版控制台 APP Key（`apiKey`）。

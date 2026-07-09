@@ -1,7 +1,5 @@
 import { Readable } from 'stream';
 
-export type VolcengineSpeechAuthMode = 'api-key' | 'legacy';
-
 export interface VolcengineSpeechEndpointConfig {
   audioGeneration: string;
   ttsStreaming: string;
@@ -11,6 +9,7 @@ export interface VolcengineSpeechEndpointConfig {
   asrOffPeak: string;
   realtime: string;
   interpretation: string;
+  streamingAsr: string;
   podcast: string;
   memo: string;
   voice: string;
@@ -18,13 +17,8 @@ export interface VolcengineSpeechEndpointConfig {
 
 export interface VolcengineSpeechConfig {
   apiKey?: string;
-  appId?: string;
-  appKey?: string;
-  accessKey?: string;
-  appAccessKey?: string;
   resourceId?: string;
   region?: string;
-  authMode?: VolcengineSpeechAuthMode;
   endpoints?: Partial<VolcengineSpeechEndpointConfig>;
   endpoint?: string;
   timeoutMs?: number;
@@ -35,11 +29,8 @@ export interface VolcengineSpeechConfig {
 
 export interface VolcengineSpeechResolvedConfig {
   apiKey: string;
-  appId: string;
-  accessKey: string;
   resourceId: string;
   region: string;
-  authMode: VolcengineSpeechAuthMode;
   endpoints: VolcengineSpeechEndpointConfig;
   timeoutMs: number;
   maxRetries: number;
@@ -211,6 +202,21 @@ export interface VolcengineInterpretationRequest {
   target_language?: string;
   audio_format?: string;
   sample_rate?: number;
+  [key: string]: unknown;
+}
+
+export interface VolcengineStreamingAsrRequest {
+  user?: { uid?: string; [key: string]: unknown };
+  audio?: {
+    format?: string;
+    rate?: number;
+    bits?: number;
+    channel?: number;
+    codec?: string;
+    language?: string;
+    [key: string]: unknown;
+  };
+  request?: { model_name?: string; [key: string]: unknown };
   [key: string]: unknown;
 }
 

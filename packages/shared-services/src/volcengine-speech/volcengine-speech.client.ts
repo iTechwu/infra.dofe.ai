@@ -9,6 +9,7 @@ import { VolcengineRealtimeSpeechClient } from './realtime';
 import { VolcenginePodcastClient } from './podcast';
 import { VolcengineAsrClient } from './asr';
 import { VolcengineInterpretationClient } from './interpretation';
+import { VolcengineStreamingAsrClient } from './streaming-asr';
 
 @Injectable()
 export class VolcengineSpeechClient {
@@ -19,6 +20,7 @@ export class VolcengineSpeechClient {
     readonly asr: VolcengineAsrClient,
     readonly realtime: VolcengineRealtimeSpeechClient,
     readonly interpretation: VolcengineInterpretationClient,
+    readonly streamingAsr: VolcengineStreamingAsrClient,
     readonly podcast: VolcenginePodcastClient,
     readonly memo: VolcengineMemoClient,
     readonly voice: VolcengineVoiceClient,

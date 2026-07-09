@@ -437,10 +437,7 @@ export class VolcengineTtsClient {
     return {
       // 认证头委托到统一 buildVolcengineAuthHeaders（仅负责 X-Api-Key / X-Api-Resource-Id）
       ...buildVolcengineAuthHeaders({
-        authMode: "api-key",
         apiKey: this.ttsConfig.apiKey,
-        appId: "",
-        accessKey: "",
         resourceId: this.ttsConfig.resourceId,
       }),
       Connection: "keep-alive",

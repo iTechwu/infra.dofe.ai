@@ -37,6 +37,8 @@ const defaultChecks = [
   { spec: '@dofe/infra-shared-services/volcengine-speech/voice', mode: 'resolve' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/realtime', mode: 'resolve' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/podcast', mode: 'resolve' },
+  { spec: '@dofe/infra-shared-services/volcengine-speech/interpretation', mode: 'resolve' },
+  { spec: '@dofe/infra-shared-services/volcengine-speech/streaming-asr', mode: 'resolve' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/memo', mode: 'resolve' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/protocol', mode: 'require' },
   { spec: '@dofe/infra-shared-services/volcengine-speech/errors', mode: 'require' },

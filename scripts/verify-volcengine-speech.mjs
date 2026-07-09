@@ -85,6 +85,9 @@ import {
   VolcengineInterpretationClient,
 } from '../packages/shared-services/dist/volcengine-speech/interpretation/index.js';
 import {
+  VolcengineStreamingAsrClient,
+} from '../packages/shared-services/dist/volcengine-speech/streaming-asr/index.js';
+import {
   VolcengineTtsStreamingClient,
 } from '../packages/shared-services/dist/volcengine-speech/tts-streaming/index.js';
 import {
@@ -183,10 +186,11 @@ const resolved = resolveConfig({
   apiKey: 'test-api-key',
   endpoints: { audioGeneration: 'https://example.test/create' },
 });
-assert.equal(resolved.authMode, 'api-key');
+assert.equal(resolved.apiKey, 'test-api-key');
 assert.equal(resolved.endpoints.audioGeneration, 'https://example.test/create');
 assert.equal(resolved.endpoints.asrStandard, 'https://openspeech.bytedance.com/api/v3/auc/bigmodel');
 assert.equal(resolved.endpoints.interpretation, 'wss://openspeech.bytedance.com/api/v3/interpretation');
+assert.equal(resolved.endpoints.streamingAsr, 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel');
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', timeoutMs: 0 }), /timeoutMs/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', maxRetries: -1 }), /maxRetries/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', endpoints: { memo: '   ' } }), /endpoints.memo/);
@@ -210,19 +214,6 @@ const asrSubmitHeaders = buildHeaders(resolved, {
 assert.equal(asrSubmitHeaders['X-Api-Resource-Id'], 'volc.bigasr.auc.fast');
 assert.equal(asrSubmitHeaders['X-Api-Sequence'], '-1');
 assert.equal(asrSubmitHeaders['X-Trace'], 'trace-asr');
-
-const legacy = resolveConfig({
-  authMode: 'legacy',
-  appId: 'app-id',
-  accessKey: 'access-key',
-});
-const legacyHeaders = buildHeaders(legacy, {
-  requestId: 'legacy-request',
-  headers: { 'X-Custom-Trace': 'trace-1' },
-});
-assert.equal(legacyHeaders['X-Api-App-Key'], 'app-id');
-assert.equal(legacyHeaders['X-Api-Access-Key'], 'access-key');
-assert.equal(legacyHeaders['X-Custom-Trace'], 'trace-1');
 
 const protectedHeaders = buildHeaders(resolved, {
   requestId: 'trusted-request',
@@ -253,28 +244,16 @@ assert.equal(lowerCaseProtectedHeaders['x-api-key'], undefined);
 assert.equal(lowerCaseProtectedHeaders['x-api-sequence'], undefined);
 assert.equal(lowerCaseProtectedHeaders['x-trace'], 'trace-lower');
 
-// shared auth headers (extracted for volcengine-tts delegation)
+// shared auth headers (X-Api-Key only, new console; extracted for volcengine-tts delegation)
 const authHeaders = buildVolcengineAuthHeaders({
-  authMode: 'api-key',
   apiKey: 'ak',
-  appId: '',
-  accessKey: '',
   resourceId: 'rid',
 });
 assert.equal(authHeaders['X-Api-Key'], 'ak');
 assert.equal(authHeaders['X-Api-Resource-Id'], 'rid');
 assert.equal(authHeaders['X-Api-Request-Id'], undefined); // auth-only, no request-id
-
-const legacyAuthHeaders = buildVolcengineAuthHeaders({
-  authMode: 'legacy',
-  apiKey: '',
-  appId: 'app',
-  accessKey: 'acc',
-  resourceId: '',
-});
-assert.equal(legacyAuthHeaders['X-Api-App-Key'], 'app');
-assert.equal(legacyAuthHeaders['X-Api-Access-Key'], 'acc');
-assert.equal(legacyAuthHeaders['X-Api-Resource-Id'], undefined);
+assert.equal(authHeaders['X-Api-App-Key'], undefined); // legacy header removed
+assert.equal(authHeaders['X-Api-Access-Key'], undefined); // legacy header removed
 
 validateCreateAudioRequest({
   model: 'seed-audio-1.0',
@@ -739,6 +718,15 @@ await verifyWebSocketClient({
     sample_rate: 16000,
   },
 });
+await verifyWebSocketClient({
+  ClientCtor: VolcengineStreamingAsrClient,
+  endpointKey: 'streamingAsr',
+  initPayload: {
+    user: { uid: 'streaming-asr-uid' },
+    audio: { format: 'pcm', rate: 16000, bits: 16, channel: 1 },
+    request: { model_name: 'bigmodel' },
+  },
+});
 await verifyWebSocketErrorCallback();
 await verifyWebSocketClientInitiatedClose();
 await verifyWebSocketConnectFailureCleanup();
@@ -946,9 +934,12 @@ assert.equal(typeof exportedTtsStreamResult.resolveTtsStreamResult, 'function');
 const exportedVolcengineSpeech = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech');
 assert.equal(typeof exportedVolcengineSpeech.VolcengineAsrClient, 'function');
 assert.equal(typeof exportedVolcengineSpeech.VolcengineInterpretationClient, 'function');
+assert.equal(typeof exportedVolcengineSpeech.VolcengineStreamingAsrClient, 'function');
 assert.equal(typeof exportedVolcengineSpeech.normalizeHeaderStatusTaskResult, 'function');
 const exportedAsr = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/asr');
 assert.equal(typeof exportedAsr.VolcengineAsrClient, 'function');
+const exportedStreamingAsr = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/streaming-asr');
+assert.equal(typeof exportedStreamingAsr.VolcengineStreamingAsrClient, 'function');
 const exportedInterpretation = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/interpretation');
 assert.equal(typeof exportedInterpretation.VolcengineInterpretationClient, 'function');
 const exportedInterpretationClient = sharedServicesRequire('@dofe/infra-shared-services/volcengine-speech/interpretation/interpretation.client');

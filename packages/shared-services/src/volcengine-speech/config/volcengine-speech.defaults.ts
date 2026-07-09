@@ -14,6 +14,7 @@ export const defaultVolcengineSpeechEndpoints: VolcengineSpeechEndpointConfig =
     asrOffPeak: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     realtime: 'wss://openspeech.bytedance.com/api/v3/realtime/dialogue',
     interpretation: 'wss://openspeech.bytedance.com/api/v3/interpretation',
+    streamingAsr: 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel',
     podcast: 'wss://openspeech.bytedance.com/api/v3/podcast',
     memo: 'https://openspeech.bytedance.com/api/v3/memo',
     voice: 'https://openspeech.bytedance.com/api/v3/voice',
@@ -21,9 +22,8 @@ export const defaultVolcengineSpeechEndpoints: VolcengineSpeechEndpointConfig =
 
 export const defaultVolcengineSpeechConfig: Omit<
   VolcengineSpeechResolvedConfig,
-  'apiKey' | 'appId' | 'accessKey' | 'resourceId'
+  'apiKey' | 'resourceId'
 > = {
-  authMode: 'api-key',
   region: 'cn-shanghai',
   endpoints: defaultVolcengineSpeechEndpoints,
   timeoutMs: 30000,
@@ -54,11 +54,7 @@ export function resolveVolcengineSpeechConfig(
 
   return {
     apiKey: speechConfig.apiKey ?? '',
-    appId: speechConfig.appId ?? '',
-    accessKey: speechConfig.accessKey ?? '',
     resourceId: speechConfig.resourceId ?? '',
-    authMode:
-      speechConfig.authMode ?? (speechConfig.apiKey ? 'api-key' : 'legacy'),
     region: speechConfig.region ?? defaultVolcengineSpeechConfig.region,
     endpoints: normalizeEndpoints(endpoints),
     timeoutMs: normalizeVolcenginePositiveNumber(timeoutMs, 'timeoutMs'),
@@ -95,6 +91,10 @@ function normalizeEndpoints(
     interpretation: normalizeVolcengineEndpoint(
       endpoints.interpretation,
       'endpoints.interpretation',
+    ),
+    streamingAsr: normalizeVolcengineEndpoint(
+      endpoints.streamingAsr,
+      'endpoints.streamingAsr',
     ),
     podcast: normalizeVolcengineEndpoint(endpoints.podcast, 'endpoints.podcast'),
     memo: normalizeVolcengineEndpoint(endpoints.memo, 'endpoints.memo'),

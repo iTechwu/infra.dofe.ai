@@ -6,6 +6,7 @@ import {
   VolcengineAsrRequest,
   VolcengineAsrMode,
   VolcengineInterpretationRequest,
+  VolcengineStreamingAsrRequest,
 } from '../types';
 import { VolcengineSpeechValidationError } from '../errors';
 
@@ -94,6 +95,38 @@ export function validateInterpretationRequest(
   }
 }
 
+export function validateStreamingAsrRequest(
+  request: VolcengineStreamingAsrRequest,
+): void {
+  if (!request || typeof request !== 'object' || Array.isArray(request)) {
+    throwValidation('streaming ASR init payload must be an object', 'initPayload');
+  }
+  if (request.user !== undefined) {
+    if (typeof request.user !== 'object' || request.user === null || Array.isArray(request.user)) {
+      throwValidation('user must be an object', 'user');
+    }
+    validateOptionalString(request.user.uid, 'user.uid');
+  }
+  if (request.audio !== undefined) {
+    const audio = request.audio;
+    if (typeof audio !== 'object' || audio === null || Array.isArray(audio)) {
+      throwValidation('audio must be an object', 'audio');
+    }
+    validateOptionalString(audio.format, 'audio.format');
+    validateOptionalString(audio.codec, 'audio.codec');
+    validateOptionalString(audio.language, 'audio.language');
+    validatePositiveIntField(audio.rate, 'audio.rate');
+    validatePositiveIntField(audio.bits, 'audio.bits');
+    validatePositiveIntField(audio.channel, 'audio.channel');
+  }
+  if (request.request !== undefined) {
+    if (typeof request.request !== 'object' || request.request === null || Array.isArray(request.request)) {
+      throwValidation('request must be an object', 'request');
+    }
+    validateOptionalString(request.request.model_name, 'request.model_name');
+  }
+}
+
 export function validateRequiredString(value: string, field: string): void {
   if (!value.trim()) {
     throwValidation(`${field} is required`, field);
@@ -106,6 +139,15 @@ function validateOptionalString(value: unknown, field: string): void {
   }
   if (typeof value !== 'string' || !value.trim()) {
     throwValidation(`${field} must be a non-empty string`, field);
+  }
+}
+
+function validatePositiveIntField(value: unknown, field: string): void {
+  if (value === undefined) {
+    return;
+  }
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throwValidation(`${field} must be a positive number`, field);
   }
 }
 

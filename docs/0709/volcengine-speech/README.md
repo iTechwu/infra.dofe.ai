@@ -34,17 +34,24 @@ Latest local verification in this workstream:
 - `pnpm --filter @dofe/infra-shared-services verify:volcengine-speech`
 - `git diff --check`
 
-Latest closeout: Loop 49.
+Latest closeout: Loop 50.
 
 ## Current Implementation Status
 
-- README request options contract is aligned with code.
+- All Volcengine speech calls authenticate with the new-console `X-Api-Key`
+  only; the legacy `X-Api-App-Key` + `X-Api-Access-Key` scheme and `authMode`
+  have been removed (breaking; deployments must use a new-console APP Key).
+- README request options contract and an Authentication section are aligned
+  with code.
 - ASR standard/fast/off-peak task flows have fake transport smoke coverage.
 - Task result normalization is shared between body-status and header-status
   task APIs.
-- TTS WebSocket, realtime, podcast, and simultaneous interpretation clients
-  have local WebSocket session smoke coverage for init, event, post-connect
-  JSON/audio sends, close callbacks, and closed-session state.
+- TTS WebSocket, realtime, podcast, simultaneous interpretation, and streaming
+  ASR clients have local WebSocket session smoke coverage for init, event,
+  post-connect JSON/audio sends, close callbacks, and closed-session state.
+- Big-model streaming ASR (SAUC, doc 1354869) is available as a unified
+  `client.streamingAsr` capability; the legacy `openspeech`/`streaming-asr`
+  providers also authenticate with `X-Api-Key`.
 - Shared header reading trims whitespace and ignores blank trace/status values.
 - WebSocket sessions support client close code/reason and clean up failed
   connection attempts.
@@ -55,6 +62,7 @@ Latest closeout: Loop 49.
 - Simultaneous interpretation has a dedicated WebSocket client; real vendor
   validation is still credentials-gated.
 - Public package exports for `volcengine-speech/asr`,
+  `volcengine-speech/streaming-asr`,
   `volcengine-speech/task-result`, and
   `volcengine-speech/volcengine-speech.transport` are covered by require smoke.
 - Legacy delegation boundaries are documented without requiring breaking

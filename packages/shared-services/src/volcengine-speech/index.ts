@@ -10,6 +10,7 @@ export * from './audio-generation';
 export * from './tts-streaming';
 export * from './asr';
 export * from './interpretation';
+export * from './streaming-asr';
 export * from './memo';
 export * from './voice';
 export * from './validation';

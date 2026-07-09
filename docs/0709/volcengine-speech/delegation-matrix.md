@@ -10,10 +10,11 @@ which future work should not be done as a breaking replacement.
 
 | Legacy area | Delegated foundation | Kept local | Status |
 | --- | --- | --- | --- |
-| `volcengine-tts` HTTP request | auth headers, endpoint/timeout/retry validation, retry executor, HTTP error normalization, log id header reader | NDJSON stream reduction, TOS upload result mapping, legacy `TtsResultDto` shape | Delegated with smoke coverage |
-| `openspeech` file ASR | WebSocket codec for streaming provider, shared header names by convention | Existing AUC/SAUC provider request shape, task polling compatibility, legacy provider factory | Partial delegation; keep compatibility |
-| `streaming-asr` | No direct runtime delegation yet | Existing session lifecycle and service API | Candidate for future delegation after compatibility tests |
+| `volcengine-tts` HTTP request | auth headers (`X-Api-Key` via `buildVolcengineAuthHeaders`), endpoint/timeout/retry validation, retry executor, HTTP error normalization, log id header reader | NDJSON stream reduction, TOS upload result mapping, legacy `TtsResultDto` shape | Delegated with smoke coverage |
+| `openspeech` file ASR | WebSocket codec for streaming provider, shared `X-Api-Key` auth via `apiKey` config | Existing AUC/SAUC provider request shape, task polling compatibility, legacy provider factory | Partial delegation; keep compatibility |
+| `streaming-asr` | No direct runtime delegation yet; legacy SAUC provider now authenticates with `X-Api-Key` (`apiKey`) | Existing session lifecycle and service API | Candidate for future delegation to unified `streamingAsr` capability |
 | Simultaneous interpretation 2.0 | Shared WebSocket codec/session, request option validation, endpoint config, package exports | Real vendor validation and product-specific event semantics beyond generic callbacks | Dedicated client implemented with local smoke |
+| Big-model streaming ASR (SAUC, doc 1354869) | Dedicated unified `VolcengineStreamingAsrClient`, shared WebSocket session, `X-Api-Key` auth | Legacy `volcengine-streaming.provider` domain logic (reconnect/heartbeat/transcript) until migrated | Unified capability available; legacy provider kept on `X-Api-Key` |
 | `volcengine-speech` unified client | protocol, headers, retry, errors, task result helpers | Business-specific request/response mapping per capability group | Primary path for new integrations |
 
 ## Rules For Future Migration
@@ -30,10 +31,14 @@ which future work should not be done as a breaking replacement.
 
 ### Streaming ASR
 
-- Candidate delegation: shared WebSocket codec, request option validation,
-  header generation, error normalization.
+- A unified `VolcengineStreamingAsrClient` (`client.streamingAsr.connect`) now
+  exists for new integrations, targeting doc 1354869 with `X-Api-Key` auth.
+- Candidate delegation for the legacy `streaming-asr` service: route it through
+  the unified client's shared WebSocket codec/session, request option
+  validation, header generation, and error normalization.
 - Required protection before migration: existing service API smoke and closed
-  session behavior checks.
+  session behavior checks, plus the legacy provider's reconnect/heartbeat/
+  transcript semantics.
 
 ### Openspeech File ASR
 

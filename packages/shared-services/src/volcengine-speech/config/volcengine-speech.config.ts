@@ -53,28 +53,13 @@ export class VolcengineSpeechConfigService {
     }
 
     const resolved: VolcengineSpeechResolvedConfig =
-      resolveVolcengineSpeechConfig({
-        ...speechConfig,
-        appId: speechConfig.appId ?? speechConfig.appKey,
-        accessKey: speechConfig.accessKey ?? speechConfig.appAccessKey,
-      });
+      resolveVolcengineSpeechConfig(speechConfig);
 
-    if (resolved.authMode === 'api-key' && !resolved.apiKey) {
+    if (!resolved.apiKey) {
       const { FeatureNotConfiguredError } = loadInfraCommonConfigApi();
       throw new FeatureNotConfiguredError(
         'volcengine-speech',
         'keys.volcengineSpeech.apiKey',
-      );
-    }
-
-    if (
-      resolved.authMode === 'legacy' &&
-      (!resolved.appId || !resolved.accessKey)
-    ) {
-      const { FeatureNotConfiguredError } = loadInfraCommonConfigApi();
-      throw new FeatureNotConfiguredError(
-        'volcengine-speech',
-        'keys.volcengineSpeech.appId/accessKey',
       );
     }
 

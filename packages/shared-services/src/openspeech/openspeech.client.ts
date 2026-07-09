@@ -466,7 +466,7 @@ export class OpenspeechClient {
    * const { vendorTaskId } = await client.submitTranscribeTaskWithConfig(
    *   'tos',
    *   audioUrl,
-   *   { tos: { appKey, appAccessToken, uid, auc: { endpoint, resourceId } } },
+   *   { tos: { apiKey, uid, auc: { endpoint, resourceId } } },
    *   { callbackUrl: 'https://models.dofe.ai/v1/generation/callbacks/volcengine' },
    * );
    * ```

@@ -159,14 +159,10 @@ export interface VolcengineAsrModeConfig {
  * @interface VolcengineOpenspeechConfig
  */
 export interface VolcengineOpenspeechConfig {
-  /** 应用 ID */
-  appKey: string;
-  /** 应用访问令牌 */
-  appAccessToken: string;
+  /** 新版控制台 APP Key（鉴权用 X-Api-Key） */
+  apiKey: string;
   /** 用户 ID */
   uid: string;
-  /** 应用访问密钥（可选） */
-  appAccessSecret?: string;
   /** Access Key（用于签名，可选） */
   accessKey?: string;
   /** Secret Key（用于签名，可选） */
@@ -184,18 +180,14 @@ export interface VolcengineOpenspeechConfig {
  * @interface VolcengineAucConfig
  */
 export interface VolcengineAucConfig {
-  /** 应用 ID */
-  appKey: string;
-  /** 应用访问令牌 */
-  appAccessToken: string;
+  /** 新版控制台 APP Key（鉴权用 X-Api-Key） */
+  apiKey: string;
   /** 用户 ID */
   uid: string;
   /** API 端点地址 */
   endpoint: string;
   /** 资源 ID */
   resourceId: string;
-  /** 应用访问密钥（可选） */
-  appAccessSecret?: string;
   /** Access Key（用于签名，可选） */
   accessKey?: string;
   /** Secret Key（用于签名，可选） */
@@ -209,18 +201,14 @@ export interface VolcengineAucConfig {
  * @interface VolcengineSaucConfig
  */
 export interface VolcengineSaucConfig {
-  /** 应用 ID */
-  appKey: string;
-  /** 应用访问令牌 */
-  appAccessToken: string;
+  /** 新版控制台 APP Key（鉴权用 X-Api-Key） */
+  apiKey: string;
   /** 用户 ID */
   uid: string;
   /** WebSocket 端点地址 */
   endpoint: string;
   /** 资源 ID */
   resourceId: string;
-  /** 应用访问密钥（可选） */
-  appAccessSecret?: string;
   /** Access Key（用于签名，可选） */
   accessKey?: string;
   /** Secret Key（用于签名，可选） */

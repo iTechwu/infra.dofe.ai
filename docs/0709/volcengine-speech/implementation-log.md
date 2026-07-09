@@ -8,8 +8,9 @@ options 与 client 管理 header 的规则一致。代码已支持 `resourceId` 
 认证 helper 注释也仍写着旧头名 `X-Api-App-Id`。
 
 **实施**：更新 README 的 Request Options，明确 `resourceId`、`sequence`、
-`X-Api-Sequence` 和校验规则；同步修正 auth helper 注释为新版
-`X-Api-App-Key`。
+`X-Api-Sequence` 和校验规则；同步修正 auth helper 注释为
+`X-Api-App-Key`（注：`X-Api-App-Key` 实为旧版控制台头，新版应为 `X-Api-Key`；
+该误标在后续 X-Api-Key-only 迁移 loop 中彻底纠正）。
 
 **标注文档**：Step 2 已完成文档契约修正，后续仍需补 client 级 mock 覆盖，证明
 reserved headers 不能被绕过。
@@ -713,6 +714,43 @@ closeout 更新为 Loop 49。
 **验证**：已通过：
 
 ```bash
+pnpm --filter @dofe/infra-shared-services typecheck
+pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
+git diff --check
+```
+
+## Loop 50: X-Api-Key-Only Migration And Unified Streaming ASR
+
+**审查待实施项**：对照官方文档《大模型流式语音识别 API》
+(https://www.volcengine.com/docs/6561/1354869) 深度审查发现，统一客户端虽默认走新版
+`X-Api-Key`，但保留了旧版 `X-Api-App-Key` + `X-Api-Access-Key` 的 `legacy` 分支；
+而该文档对应的 SAUC 流式识别能力只存在于 legacy `openspeech` provider，且仍在用旧版鉴权。
+用户要求「只保留新版本」，即所有火山云调用统一使用 `X-Api-Key`。
+
+**实施**：
+- 统一 `volcengine-speech` 删除 `VolcengineSpeechAuthMode`、`authMode`、`appId`/`accessKey`/
+  `appKey`/`appAccessKey` 字段与 `legacy` 分支；`buildVolcengineAuthHeaders` 只发 `X-Api-Key`。
+- 新增 unified `streamingAsr` capability（`VolcengineStreamingAsrClient` + 校验 + endpoint
+  `wss://.../api/v3/sauc/bigmodel` + factory/module/client/index 接线），复用共享 WebSocket
+  session 与新版鉴权头。
+- legacy `openspeech`（AUC + SAUC provider）、`streaming-asr` service、`openspeech.factory`
+  全部从 `appKey`/`appAccessToken` 迁移到 `apiKey`（`X-Api-Key`），保留各自的领域逻辑不重写。
+- `volcengine-tts` 改用 `{ apiKey, resourceId }` 调用统一 auth helper。
+- `packages/common` 的 `openspeechVolcengineProviderSchema`/`openspeechProviderSchema`
+  用 `apiKey` 替换 `appKey`/`appAccessToken`/`appAccessSecret`（破坏性配置变更，部署需改用
+  新版控制台 APP Key）。
+- smoke 移除 legacy 鉴权断言，新增 `streamingAsr` WebSocket smoke 与
+  `volcengine-speech/streaming-asr` 子路径导出校验；`verify-package-exports` 补 streaming-asr。
+- 文档：README 新增 Authentication 与 streamingAsr 示例；real-api-checklist 新增流式 ASR 条目
+  并把鉴权前置条件改为新版 APP Key；修正 Loop 1 把 `X-Api-App-Key` 误标为「新版」的措辞。
+
+**标注文档**：所有火山云调用统一走 `X-Api-Key`；旧版控制台凭据不再支持，属破坏性变更。
+统一 `streamingAsr` capability 已就绪，真实供应商联调仍按 `real-api-checklist.md` 凭证执行。
+
+**验证**：已通过：
+
+```bash
+pnpm --filter @dofe/infra-common build
 pnpm --filter @dofe/infra-shared-services typecheck
 pnpm --filter @dofe/infra-shared-services verify:volcengine-speech
 git diff --check

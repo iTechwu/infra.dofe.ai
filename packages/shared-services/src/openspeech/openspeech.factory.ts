@@ -253,12 +253,10 @@ export class OpenspeechProviderFactory {
     }
 
     return {
-      appKey: config.appKey,
-      appAccessToken: config.appAccessToken,
+      apiKey: config.apiKey,
       uid: config.uid,
       endpoint: config.auc.endpoint,
       resourceId: config.auc.resourceId,
-      appAccessSecret: config.appAccessSecret,
       accessKey: config.accessKey,
       secretKey: config.secretKey,
     };
@@ -282,12 +280,10 @@ export class OpenspeechProviderFactory {
     }
 
     return {
-      appKey: config.appKey,
-      appAccessToken: config.appAccessToken,
+      apiKey: config.apiKey,
       uid: config.uid,
       endpoint: config.sauc.endpoint,
       resourceId: config.sauc.resourceId,
-      appAccessSecret: config.appAccessSecret,
       accessKey: config.accessKey,
       secretKey: config.secretKey,
     };
@@ -383,7 +379,7 @@ export class OpenspeechProviderFactory {
    * 按显式注入的配置创建录音文件识别 provider（不缓存）
    *
    * @description 供 models.dofe.ai 等 DB 驱动的调用方使用：从数据库 ProviderKey 解析出
-   * appKey / appAccessToken / uid / endpoint / resourceId 等字段，组装成 OpenSpeechConfig 后注入，
+   * apiKey / uid / endpoint / resourceId 等字段，组装成 OpenSpeechConfig 后注入，
    * 由 factory 复用既有 toAliyunConfig / toVolcengineAucConfig 转换逻辑构造 provider。
    *
    * 与 {@link getProvider} 的关键区别：本方法每次都新建 provider 实例，**不做 vendor 维度单例缓存**，
@@ -398,7 +394,7 @@ export class OpenspeechProviderFactory {
    * ```typescript
    * // models 服务从 DB ProviderKey 解析后注入
    * const provider = factory.getProviderWithConfig('tos', {
-   *   tos: { appKey, appAccessToken, uid, auc: { endpoint, resourceId } },
+   *   tos: { apiKey, uid, auc: { endpoint, resourceId } },
    * });
    * const taskId = await provider.submitTask({ audioUrl });
    * ```

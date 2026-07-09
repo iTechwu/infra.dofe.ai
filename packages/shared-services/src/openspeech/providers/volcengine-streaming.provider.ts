@@ -292,8 +292,7 @@ export class VolcengineStreamingAsrProvider implements IStreamingAsrProvider {
    */
   private buildHeaders(connectId: string): Record<string, string> {
     const headers: Record<string, string> = {
-      'X-Api-App-Key': this.config.appKey!,
-      'X-Api-Access-Key': this.config.appAccessToken!,
+      'X-Api-Key': this.config.apiKey,
       'X-Api-Connect-Id': connectId,
     };
 
@@ -759,8 +758,8 @@ export class VolcengineStreamingAsrProvider implements IStreamingAsrProvider {
     const connectionId = uuidv4();
 
     // 验证配置
-    if (!this.config.appKey || !this.config.appAccessToken) {
-      throw new Error('Volcengine config missing appKey or appAccessToken');
+    if (!this.config.apiKey) {
+      throw new Error('Volcengine config missing apiKey');
     }
 
     if (!this.config.uid) {
