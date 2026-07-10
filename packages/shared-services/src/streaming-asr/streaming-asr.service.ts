@@ -89,6 +89,12 @@ interface SessionInfo {
   audioBuffer?: AudioBufferData;
   /** Session Token (长期有效，4小时) */
   sessionToken?: string;
+  /**
+   * 本会话使用的 Provider 实例。
+   * 显式 saucConfig 注入时为 per-session 创建的 provider；否则为全局 this.provider。
+   * Redis 恢复出的会话该字段缺失，使用方应 `sessionInfo.provider ?? this.provider` 回退。
+   */
+  provider?: VolcengineStreamingAsrProvider;
 }
 
 /**
@@ -208,13 +214,40 @@ export class StreamingAsrService implements OnModuleDestroy {
       secretKey: tosConfig.secretKey,
     };
 
-    this.provider = new VolcengineStreamingAsrProvider(this.logger, config);
+    this.provider = this.createProvider(config);
 
     if (environment.isProduction()) {
       this.logger.info('StreamingAsrService module initialized');
     } else {
       this.logger.debug('StreamingAsrService module initialized');
     }
+  }
+
+  /**
+   * 按 config 创建流式识别 Provider（供全局 fallback 与 per-session 显式注入复用）。
+   */
+  private createProvider(
+    config: VolcengineSaucConfig,
+  ): VolcengineStreamingAsrProvider {
+    return new VolcengineStreamingAsrProvider(this.logger, config);
+  }
+
+  /**
+   * 解析会话级 Provider：显式 saucConfig 优先（多租户，DB 驱动），否则回退全局 this.provider。
+   */
+  private resolveProvider(
+    saucConfig?: VolcengineSaucConfig,
+  ): VolcengineStreamingAsrProvider {
+    if (
+      saucConfig &&
+      saucConfig.apiKey &&
+      saucConfig.endpoint &&
+      saucConfig.resourceId
+    ) {
+      return this.createProvider(saucConfig);
+    }
+    this.ensureProviderAvailable();
+    return this.provider;
   }
 
   /**
@@ -226,6 +259,21 @@ export class StreamingAsrService implements OnModuleDestroy {
         'Streaming ASR provider is not available. Please check configuration.',
       );
     }
+  }
+
+  /**
+   * Resolve the provider that owns a session. Redis-restored sessions do not
+   * retain their in-memory provider instance, so only fall back to the global
+   * provider after explicitly verifying it is available.
+   */
+  private getSessionProvider(
+    sessionInfo: SessionInfo,
+  ): VolcengineStreamingAsrProvider {
+    if (sessionInfo.provider) {
+      return sessionInfo.provider;
+    }
+    this.ensureProviderAvailable();
+    return this.provider;
   }
 
   /**
@@ -247,8 +295,9 @@ export class StreamingAsrService implements OnModuleDestroy {
    */
   async createSession(
     dto: CreateStreamingSessionDto,
+    saucConfig?: VolcengineSaucConfig,
   ): Promise<StreamingSessionResult> {
-    this.ensureProviderAvailable();
+    const provider = this.resolveProvider(saucConfig);
 
     const sessionId = uuidv4();
 
@@ -269,7 +318,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     };
 
     // 建立连接
-    const connectionId = await this.provider.connect(
+    const connectionId = await provider.connect(
       {
         sessionId,
         audioFormat: dto.audioFormat || 'pcm',
@@ -294,6 +343,7 @@ export class StreamingAsrService implements OnModuleDestroy {
       audioDuration: 0,
       createdAt: now,
       lastActivityAt: now,
+      provider,
     };
 
     // 如果启用音频保存，初始化缓冲区
@@ -372,8 +422,6 @@ export class StreamingAsrService implements OnModuleDestroy {
     audioData: Buffer,
     isLast: boolean = false,
   ): Promise<void> {
-    this.ensureProviderAvailable();
-
     let sessionInfo: SessionInfo | undefined;
     let connectionId: string | undefined;
 
@@ -403,8 +451,10 @@ export class StreamingAsrService implements OnModuleDestroy {
       );
     }
 
+    const provider = this.getSessionProvider(sessionInfo);
+
     // 检查 Provider 连接状态，如果 disconnected 则尝试恢复
-    const providerStatus = this.provider?.getConnectionStatus(connectionId);
+    const providerStatus = provider?.getConnectionStatus(connectionId);
     if (providerStatus === 'disconnected') {
       // Provider 报告 disconnected，但会话信息存在
       // 尝试通过 sendAudio 触发 Provider 的重连机制
@@ -418,7 +468,7 @@ export class StreamingAsrService implements OnModuleDestroy {
       );
     }
 
-    await this.provider.sendAudio(connectionId, audioData, isLast);
+    await provider.sendAudio(connectionId, audioData, isLast);
 
     // 更新最后活动时间
     sessionInfo.lastActivityAt = new Date();
@@ -458,8 +508,10 @@ export class StreamingAsrService implements OnModuleDestroy {
       throw new NotFoundException(`Session not found: ${dto.sessionId}`);
     }
 
+    const provider = this.getSessionProvider(sessionInfo);
+
     // 获取最终结果
-    const providerResult = this.provider.getTranscript(
+    const providerResult = provider.getTranscript(
       sessionInfo.connectionId,
     );
     if (providerResult) {
@@ -468,7 +520,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     }
 
     // 关闭连接
-    await this.provider.disconnect(sessionInfo.connectionId);
+    await provider.disconnect(sessionInfo.connectionId);
 
     // 更新会话状态
     sessionInfo.status = 'completed';
@@ -622,8 +674,10 @@ export class StreamingAsrService implements OnModuleDestroy {
       throw new NotFoundException(`Session not found: ${sessionId}`);
     }
 
+    const provider = this.getSessionProvider(sessionInfo);
+
     // 获取 Provider 最新状态
-    const providerStatus = this.provider?.getConnectionStatus(
+    const providerStatus = provider?.getConnectionStatus(
       sessionInfo.connectionId,
     );
 
@@ -664,7 +718,7 @@ export class StreamingAsrService implements OnModuleDestroy {
     }
 
     // 获取最新转写结果
-    const providerResult = this.provider?.getTranscript(
+    const providerResult = provider?.getTranscript(
       sessionInfo.connectionId,
     );
     if (providerResult) {
@@ -722,7 +776,8 @@ export class StreamingAsrService implements OnModuleDestroy {
       return;
     }
 
-    await this.provider?.disconnect(sessionInfo.connectionId);
+    const provider = this.getSessionProvider(sessionInfo);
+    await provider.disconnect(sessionInfo.connectionId);
     sessionInfo.status = 'disconnected';
 
     // 发送断开事件
@@ -1216,13 +1271,15 @@ export class StreamingAsrService implements OnModuleDestroy {
 
     if (!sessionInfo) return;
 
+    const provider = this.getSessionProvider(sessionInfo);
+
     // 如果会话仍在进行中，先断开连接
     if (
       sessionInfo.status !== 'completed' &&
       sessionInfo.status !== 'disconnected'
     ) {
       try {
-        await this.provider?.disconnect(sessionInfo.connectionId);
+        await provider.disconnect(sessionInfo.connectionId);
       } catch (error) {
         this.logger.warn('Failed to disconnect during force cleanup', {
           sessionId,

@@ -1,3 +1,6 @@
+## [0.1.89] - 2026-07-10
+- feat(streaming-asr): per-session explicit SAUC config injection (`createSession(dto, saucConfig?)`) with global fallback — unify AUC/TTS/SAUC config source, enable multi-account SAUC; backward compatible
+
 ## [0.1.88] - 2026-07-09
 - feat(volcengine-speech): X-Api-Key-only auth + unified streamingAsr capability
 

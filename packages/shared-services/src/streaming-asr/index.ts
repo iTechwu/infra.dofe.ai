@@ -48,3 +48,6 @@ export * from './streaming-asr.service';
 
 // 类型导出
 export * from './types';
+
+// SAUC provider 配置类型（供 createSession(dto, saucConfig?) 显式注入参数使用，DB 驱动调用方）
+export type { VolcengineSaucConfig } from '../openspeech/types';
