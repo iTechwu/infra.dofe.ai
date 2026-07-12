@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-prisma",
-  "version": "0.1.89",
+  "version": "0.1.90",
   "description": "Prisma ORM — read/write separation, connection management, soft-delete, tenant isolation, Prometheus metrics",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -93,9 +93,9 @@
     "winston": "^3.13.0"
   },
   "dependencies": {
-    "@dofe/infra-common": "^0.1.89",
-    "@dofe/infra-redis": "^0.1.89",
-    "@dofe/infra-utils": "^0.1.89"
+    "@dofe/infra-common": "^0.1.90",
+    "@dofe/infra-redis": "^0.1.90",
+    "@dofe/infra-utils": "^0.1.90"
   },
   "devDependencies": {
     "rimraf": "^6.1.3",

@@ -1,3 +1,6 @@
+## [0.1.90] - 2026-07-12
+- feat(sso): 引入 SSO 响应解包工具，统一处理 API 响应格式
+
 ## [0.1.89] - 2026-07-10
 - feat(streaming-asr): per-session explicit SAUC config injection (`createSession(dto, saucConfig?)`) with global fallback — unify AUC/TTS/SAUC config source, enable multi-account SAUC; backward compatible
 
