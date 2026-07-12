@@ -19,6 +19,7 @@ export {
   SsoCustomRole,
   SsoMemberRoleAssignment,
   SsoUserPermissions,
+  SsoPaginatedResponse,
 } from './sso-rbac.client';
 export { SsoInternalApiError, unwrapSsoResponse } from './sso-response.util';
 export type { SsoApiResponse } from './sso-response.util';

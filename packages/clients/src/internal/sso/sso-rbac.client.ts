@@ -42,6 +42,20 @@ export interface SsoUserPermissions {
 }
 
 /**
+ * SSO 列表端点的分页信封（对应 sso-contracts PaginatedResponseSchema）。
+ *
+ * 注意：`listRoles`/`listPermissions`/`listMemberAssignments` 命名为 `list*`，
+ * 但 SSO 返回的是这个分页信封而非裸数组；client 对外仍以 `Promise<T[]>`
+ * 暴露（自动摊平分页），此类型仅用于内部解包。
+ */
+export interface SsoPaginatedResponse<T> {
+  list: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+/**
  * SSO RBAC 客户端
  *
  * 通过 SSO Internal API 操作权限、自定义角色、成员角色分配和审批工作流。
@@ -97,18 +111,68 @@ export class SsoRbacClient implements OnModuleInit {
     return `${this.ssoInternalUrl}/internal${versioned ? "/v1" : ""}`;
   }
 
+  /**
+   * 分页拉取 SSO 列表端点的全部条目并摊平为 `T[]`。
+   *
+   * SSO 的 `list*` 端点返回分页信封 `{ list, total, page, limit }`
+   * （PaginatedResponseSchema），默认 `limit=20`。直接透传 `data` 会让下游
+   * 对对象执行 `.map()` → `TypeError: (intermediate value).map is not a function`
+   * （见 models 侧 `/rbac/permissions`、`/rbac/roles` 500）。这里：
+   *   1) 解包分页信封取 `list`，让 client 对外真正返回 `T[]`（与签名一致）；
+   *   2) 按 `limit=100` 循环至 `total`，避免默认 20 条静默截断；
+   *   3) 兼容历史裸数组返回（`Array.isArray(data)` 时直接返回）；
+   *   4) 带 100 页（≈1e4 条）安全上限，防 `total` 异常导致死循环。
+   */
+  private async listAllPaginated<T>(
+    url: string,
+    params: Record<string, string | number | undefined>,
+    operation: string,
+  ): Promise<T[]> {
+    const limit = 100;
+    const items: T[] = [];
+    let page = 1;
+    let total = Number.POSITIVE_INFINITY;
+
+    for (let i = 0; i < 100 && items.length < total; i++) {
+      const response = await firstValueFrom(
+        this.httpService.get<SsoApiResponse<SsoPaginatedResponse<T> | T[]>>(
+          url,
+          {
+            headers: this.getHeaders(),
+            params: { ...params, page, limit },
+            timeout: 5000,
+          },
+        ),
+      );
+      const data = unwrapSsoResponse<SsoPaginatedResponse<T> | T[]>(
+        response,
+        operation,
+      );
+
+      // 兼容历史裸数组返回
+      if (Array.isArray(data)) return data;
+
+      const batch = data?.list ?? [];
+      if (typeof data?.total === "number") total = data.total;
+      if (batch.length === 0) break;
+      items.push(...batch);
+      if (batch.length < limit) break; // 末页
+      page += 1;
+    }
+
+    return items;
+  }
+
   // ============================================================================
   // Permissions
   // ============================================================================
 
   async listPermissions(): Promise<SsoPermission[]> {
-    const response = await firstValueFrom(
-      this.httpService.get<SsoApiResponse<SsoPermission[]>>(
-        `${this.basePath()}/permissions`,
-        { headers: this.getHeaders(), timeout: 5000 },
-      ),
+    return this.listAllPaginated<SsoPermission>(
+      `${this.basePath()}/permissions`,
+      {},
+      "sso.rbac.listPermissions",
     );
-    return unwrapSsoResponse<SsoPermission[]>(response, "sso.rbac.listPermissions");
   }
 
   // ============================================================================
@@ -116,13 +180,11 @@ export class SsoRbacClient implements OnModuleInit {
   // ============================================================================
 
   async listRoles(tenantId: string): Promise<SsoCustomRole[]> {
-    const response = await firstValueFrom(
-      this.httpService.get<SsoApiResponse<SsoCustomRole[]>>(
-        `${this.basePath()}/roles`,
-        { headers: this.getHeaders(), params: { tenantId }, timeout: 5000 },
-      ),
+    return this.listAllPaginated<SsoCustomRole>(
+      `${this.basePath()}/roles`,
+      { tenantId },
+      "sso.rbac.listRoles",
     );
-    return unwrapSsoResponse<SsoCustomRole[]>(response, "sso.rbac.listRoles");
   }
 
   async createRole(params: {
@@ -183,18 +245,9 @@ export class SsoRbacClient implements OnModuleInit {
     tenantId: string,
     userId?: string,
   ): Promise<SsoMemberRoleAssignment[]> {
-    const response = await firstValueFrom(
-      this.httpService.get<SsoApiResponse<SsoMemberRoleAssignment[]>>(
-        `${this.basePath()}/member-role-assignments`,
-        {
-          headers: this.getHeaders(),
-          params: { tenantId, ...(userId ? { userId } : {}) },
-          timeout: 5000,
-        },
-      ),
-    );
-    return unwrapSsoResponse<SsoMemberRoleAssignment[]>(
-      response,
+    return this.listAllPaginated<SsoMemberRoleAssignment>(
+      `${this.basePath()}/member-role-assignments`,
+      { tenantId, userId },
       "sso.rbac.listMemberAssignments",
     );
   }
@@ -247,71 +300,5 @@ export class SsoRbacClient implements OnModuleInit {
       response,
       "sso.rbac.getUserEffectivePermissions",
     );
-  }
-
-  // ============================================================================
-  // Approval Workflow
-  // ============================================================================
-
-  async listApprovals(query?: {
-    status?: string;
-    type?: string;
-    tenantId?: string;
-  }): Promise<any[]> {
-    const response = await firstValueFrom(
-      this.httpService.get<SsoApiResponse<any[]>>(
-        `${this.basePath()}/approvals`,
-        { headers: this.getHeaders(), params: query, timeout: 5000 },
-      ),
-    );
-    return unwrapSsoResponse<any[]>(response, "sso.rbac.listApprovals");
-  }
-
-  async createApproval(params: {
-    tenantId: string;
-    requesterId: string;
-    type: string;
-    title: string;
-    description?: string;
-    payload?: Record<string, unknown>;
-  }): Promise<any> {
-    const response = await firstValueFrom(
-      this.httpService.post<SsoApiResponse<any>>(
-        `${this.basePath()}/approvals`,
-        params,
-        { headers: this.getHeaders(), timeout: 5000 },
-      ),
-    );
-    return unwrapSsoResponse<any>(response, "sso.rbac.createApproval");
-  }
-
-  async getApproval(id: string): Promise<any> {
-    const response = await firstValueFrom(
-      this.httpService.get<SsoApiResponse<any>>(
-        `${this.basePath()}/approvals/${id}`,
-        { headers: this.getHeaders(), timeout: 5000 },
-      ),
-    );
-    return unwrapSsoResponse<any>(response, "sso.rbac.getApproval");
-  }
-
-  async resolveApproval(params: {
-    id: string;
-    approverId: string;
-    approved: boolean;
-    comment?: string;
-  }): Promise<any> {
-    const response = await firstValueFrom(
-      this.httpService.put<SsoApiResponse<any>>(
-        `${this.basePath()}/approvals/${params.id}/resolve`,
-        {
-          approverId: params.approverId,
-          approved: params.approved,
-          comment: params.comment,
-        },
-        { headers: this.getHeaders(), timeout: 5000 },
-      ),
-    );
-    return unwrapSsoResponse<any>(response, "sso.rbac.resolveApproval");
   }
 }
