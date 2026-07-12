@@ -2,15 +2,10 @@ import { Injectable, OnModuleInit } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
-
-/**
- * Internal API response wrapper type
- */
-interface ApiResponse<T> {
-  code: number;
-  msg?: string;
-  data: T;
-}
+import {
+  unwrapSsoResponse,
+  type SsoApiResponse,
+} from "./sso-response.util";
 
 /**
  * User information from SSO internal API
@@ -99,6 +94,16 @@ export interface SsoKeyPurgeResponse {
   purgedCount: number;
 }
 
+/**
+ * SSO Auth 客户端
+ *
+ * 通过 SSO Internal API 验证 token、查询用户/租户/会话/密钥。
+ * Internal API 响应统一经 unwrapSsoResponse 解包：SSO 抖动或返回非标准信封时
+ * 抛出 SsoInternalApiError，而非把 undefined 透传给调用方。
+ *
+ * 注意：getSession / getJwks 走公开端点（非 internal API），返回原始响应体，
+ * 不套用 { code, msg, data } 信封，故不经 unwrapSsoResponse。
+ */
 @Injectable()
 export class SsoAuthClient implements OnModuleInit {
   private ssoInternalUrl!: string;
@@ -167,7 +172,7 @@ export class SsoAuthClient implements OnModuleInit {
   }> {
     const response = await firstValueFrom(
       this.httpService.post<
-        ApiResponse<{ valid: boolean; userId?: string; expiresAt?: number }>
+        SsoApiResponse<{ valid: boolean; userId?: string; expiresAt?: number }>
       >(
         `${this.ssoInternalUrl}/internal/verify-token`,
         { token: accessToken },
@@ -177,7 +182,10 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<{ valid: boolean; userId?: string; expiresAt?: number }>(
+      response,
+      "sso.auth.verifyToken",
+    );
   }
 
   // ============================================================================
@@ -189,7 +197,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async getUser(userId: string): Promise<SsoInternalUser> {
     const response = await firstValueFrom(
-      this.httpService.get<ApiResponse<SsoInternalUser>>(
+      this.httpService.get<SsoApiResponse<SsoInternalUser>>(
         `${this.ssoInternalUrl}/internal/users/${userId}`,
         {
           headers: this.getInternalHeaders(),
@@ -197,7 +205,7 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<SsoInternalUser>(response, "sso.auth.getUser");
   }
 
   /**
@@ -208,7 +216,7 @@ export class SsoAuthClient implements OnModuleInit {
     userIds: string[],
   ): Promise<Record<string, SsoInternalUser>> {
     const response = await firstValueFrom(
-      this.httpService.post<ApiResponse<Record<string, SsoInternalUser>>>(
+      this.httpService.post<SsoApiResponse<Record<string, SsoInternalUser>>>(
         `${this.ssoInternalUrl}/internal/users/batch`,
         { userIds },
         {
@@ -217,7 +225,10 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<Record<string, SsoInternalUser>>(
+      response,
+      "sso.auth.batchGetUsers",
+    );
   }
 
   // ============================================================================
@@ -229,7 +240,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async getTenant(tenantId: string): Promise<SsoInternalTenant> {
     const response = await firstValueFrom(
-      this.httpService.get<ApiResponse<SsoInternalTenant>>(
+      this.httpService.get<SsoApiResponse<SsoInternalTenant>>(
         `${this.ssoInternalUrl}/internal/tenants/${tenantId}`,
         {
           headers: this.getInternalHeaders(),
@@ -237,7 +248,7 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<SsoInternalTenant>(response, "sso.auth.getTenant");
   }
 
   // ============================================================================
@@ -246,7 +257,7 @@ export class SsoAuthClient implements OnModuleInit {
 
   /**
    * 检查 SSO 会话状态（跨子域 cookie）
-   * 注意：此方法不使用内部 API 认证，而是传递用户 cookie
+   * 注意：此方法不使用内部 API 认证，而是传递用户 cookie，返回原始响应体
    */
   async getSession(cookieHeader?: string): Promise<unknown> {
     const headers: Record<string, string> = {};
@@ -266,7 +277,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async getUserSessions(userId: string): Promise<SsoUserSessionsResponse> {
     const response = await firstValueFrom(
-      this.httpService.get<ApiResponse<SsoUserSessionsResponse>>(
+      this.httpService.get<SsoApiResponse<SsoUserSessionsResponse>>(
         `${this.ssoInternalUrl}/internal/users/${userId}/sessions`,
         {
           headers: this.getInternalHeaders(),
@@ -274,7 +285,10 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<SsoUserSessionsResponse>(
+      response,
+      "sso.auth.getUserSessions",
+    );
   }
 
   /**
@@ -285,7 +299,7 @@ export class SsoAuthClient implements OnModuleInit {
     clientId: string,
   ): Promise<{ success: boolean }> {
     const response = await firstValueFrom(
-      this.httpService.post<ApiResponse<{ success: boolean }>>(
+      this.httpService.post<SsoApiResponse<{ success: boolean }>>(
         `${this.ssoInternalUrl}/internal/users/${userId}/sessions/${clientId}/revoke`,
         {},
         {
@@ -294,7 +308,10 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<{ success: boolean }>(
+      response,
+      "sso.auth.revokeSession",
+    );
   }
 
   /**
@@ -302,7 +319,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async revokeAllSessions(userId: string): Promise<{ success: boolean }> {
     const response = await firstValueFrom(
-      this.httpService.post<ApiResponse<{ success: boolean }>>(
+      this.httpService.post<SsoApiResponse<{ success: boolean }>>(
         `${this.ssoInternalUrl}/internal/users/${userId}/sessions/revoke-all`,
         {},
         {
@@ -311,7 +328,10 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<{ success: boolean }>(
+      response,
+      "sso.auth.revokeAllSessions",
+    );
   }
 
   // ============================================================================
@@ -323,7 +343,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async getKeyStatus(): Promise<SsoKeyStatusResponse> {
     const response = await firstValueFrom(
-      this.httpService.get<ApiResponse<SsoKeyStatusResponse>>(
+      this.httpService.get<SsoApiResponse<SsoKeyStatusResponse>>(
         `${this.ssoInternalUrl}/internal/keys/status`,
         {
           headers: this.getInternalHeaders(),
@@ -331,7 +351,7 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<SsoKeyStatusResponse>(response, "sso.auth.getKeyStatus");
   }
 
   /**
@@ -339,7 +359,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async rotateKeys(): Promise<SsoKeyRotateResponse> {
     const response = await firstValueFrom(
-      this.httpService.post<ApiResponse<SsoKeyRotateResponse>>(
+      this.httpService.post<SsoApiResponse<SsoKeyRotateResponse>>(
         `${this.ssoInternalUrl}/internal/keys/rotate`,
         {},
         {
@@ -348,7 +368,7 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<SsoKeyRotateResponse>(response, "sso.auth.rotateKeys");
   }
 
   /**
@@ -356,7 +376,7 @@ export class SsoAuthClient implements OnModuleInit {
    */
   async purgeKeys(): Promise<SsoKeyPurgeResponse> {
     const response = await firstValueFrom(
-      this.httpService.post<ApiResponse<SsoKeyPurgeResponse>>(
+      this.httpService.post<SsoApiResponse<SsoKeyPurgeResponse>>(
         `${this.ssoInternalUrl}/internal/keys/purge`,
         {},
         {
@@ -365,7 +385,7 @@ export class SsoAuthClient implements OnModuleInit {
         },
       ),
     );
-    return response.data.data;
+    return unwrapSsoResponse<SsoKeyPurgeResponse>(response, "sso.auth.purgeKeys");
   }
 
   // ============================================================================
@@ -374,7 +394,7 @@ export class SsoAuthClient implements OnModuleInit {
 
   /**
    * 获取 JWKS 公钥集合
-   * 注意：此方法是公开的，不需要认证
+   * 注意：此方法是公开的，不需要认证，返回原始响应体
    */
   async getJwks(): Promise<{ keys: Array<Record<string, unknown>> }> {
     const response = await firstValueFrom(

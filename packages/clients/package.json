@@ -392,6 +392,10 @@
       "types": "./dist/internal/sso/sso-rbac.client.d.ts",
       "default": "./dist/internal/sso/sso-rbac.client.js"
     },
+    "./sso/sso-response.util": {
+      "types": "./dist/internal/sso/sso-response.util.d.ts",
+      "default": "./dist/internal/sso/sso-response.util.js"
+    },
     "./sso/sso.module": {
       "types": "./dist/internal/sso/sso.module.d.ts",
       "default": "./dist/internal/sso/sso.module.js"
