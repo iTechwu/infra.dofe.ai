@@ -17,7 +17,6 @@ import {
   CURRENT_TENANT_HEADER,
   TENANT_SCOPE_KEY,
   PUBLIC_ENDPOINT_KEY,
-  DEFAULT_TENANT_ID,
 } from '@dofe/infra-contracts';
 
 @Injectable()
@@ -51,14 +50,20 @@ export class TenantContextGuard implements CanActivate {
     // 如果是内部服务且跳过租户检查，直接使用 header 中的租户 ID
     const skipTenantCheck = request.skipTenantCheck;
     if (skipTenantCheck) {
-      const headerTenantId = request.headers[CURRENT_TENANT_HEADER] as string;
-      // 如果 header 中有租户 ID，使用它；否则使用默认租户
-      const tenantId = headerTenantId || DEFAULT_TENANT_ID;
+      const tenantId = request.headers[CURRENT_TENANT_HEADER] as string | undefined;
+      if (!tenantId) {
+        this.logger.warn('Internal service request missing tenant context', {
+          service: request.internalServiceName,
+        });
+        throw new ForbiddenException(
+          'Internal service requests must include the current tenant header',
+        );
+      }
+
       request.tenantId = tenantId;
       this.logger.debug('Using tenant ID for internal service', {
         tenantId,
         service: request.internalServiceName,
-        fromHeader: !!headerTenantId,
       });
       // 不进行其他租户验证
       return true;
