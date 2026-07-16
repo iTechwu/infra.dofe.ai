@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { Readable } from 'stream';
 import {
   VolcengineSpeechApiResponse,
   VolcengineSpeechRequestOptions,
@@ -105,7 +106,10 @@ export class VolcengineSpeechTransport {
     );
 
     return {
-      stream: response.data,
+      stream: await inspectStreamBusinessError(response.data as Readable, {
+        logId: readVolcengineHeader(response.headers, 'x-tt-logid'),
+        requestId: headers['X-Api-Request-Id'],
+      }),
       requestId: headers['X-Api-Request-Id'],
       logId: readVolcengineHeader(response.headers, 'x-tt-logid'),
     };
@@ -165,6 +169,26 @@ export class VolcengineSpeechTransport {
       isRetryableError,
     });
   }
+}
+
+async function inspectStreamBusinessError(
+  stream: Readable,
+  context: { logId?: string; requestId?: string },
+): Promise<Readable> {
+  const iterator = stream[Symbol.asyncIterator]();
+  const first = await iterator.next();
+  if (first.done) return stream;
+  const firstChunk = Buffer.isBuffer(first.value) ? first.value : Buffer.from(first.value);
+  try {
+    const body = JSON.parse(firstChunk.toString('utf8')) as Record<string, unknown>;
+    assertVolcengineSpeechSuccess({ body, ...context });
+  } catch (error) {
+    if (error instanceof VolcengineSpeechError) throw error;
+  }
+  return Readable.from((async function* () {
+    yield first.value;
+    for await (const chunk of iterator) yield chunk;
+  })());
 }
 
 function isRetryableError(error: unknown): boolean {

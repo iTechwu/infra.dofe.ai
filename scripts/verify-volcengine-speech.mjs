@@ -9,6 +9,9 @@ import {
   VOLCENGINE_WS_SERIALIZATION,
   VolcengineWebSocketCodec,
   VolcengineWebSocketSession,
+  VolcengineTtsDuplexCodec,
+  VolcengineTtsDuplexSession,
+  VOLCENGINE_TTS_DUPLEX_EVENT,
 } from '../packages/shared-services/dist/volcengine-speech/protocol/index.js';
 import {
   buildVolcengineSpeechHeaders as buildHeaders,
@@ -22,6 +25,10 @@ import {
 } from '../packages/shared-services/dist/volcengine-speech/config/volcengine-speech.defaults.js';
 import {
   validateCreateAudioRequest,
+  validateTtsHttpRequest,
+  validateTtsLongTextSubmitRequest,
+  validateVoiceTrainingRequest,
+  validateVoiceDesignRequest,
   validateAsrRequest,
   validateInterpretationRequest,
   validateMemoTaskRequest,
@@ -55,7 +62,9 @@ import {
 } from '../packages/shared-services/dist/volcengine-tts/tts-config.js';
 import {
   VolcengineSpeechError,
+  VolcengineTtsError,
   VolcengineSpeechValidationError,
+  classifyVolcengineTtsFailure,
   assertVolcengineHeaderStatusSuccess,
   isRetryableVolcengineSpeechCode,
   isRetryableHttpStatus,
@@ -91,10 +100,69 @@ import {
   VolcengineTtsStreamingClient,
 } from '../packages/shared-services/dist/volcengine-speech/tts-streaming/index.js';
 import {
+  VolcengineTtsApiClient,
+  VolcengineTtsHttpClient,
+  VolcengineTtsDuplexWebSocketSession,
+  VolcengineTtsOneWayWebSocketSession,
+} from '../packages/shared-services/dist/volcengine-speech/tts/index.js';
+import {
+  VolcengineVoiceClient,
+} from '../packages/shared-services/dist/volcengine-speech/voice/index.js';
+import {
+  createVolcengineSpeechClient,
+} from '../packages/shared-services/dist/volcengine-speech/volcengine-speech.factory.js';
+import {
   VolcengineSpeechTransport,
 } from '../packages/shared-services/dist/volcengine-speech/volcengine-speech.transport.js';
 
 const codec = new VolcengineWebSocketCodec();
+const duplexCodec = new VolcengineTtsDuplexCodec();
+const duplexFrames = [];
+const duplexSession = new VolcengineTtsDuplexSession((frame) => duplexFrames.push(frame));
+duplexSession.startConnection();
+duplexSession.startSession('session-1', { req_params: { speaker: 'S_demo' } });
+duplexSession.sendText('hello duplex');
+duplexSession.finishSession();
+duplexSession.finishConnection();
+assert.equal(duplexFrames.length, 5);
+assert.throws(() => duplexSession.sendText('after close'), /not open/);
+const canceledDuplexFrames = [];
+const canceledDuplexSession = new VolcengineTtsDuplexSession((frame) => canceledDuplexFrames.push(frame));
+canceledDuplexSession.startConnection();
+canceledDuplexSession.startSession('session-cancel', {});
+canceledDuplexSession.cancelSession();
+assert.equal(duplexCodec.decode(canceledDuplexFrames.at(-1)).event, VOLCENGINE_TTS_DUPLEX_EVENT.CANCEL_SESSION);
+assert.throws(() => canceledDuplexSession.sendText('after cancel'), /session is not open/);
+const inboundDuplexFrames = [];
+const inboundDuplexSession = new VolcengineTtsDuplexSession((frame) => inboundDuplexFrames.push(frame));
+inboundDuplexSession.startConnection();
+inboundDuplexSession.startSession('session-inbound', { req_params: { speaker: 'S_demo' } });
+const duplexServerSessionStarted = duplexCodec.encodeServerEvent({
+  event: VOLCENGINE_TTS_DUPLEX_EVENT.SESSION_STARTED,
+  sessionId: 'session-inbound',
+  payload: {},
+});
+assert.equal(
+  inboundDuplexSession.handleServerFrame(duplexServerSessionStarted).event,
+  VOLCENGINE_TTS_DUPLEX_EVENT.SESSION_STARTED,
+);
+assert.throws(
+  () => inboundDuplexSession.handleServerFrame(duplexCodec.encodeServerEvent({
+    event: VOLCENGINE_TTS_DUPLEX_EVENT.TTS_RESPONSE,
+    sessionId: 'other-session',
+    payload: {},
+  })),
+  /sessionId does not match/,
+);
+inboundDuplexSession.handleServerFrame(duplexCodec.encodeServerEvent({
+  event: VOLCENGINE_TTS_DUPLEX_EVENT.SESSION_FINISHED,
+  sessionId: 'session-inbound',
+  payload: {},
+}));
+assert.throws(
+  () => inboundDuplexSession.handleServerFrame(duplexServerSessionStarted),
+  /session is not open/,
+);
 const sharedServicesRequire = createRequire(
   new URL('../packages/shared-services/package.json', import.meta.url),
 );
@@ -105,6 +173,20 @@ const jsonFrame = codec.decode(codec.encodeJsonRequest({ text: 'hello' }, 1));
 assert.equal(jsonFrame.messageType, VOLCENGINE_WS_MESSAGE_TYPE.FULL_CLIENT_REQUEST);
 assert.equal(jsonFrame.sequence, 1);
 assert.deepEqual(jsonFrame.json, { text: 'hello' });
+
+const duplexStartConnection = duplexCodec.encodeClientEvent({
+  event: VOLCENGINE_TTS_DUPLEX_EVENT.START_CONNECTION,
+  payload: {},
+});
+assert.deepEqual([...duplexStartConnection.slice(0, 8)], [0x11, 0x14, 0x10, 0x00, 0, 0, 0, 1]);
+const duplexTaskRequest = duplexCodec.encodeClientEvent({
+  event: VOLCENGINE_TTS_DUPLEX_EVENT.TASK_REQUEST,
+  sessionId: 'session-1',
+  payload: { text: 'hello duplex' },
+});
+assert.equal(duplexTaskRequest.readUInt32BE(8), 'session-1'.length);
+assert.equal(duplexTaskRequest.subarray(12, 21).toString(), 'session-1');
+assert.deepEqual(duplexCodec.decode(duplexTaskRequest).json, { text: 'hello duplex' });
 
 // openspeech provider delegation contract: the init / audio frames its
 // buildFullClientRequest / buildAudioOnlyRequest now produce via the codec.
@@ -191,6 +273,14 @@ assert.equal(resolved.endpoints.audioGeneration, 'https://example.test/create');
 assert.equal(resolved.endpoints.asrStandard, 'https://openspeech.bytedance.com/api/v3/auc/bigmodel');
 assert.equal(resolved.endpoints.interpretation, 'wss://openspeech.bytedance.com/api/v3/interpretation');
 assert.equal(resolved.endpoints.streamingAsr, 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel');
+assert.equal(
+  resolved.endpoints.ttsOneWayWebSocket,
+  'wss://openspeech.bytedance.com/api/v3/tts/unidirectional/stream',
+);
+assert.equal(
+  resolved.endpoints.ttsDuplexWebSocket,
+  'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
+);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', timeoutMs: 0 }), /timeoutMs/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', maxRetries: -1 }), /maxRetries/);
 assert.throws(() => resolveConfig({ apiKey: 'test-api-key', endpoints: { memo: '   ' } }), /endpoints.memo/);
@@ -260,6 +350,26 @@ validateCreateAudioRequest({
   text_prompt: 'hello',
   references: [{ audio_url: 'https://example.test/a.mp3' }],
 });
+validateTtsLongTextSubmitRequest({
+  unique_id: 'a'.repeat(20),
+  req_params: { text: 'long text', speaker: 'S_demo', audio_params: { format: 'pcm' } },
+});
+assert.throws(
+  () => validateTtsLongTextSubmitRequest({ req_params: { text: 'a'.repeat(100001), speaker: 'S_demo', audio_params: {} } }),
+  /100000/,
+);
+assert.throws(
+  () => validateTtsLongTextSubmitRequest({ unique_id: 'short', req_params: { text: 'text', speaker: 'S_demo', audio_params: {} } }),
+  /20 and 64/,
+);
+assert.throws(
+  () => validateCreateAudioRequest({ model: 'seed-audio-2.0', text_prompt: 'hello' }),
+  /seed-audio-1.0/,
+);
+assert.throws(
+  () => validateCreateAudioRequest({ model: 'seed-audio-1.0', text_prompt: 'a'.repeat(3001) }),
+  /3000/,
+);
 assert.throws(
   () =>
     validateCreateAudioRequest({
@@ -329,6 +439,24 @@ assert.throws(
   () => validateRequiredString('   ', 'taskId'),
   VolcengineSpeechValidationError,
 );
+validateVoiceTrainingRequest({
+  speaker_id: 'S_demo',
+  audio: { data: 'base64-audio', format: 'wav' },
+  text: 'demo text',
+});
+validateVoiceDesignRequest({ speaker_id: 'S_design', prompt: 'warm narrator', text_prompt: 'hello' });
+assert.throws(
+  () => validateVoiceDesignRequest({ speaker_id: 'S_design', prompt: 'warm narrator' }),
+  /text_prompt or image/,
+);
+assert.throws(
+  () =>
+    validateVoiceTrainingRequest({
+      speaker_id: 'S_demo',
+      audio: { data: ' ', format: 'wav' },
+    }),
+  /audio.data/,
+);
 assert.throws(() => validateRequestOptions({ requestId: ' ' }), /requestId/);
 assert.throws(() => validateRequestOptions({ sequence: 0 }), /sequence/);
 assert.throws(() => validateRequestOptions({ timeoutMs: 0 }), /timeoutMs/);
@@ -341,6 +469,53 @@ assert.throws(
   /non-empty string/,
 );
 validateRequestOptions({ headers: { 'X-Trace': 'ok' } });
+validateTtsHttpRequest({
+  req_params: {
+    text: 'hello typed tts',
+    speaker: 'S_demo',
+    audio_params: { format: 'pcm', sample_rate: 24000 },
+  },
+});
+assert.throws(
+  () =>
+    validateTtsHttpRequest({
+      req_params: { speaker: 'S_demo', audio_params: {} },
+    }),
+  /text or ssml/,
+);
+assert.throws(
+  () =>
+    validateTtsHttpRequest({
+      req_params: {
+        text: 'hello',
+        speaker: 123,
+        audio_params: {},
+      },
+    }),
+  VolcengineSpeechValidationError,
+);
+assert.throws(
+  () =>
+    validateTtsHttpRequest({
+      req_params: {
+        text: 'hello',
+        speaker: 'S_demo',
+        audio_params: [],
+      },
+    }),
+  VolcengineSpeechValidationError,
+);
+assert.throws(
+  () =>
+    validateTtsHttpRequest({
+      req_params: {
+        text: 'hello',
+        speaker: 'S_demo',
+        audio_params: { speech_rate: Number.NaN },
+      },
+    }),
+  VolcengineSpeechValidationError,
+);
 
 const transportCalls = [];
 const transport = VolcengineSpeechTransport.create(
@@ -363,6 +538,12 @@ const transport = VolcengineSpeechTransport.create(
         return of({
           headers: { 'x-tt-logid': ' stream-log ' },
           data: Readable.from(['stream-bytes']),
+        });
+      }
+      if (url.endsWith('/stream-body-error')) {
+        return of({
+          headers: { 'x-tt-logid': ' stream-error-log ' },
+          data: Readable.from([JSON.stringify({ code: 55000000, message: 'resource mismatch' })]),
         });
       }
       if (url.endsWith('/header-status')) {
@@ -427,6 +608,10 @@ for await (const chunk of transportStream.stream) {
   transportStreamBody += chunk.toString();
 }
 assert.equal(transportStreamBody, 'stream-bytes');
+await assert.rejects(
+  () => transport.postStream('https://example.test/stream-body-error', {}),
+  /resource mismatch/,
+);
 const transportHeaderStatus = await transport.postHeaderStatus(
   'https://example.test/header-status',
   { audio: { url: 'https://example.test/audio.mp3' } },
@@ -473,6 +658,88 @@ const retryingTransportResult = await retryingTransport.post(
 assert.equal(transportRetryAttempts, 2);
 assert.deepEqual(retryingTransportResult.data, { retried: true });
 assert.equal(retryingTransportResult.logId, 'retry-log-2');
+
+const typedTtsHttpCalls = [];
+const typedTtsHttpClient = new VolcengineTtsHttpClient({
+  getConfig() {
+    return { endpoints: { ttsStreaming: 'https://example.test/typed-tts' } };
+  },
+  async postStream(url, payload, options) {
+    typedTtsHttpCalls.push({ url, payload, options });
+    return {
+      stream: Readable.from(['typed-audio']),
+      requestId: options.requestId,
+      logId: 'typed-tts-log',
+    };
+  },
+});
+const typedTtsHttpResult = await typedTtsHttpClient.synthesizeHttpStream(
+  {
+    user: { uid: 'typed-user' },
+    req_params: {
+      text: 'hello typed tts',
+      speaker: 'S_demo',
+      audio_params: { format: 'pcm', sample_rate: 24000 },
+    },
+  },
+  { requestId: 'typed-tts-request', resourceId: 'seed-tts-2.0' },
+);
+assert.equal(typedTtsHttpCalls[0].url, 'https://example.test/typed-tts');
+assert.equal(typedTtsHttpCalls[0].payload.req_params.speaker, 'S_demo');
+assert.equal(typedTtsHttpCalls[0].options.resourceId, 'seed-tts-2.0');
+assert.equal(typedTtsHttpResult.logId, 'typed-tts-log');
+
+const typedTtsFacade = new VolcengineTtsApiClient(
+  { createAudio: async () => ({}) },
+  typedTtsHttpClient,
+);
+assert.equal(typeof typedTtsFacade.createAudio, 'function');
+assert.equal(typeof typedTtsFacade.synthesizeHttpStream, 'function');
+const unifiedTypedTtsClient = createVolcengineSpeechClient(
+  { apiKey: 'typed-api-key', resourceId: 'seed-tts-2.0' },
+  { httpService: { post() { return of({ data: {}, headers: {} }); } } },
+);
+assert.equal(typeof unifiedTypedTtsClient.tts.synthesizeHttpStream, 'function');
+
+const typedVoiceCalls = [];
+const typedVoiceClient = new VolcengineVoiceClient({
+  getConfig() {
+    return {
+      endpoints: {
+        voiceTraining: 'https://example.test/voice-clone',
+        voiceQuery: 'https://example.test/get-voice',
+        voiceUpgrade: 'https://example.test/upgrade-voice',
+        voiceDesign: 'https://example.test/voice-design',
+      },
+    };
+  },
+  async post(url, payload, options) {
+    typedVoiceCalls.push({ url, payload, options });
+    return {
+      data: { speaker_id: payload.speaker_id, status: 2 },
+      requestId: options?.requestId,
+      logId: 'typed-voice-log',
+      raw: {},
+    };
+  },
+});
+const trainedVoice = await typedVoiceClient.train(
+  { speaker_id: 'S_demo', audio: { data: 'base64-audio', format: 'wav' } },
+  { requestId: 'typed-voice-request' },
+);
+assert.equal(typedVoiceCalls[0].url, 'https://example.test/voice-clone');
+assert.equal(typedVoiceCalls[0].options.requestId, 'typed-voice-request');
+assert.equal(trainedVoice.data.status, 2);
+await typedVoiceClient.get({ speaker_id: 'S_demo' });
+assert.equal(typedVoiceCalls[1].url, 'https://example.test/get-voice');
+await typedVoiceClient.upgrade({ speaker_id: 'S_demo' });
+assert.equal(typedVoiceCalls[2].url, 'https://example.test/upgrade-voice');
+await typedVoiceClient.design({ speaker_id: 'S_design', prompt: 'warm narrator', text_prompt: 'hello' });
+assert.equal(typedVoiceCalls[3].url, 'https://example.test/voice-design');
+assert.throws(
+  () => typedVoiceClient.get([]),
+  VolcengineSpeechValidationError,
+);
 
 const asrCalls = [];
 const asrClient = new VolcengineAsrClient({
@@ -541,6 +808,88 @@ await assert.rejects(
 assert.equal(isRetryableVolcengineSpeechCode(55000031), true);
 assert.equal(isRetryableVolcengineSpeechCode(45000081), true);
 assert.equal(isRetryableVolcengineSpeechCode(45000001), false);
+
+const ttsServerFailure = classifyVolcengineTtsFailure({
+  capability: 'voice_training',
+  providerCode: 55001307,
+});
+assert.deepEqual(ttsServerFailure, {
+  category: 'upstream',
+  retryable: true,
+});
+const typedTtsError = new VolcengineTtsError({
+  capability: 'tts_http',
+  message: 'speaker not found',
+  providerCode: 45000001,
+  requestId: 'typed-tts-request',
+});
+assert.equal(typedTtsError.capability, 'tts_http');
+assert.equal(typedTtsError.category, 'validation');
+assert.equal(typedTtsError.retryable, false);
+assert.equal(typedTtsError.code, 45000001);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'voice_training',
+    providerCode: 45001123,
+  }),
+  { category: 'quota', retryable: false },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    httpStatus: 429,
+  }),
+  { category: 'rate_limit', retryable: true },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_duplex_ws',
+    providerCode: 45009999,
+  }),
+  { category: 'unknown', retryable: false },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    providerCode: 55009999,
+  }),
+  { category: 'unknown', retryable: false },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    providerCode: 45000081,
+  }),
+  { category: 'unknown', retryable: false },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    httpStatus: 401,
+  }),
+  { category: 'authentication', retryable: false },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    httpStatus: 403,
+  }),
+  { category: 'authorization', retryable: false },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    httpStatus: 599,
+  }),
+  { category: 'upstream', retryable: true },
+);
+assert.deepEqual(
+  classifyVolcengineTtsFailure({
+    capability: 'tts_http',
+    httpStatus: 600,
+  }),
+  { category: 'unknown', retryable: false },
+);
 assert.doesNotThrow(() =>
   assertVolcengineHeaderStatusSuccess({ statusCode: ' 20000000 ' }),
 );
@@ -689,6 +1038,7 @@ assert.equal(idleSession.isOpen(), false);
 idleSession.close();
 assert.equal(idleSession.isOpen(), false);
 assert.throws(() => idleSession.sendJson({ text: 'hi' }), /not open/);
+assert.throws(() => idleSession.sendRaw(Buffer.from([1])), /not open/);
 assert.throws(() => idleSession.sendAudio(Buffer.from([1, 2, 3, 4])), /not open/);
 
 await verifyWebSocketClient({
@@ -730,6 +1080,8 @@ await verifyWebSocketClient({
 await verifyWebSocketErrorCallback();
 await verifyWebSocketClientInitiatedClose();
 await verifyWebSocketConnectFailureCleanup();
+await verifyTtsDuplexWebSocketSession();
+await verifyTtsOneWayWebSocketSession();
 
 // volcengine-tts NDJSON chunk reducer (delegated from processStreamResponse)
 const ttsState = createTtsChunkReducerState();
@@ -1359,6 +1711,134 @@ async function verifyWebSocketConnectFailureCleanup() {
   assert.equal(session.isOpen(), false);
   assert.equal(errors.length, 1);
   assert.match(errors[0].message, /ECONNREFUSED|connect/);
+}
+
+async function verifyTtsDuplexWebSocketSession() {
+  const server = new WebSocketServer({ port: 0 });
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+  const url = `ws://127.0.0.1:${address.port}`;
+  const receivedEvents = [];
+  const serverDone = new Promise((resolve, reject) => {
+    server.once('connection', (ws) => {
+      ws.on('message', (input) => {
+        try {
+          const frame = duplexCodec.decode(Buffer.from(input));
+          receivedEvents.push(frame.event);
+          if (frame.event === VOLCENGINE_TTS_DUPLEX_EVENT.START_CONNECTION) {
+            ws.send(duplexCodec.encodeServerEvent({
+              event: VOLCENGINE_TTS_DUPLEX_EVENT.CONNECTION_STARTED,
+              payload: {},
+            }));
+          }
+          if (frame.event === VOLCENGINE_TTS_DUPLEX_EVENT.START_SESSION) {
+            ws.send(duplexCodec.encodeServerEvent({
+              event: VOLCENGINE_TTS_DUPLEX_EVENT.SESSION_STARTED,
+              sessionId: frame.sessionId,
+              payload: {},
+            }));
+          }
+          if (frame.event === VOLCENGINE_TTS_DUPLEX_EVENT.TASK_REQUEST) {
+            ws.send(duplexCodec.encodeServerEvent({
+              event: VOLCENGINE_TTS_DUPLEX_EVENT.TTS_RESPONSE,
+              sessionId: frame.sessionId,
+              payload: { data: 'audio' },
+            }));
+            ws.send(duplexCodec.encodeServerEvent({
+              event: VOLCENGINE_TTS_DUPLEX_EVENT.SESSION_FINISHED,
+              sessionId: frame.sessionId,
+              payload: {},
+            }));
+          }
+          if (frame.event === VOLCENGINE_TTS_DUPLEX_EVENT.FINISH_CONNECTION) {
+            ws.close(1000, 'duplex-done');
+          }
+        } catch (error) {
+          reject(error);
+        }
+      });
+      ws.on('close', () => resolve());
+    });
+  });
+  const events = [];
+  const session = new VolcengineTtsDuplexWebSocketSession(
+    {
+      buildHeaders() {
+        return { 'X-Api-Key': 'test-api-key' };
+      },
+      getConfig() {
+        return { timeoutMs: 1000, endpoints: { ttsDuplexWebSocket: url } };
+      },
+    },
+    {
+      onEvent: (event) => events.push(event),
+    },
+  );
+  await session.connect();
+  session.startSession('duplex-session', { req_params: { speaker: 'S_demo' } });
+  session.sendText('duplex text');
+  await waitFor(() => events.some((event) => event.event === VOLCENGINE_TTS_DUPLEX_EVENT.SESSION_FINISHED));
+  session.finishConnection();
+  await serverDone;
+  assert.deepEqual(receivedEvents, [1, 100, 200, 2]);
+  assert.equal(events.some((event) => event.event === VOLCENGINE_TTS_DUPLEX_EVENT.TTS_RESPONSE), true);
+  await new Promise((resolve) => server.close(resolve));
+}
+
+async function verifyTtsOneWayWebSocketSession() {
+  const server = new WebSocketServer({ port: 0 });
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  assert.equal(typeof address, 'object');
+  const url = `ws://127.0.0.1:${address.port}`;
+  const serverDone = new Promise((resolve, reject) => {
+    server.once('connection', (ws) => {
+      ws.once('message', (input) => {
+        try {
+          assert.deepEqual(codec.decode(Buffer.from(input)).json, {
+            user: { uid: 'one-way-test' },
+            req_params: {
+              text: 'one way text',
+              speaker: 'S_demo',
+              audio_params: { format: 'pcm' },
+            },
+          });
+          ws.send(createServerJsonFrame({ event: 'TTSResponse', data: 'audio' }));
+          ws.send(createServerJsonFrame({ event: 'SessionFinished' }));
+          ws.close(1000, 'one-way-done');
+        } catch (error) {
+          reject(error);
+        }
+      });
+      ws.on('close', () => resolve());
+    });
+  });
+  const events = [];
+  const session = new VolcengineTtsOneWayWebSocketSession(
+    {
+      buildHeaders() {
+        return { 'X-Api-Key': 'test-api-key' };
+      },
+      getConfig() {
+        return { timeoutMs: 1000, endpoints: { ttsOneWayWebSocket: url } };
+      },
+    },
+    {
+      user: { uid: 'one-way-test' },
+      req_params: {
+        text: 'one way text',
+        speaker: 'S_demo',
+        audio_params: { format: 'pcm' },
+      },
+    },
+    { onEvent: (event) => events.push(event) },
+  );
+  await session.connect();
+  await serverDone;
+  await waitFor(() => events.some((event) => event.event === 'SessionFinished'));
+  assert.equal(session.isOpen(), false);
+  await new Promise((resolve) => server.close(resolve));
 }
 
 async function waitFor(predicate) {

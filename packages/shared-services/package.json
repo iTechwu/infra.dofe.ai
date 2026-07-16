@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-shared-services",
-  "version": "0.1.91",
+  "version": "0.1.92",
   "description": "Composite business services — orchestration across prisma/redis/rabbitmq/clients",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -385,6 +385,14 @@
       "types": "./dist/volcengine-speech/errors/volcengine-speech.errors.d.ts",
       "default": "./dist/volcengine-speech/errors/volcengine-speech.errors.js"
     },
+    "./volcengine-speech/errors/volcengine-tts-error-codes": {
+      "types": "./dist/volcengine-speech/errors/volcengine-tts-error-codes.d.ts",
+      "default": "./dist/volcengine-speech/errors/volcengine-tts-error-codes.js"
+    },
+    "./volcengine-speech/errors/volcengine-tts.error": {
+      "types": "./dist/volcengine-speech/errors/volcengine-tts.error.d.ts",
+      "default": "./dist/volcengine-speech/errors/volcengine-tts.error.js"
+    },
     "./volcengine-speech/headers": {
       "types": "./dist/volcengine-speech/headers.d.ts",
       "default": "./dist/volcengine-speech/headers.js"
@@ -421,6 +429,14 @@
       "types": "./dist/volcengine-speech/protocol/index.d.ts",
       "default": "./dist/volcengine-speech/protocol/index.js"
     },
+    "./volcengine-speech/protocol/tts-duplex-codec": {
+      "types": "./dist/volcengine-speech/protocol/tts-duplex-codec.d.ts",
+      "default": "./dist/volcengine-speech/protocol/tts-duplex-codec.js"
+    },
+    "./volcengine-speech/protocol/tts-duplex-session": {
+      "types": "./dist/volcengine-speech/protocol/tts-duplex-session.d.ts",
+      "default": "./dist/volcengine-speech/protocol/tts-duplex-session.js"
+    },
     "./volcengine-speech/protocol/websocket-codec": {
       "types": "./dist/volcengine-speech/protocol/websocket-codec.d.ts",
       "default": "./dist/volcengine-speech/protocol/websocket-codec.js"
@@ -453,6 +469,10 @@
       "types": "./dist/volcengine-speech/task-result.d.ts",
       "default": "./dist/volcengine-speech/task-result.js"
     },
+    "./volcengine-speech/tts": {
+      "types": "./dist/volcengine-speech/tts/index.d.ts",
+      "default": "./dist/volcengine-speech/tts/index.js"
+    },
     "./volcengine-speech/tts-streaming": {
       "types": "./dist/volcengine-speech/tts-streaming/index.d.ts",
       "default": "./dist/volcengine-speech/tts-streaming/index.js"
@@ -460,6 +480,30 @@
     "./volcengine-speech/tts-streaming/tts-streaming.client": {
       "types": "./dist/volcengine-speech/tts-streaming/tts-streaming.client.d.ts",
       "default": "./dist/volcengine-speech/tts-streaming/tts-streaming.client.js"
+    },
+    "./volcengine-speech/tts/tts-duplex-websocket.session": {
+      "types": "./dist/volcengine-speech/tts/tts-duplex-websocket.session.d.ts",
+      "default": "./dist/volcengine-speech/tts/tts-duplex-websocket.session.js"
+    },
+    "./volcengine-speech/tts/tts-http.client": {
+      "types": "./dist/volcengine-speech/tts/tts-http.client.d.ts",
+      "default": "./dist/volcengine-speech/tts/tts-http.client.js"
+    },
+    "./volcengine-speech/tts/tts-long-text.auth": {
+      "types": "./dist/volcengine-speech/tts/tts-long-text.auth.d.ts",
+      "default": "./dist/volcengine-speech/tts/tts-long-text.auth.js"
+    },
+    "./volcengine-speech/tts/tts-one-way-websocket.session": {
+      "types": "./dist/volcengine-speech/tts/tts-one-way-websocket.session.d.ts",
+      "default": "./dist/volcengine-speech/tts/tts-one-way-websocket.session.js"
+    },
+    "./volcengine-speech/tts/tts.client": {
+      "types": "./dist/volcengine-speech/tts/tts.client.d.ts",
+      "default": "./dist/volcengine-speech/tts/tts.client.js"
+    },
+    "./volcengine-speech/tts/tts.types": {
+      "types": "./dist/volcengine-speech/tts/tts.types.d.ts",
+      "default": "./dist/volcengine-speech/tts/tts.types.js"
     },
     "./volcengine-speech/types": {
       "types": "./dist/volcengine-speech/types.d.ts",
@@ -480,6 +524,10 @@
     "./volcengine-speech/voice/voice.client": {
       "types": "./dist/volcengine-speech/voice/voice.client.d.ts",
       "default": "./dist/volcengine-speech/voice/voice.client.js"
+    },
+    "./volcengine-speech/voice/voice.types": {
+      "types": "./dist/volcengine-speech/voice/voice.types.d.ts",
+      "default": "./dist/volcengine-speech/voice/voice.types.js"
     },
     "./volcengine-speech/volcengine-speech.client": {
       "types": "./dist/volcengine-speech/volcengine-speech.client.d.ts",

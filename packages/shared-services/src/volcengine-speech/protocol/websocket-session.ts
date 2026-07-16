@@ -18,6 +18,7 @@ export interface VolcengineWebSocketSessionOptions<TEvent = unknown> {
   initPayload?: unknown;
   callbacks?: VolcengineWebSocketCallbacks<TEvent>;
   requestOptions?: VolcengineSpeechRequestOptions;
+  rawMessageHandler?: (data: Buffer) => void;
 }
 
 export class VolcengineWebSocketSession<TEvent = unknown> {
@@ -116,6 +117,12 @@ export class VolcengineWebSocketSession<TEvent = unknown> {
     this.sendFrame(this.codec.encodeAudioRequest(audio, isLast, sequence));
   }
 
+  /** Sends a product-specific frame while retaining shared open/error checks. */
+  sendRaw(frame: Buffer): void {
+    this.assertOpen();
+    this.sendFrame(frame);
+  }
+
   /**
    * Returns whether the underlying WebSocket is open and can send frames.
    * Returns `false` before `connect()` resolves and after `close()`/connection
@@ -133,7 +140,12 @@ export class VolcengineWebSocketSession<TEvent = unknown> {
 
   private handleMessage(data: WebSocketMessageData): void {
     try {
-      const frame = this.codec.decode(toBuffer(data));
+      const raw = toBuffer(data);
+      if (this.options.rawMessageHandler) {
+        this.options.rawMessageHandler(raw);
+        return;
+      }
+      const frame = this.codec.decode(raw);
       if (frame.messageType === VOLCENGINE_WS_MESSAGE_TYPE.ERROR_RESPONSE) {
         throw new VolcengineSpeechError({
           message: String(frame.json ?? 'Volcengine WebSocket error'),

@@ -9,6 +9,8 @@ export const defaultVolcengineSpeechEndpoints: VolcengineSpeechEndpointConfig =
     audioGeneration: 'https://openspeech.bytedance.com/api/v3/tts/create',
     ttsStreaming: 'https://openspeech.bytedance.com/api/v3/tts/unidirectional',
     ttsWebSocket: 'wss://openspeech.bytedance.com/api/v3/tts/bidirectional',
+    ttsOneWayWebSocket: 'wss://openspeech.bytedance.com/api/v3/tts/unidirectional/stream',
+    ttsDuplexWebSocket: 'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
     asrStandard: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     asrFast: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
     asrOffPeak: 'https://openspeech.bytedance.com/api/v3/auc/bigmodel',
@@ -18,6 +20,10 @@ export const defaultVolcengineSpeechEndpoints: VolcengineSpeechEndpointConfig =
     podcast: 'wss://openspeech.bytedance.com/api/v3/podcast',
     memo: 'https://openspeech.bytedance.com/api/v3/memo',
     voice: 'https://openspeech.bytedance.com/api/v3/voice',
+    voiceTraining: 'https://openspeech.bytedance.com/api/v3/tts/voice_clone',
+    voiceQuery: 'https://openspeech.bytedance.com/api/v3/tts/get_voice',
+    voiceUpgrade: 'https://openspeech.bytedance.com/api/v3/tts/upgrade_voice',
+    voiceDesign: 'https://openspeech.bytedance.com/api/v3/tts/voice_design',
   };
 
 export const defaultVolcengineSpeechConfig: Omit<
@@ -78,6 +84,14 @@ function normalizeEndpoints(
       endpoints.ttsWebSocket,
       'endpoints.ttsWebSocket',
     ),
+    ttsOneWayWebSocket: normalizeVolcengineEndpoint(
+      endpoints.ttsOneWayWebSocket,
+      'endpoints.ttsOneWayWebSocket',
+    ),
+    ttsDuplexWebSocket: normalizeVolcengineEndpoint(
+      endpoints.ttsDuplexWebSocket,
+      'endpoints.ttsDuplexWebSocket',
+    ),
     asrStandard: normalizeVolcengineEndpoint(
       endpoints.asrStandard,
       'endpoints.asrStandard',
@@ -99,6 +113,19 @@ function normalizeEndpoints(
     podcast: normalizeVolcengineEndpoint(endpoints.podcast, 'endpoints.podcast'),
     memo: normalizeVolcengineEndpoint(endpoints.memo, 'endpoints.memo'),
     voice: normalizeVolcengineEndpoint(endpoints.voice, 'endpoints.voice'),
+    voiceTraining: normalizeVolcengineEndpoint(
+      endpoints.voiceTraining,
+      'endpoints.voiceTraining',
+    ),
+    voiceQuery: normalizeVolcengineEndpoint(
+      endpoints.voiceQuery,
+      'endpoints.voiceQuery',
+    ),
+    voiceUpgrade: normalizeVolcengineEndpoint(
+      endpoints.voiceUpgrade,
+      'endpoints.voiceUpgrade',
+    ),
+    voiceDesign: normalizeVolcengineEndpoint(endpoints.voiceDesign, 'endpoints.voiceDesign'),
   };
 }
 

@@ -8,6 +8,7 @@ export * from './config/volcengine-speech.config';
 export * from './errors';
 export * from './audio-generation';
 export * from './tts-streaming';
+export * from './tts';
 export * from './asr';
 export * from './interpretation';
 export * from './streaming-asr';

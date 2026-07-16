@@ -58,7 +58,7 @@ Audio-related documents to check during real integration:
 ### Audio Generation
 
 - Method: `client.audioGeneration.createAudio`.
-- Official reference: https://www.volcengine.com/docs/6561/2534913?lang=zh
+- Official reference: https://www.volcengine.com/docs/6561/2550782?lang=zh
 - Evidence:
   - Request id:
   - Log id:
@@ -69,7 +69,7 @@ Audio-related documents to check during real integration:
 ### HTTP Streaming TTS
 
 - Method: `client.ttsStreaming.synthesizeStream`.
-- Official reference: https://www.volcengine.com/docs/6561/2532486?lang=zh
+- Official reference: https://www.volcengine.com/docs/6561/2528925?lang=zh
 - Evidence:
   - Request id:
   - Log id:
@@ -79,12 +79,39 @@ Audio-related documents to check during real integration:
 ### TTS WebSocket
 
 - Method: `client.ttsStreaming.connectWebSocket`.
-- Official reference: https://www.volcengine.com/docs/6561/1829010?lang=zh
+- Official reference: https://www.volcengine.com/docs/6561/2534913?lang=zh
 - Evidence:
   - Request id:
   - Init frame accepted:
   - Audio callback invoked:
   - Close code:
+  - Result:
+
+### Bidirectional TTS WebSocket
+
+- Target method: `client.tts.connectDuplex` (not implemented yet).
+- Official reference: https://www.volcengine.com/docs/6561/2532486?lang=zh
+- Evidence:
+  - Request id:
+  - Connect id:
+  - StartConnection/StartSession accepted:
+  - TaskRequest audio callback invoked:
+  - FinishSession/FinishConnection accepted:
+  - Close code:
+  - Result:
+
+### Async Long-Text TTS
+
+- Target methods: `client.tts.submitLongText` and `client.tts.queryLongText`
+  (not implemented yet).
+- Official reference: https://www.volcengine.com/docs/6561/1829010?lang=zh
+- Important: the current official document lists legacy app-id/access-key
+  authentication. Confirm new-console API-key support before enabling this
+  capability in the API-key-only unified transport.
+- Evidence:
+  - Submit request id/log id/task id:
+  - Query request id/log id/task status:
+  - Audio URL returned:
   - Result:
 
 ### Recording File ASR Standard HTTP

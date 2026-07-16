@@ -4,6 +4,8 @@ export interface VolcengineSpeechEndpointConfig {
   audioGeneration: string;
   ttsStreaming: string;
   ttsWebSocket: string;
+  ttsOneWayWebSocket: string;
+  ttsDuplexWebSocket: string;
   asrStandard: string;
   asrFast: string;
   asrOffPeak: string;
@@ -13,6 +15,10 @@ export interface VolcengineSpeechEndpointConfig {
   podcast: string;
   memo: string;
   voice: string;
+  voiceTraining: string;
+  voiceQuery: string;
+  voiceUpgrade: string;
+  voiceDesign: string;
 }
 
 export interface VolcengineSpeechConfig {

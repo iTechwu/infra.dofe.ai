@@ -12,6 +12,7 @@ import { VolcengineSpeechConfig } from './types';
 import { VolcengineSpeechClient } from './volcengine-speech.client';
 import { VolcengineSpeechTransport } from './volcengine-speech.transport';
 import { VolcengineVoiceClient } from './voice';
+import { VolcengineTtsApiClient, VolcengineTtsHttpClient } from './tts';
 
 export interface VolcengineSpeechClientDeps {
   httpService: HttpService;
@@ -28,6 +29,8 @@ export function createVolcengineSpeechClient(
   );
   const audioGeneration = new VolcengineAudioGenerationClient(transport);
   const ttsStreaming = new VolcengineTtsStreamingClient(transport);
+  const ttsHttp = new VolcengineTtsHttpClient(transport);
+  const tts = new VolcengineTtsApiClient(audioGeneration, ttsHttp, transport);
   const asr = new VolcengineAsrClient(transport);
   const realtime = new VolcengineRealtimeSpeechClient(transport);
   const interpretation = new VolcengineInterpretationClient(transport);
@@ -40,6 +43,7 @@ export function createVolcengineSpeechClient(
     transport,
     audioGeneration,
     ttsStreaming,
+    tts,
     asr,
     realtime,
     interpretation,

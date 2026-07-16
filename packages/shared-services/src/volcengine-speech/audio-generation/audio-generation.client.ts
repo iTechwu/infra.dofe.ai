@@ -8,6 +8,7 @@ import {
   VolcengineSpeechResult,
 } from '../types';
 import { validateCreateAudioRequest } from '../validation';
+import { normalizeVolcengineTtsError } from '../errors';
 
 @Injectable()
 export class VolcengineAudioGenerationClient {
@@ -18,13 +19,18 @@ export class VolcengineAudioGenerationClient {
     options?: VolcengineSpeechRequestOptions,
   ): Promise<VolcengineSpeechResult<CreateAudioResponse>> {
     validateCreateAudioRequest(request);
-    const result = await this.transport.post<
-      VolcengineSpeechApiResponse<CreateAudioResponse>
-    >(
-      this.transport.getConfig().endpoints.audioGeneration,
-      request,
-      options,
-    );
+    let result;
+    try {
+      result = await this.transport.post<
+        VolcengineSpeechApiResponse<CreateAudioResponse>
+      >(
+        this.transport.getConfig().endpoints.audioGeneration,
+        request,
+        options,
+      );
+    } catch (error) {
+      throw normalizeVolcengineTtsError(error, 'audio_generation');
+    }
     const raw = result.raw as VolcengineSpeechApiResponse<CreateAudioResponse>;
 
     return {

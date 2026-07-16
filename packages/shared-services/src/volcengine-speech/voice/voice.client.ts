@@ -5,7 +5,19 @@ import {
   VolcengineSpeechResult,
   VolcengineVoiceRequest,
 } from '../types';
-import { validateRequiredString } from '../validation';
+import {
+  validateRequiredString,
+  validateVoiceLookupRequest,
+  validateVoiceTrainingRequest,
+  validateVoiceDesignRequest,
+} from '../validation';
+import {
+  VolcengineVoiceLookupRequest,
+  VolcengineVoiceProfile,
+  VolcengineVoiceTrainingRequest,
+  VolcengineVoiceDesignRequest,
+} from './voice.types';
+import { normalizeVolcengineTtsError, VolcengineTtsCapability } from '../errors';
 
 @Injectable()
 export class VolcengineVoiceClient {
@@ -47,6 +59,40 @@ export class VolcengineVoiceClient {
   ): Promise<VolcengineSpeechResult<T>> {
     validateRequiredString(taskId, 'taskId');
     return this.request<T>({ action: 'task/query', body: { task_id: taskId } }, options);
+  }
+
+  train(
+    request: VolcengineVoiceTrainingRequest,
+    options?: VolcengineSpeechRequestOptions,
+  ): Promise<VolcengineSpeechResult<VolcengineVoiceProfile>> {
+    validateVoiceTrainingRequest(request);
+    return this.postTyped('voice_training', this.transport.getConfig().endpoints.voiceTraining, request, options);
+  }
+
+  get(
+    request: VolcengineVoiceLookupRequest,
+    options?: VolcengineSpeechRequestOptions,
+  ): Promise<VolcengineSpeechResult<VolcengineVoiceProfile>> {
+    validateVoiceLookupRequest(request);
+    return this.postTyped('voice_query', this.transport.getConfig().endpoints.voiceQuery, request, options);
+  }
+
+  upgrade(
+    request: VolcengineVoiceLookupRequest,
+    options?: VolcengineSpeechRequestOptions,
+  ): Promise<VolcengineSpeechResult<VolcengineVoiceProfile>> {
+    validateVoiceLookupRequest(request);
+    return this.postTyped('voice_upgrade', this.transport.getConfig().endpoints.voiceUpgrade, request, options);
+  }
+
+  design(request: VolcengineVoiceDesignRequest, options?: VolcengineSpeechRequestOptions): Promise<VolcengineSpeechResult<unknown>> {
+    validateVoiceDesignRequest(request);
+    return this.postTyped('voice_design', this.transport.getConfig().endpoints.voiceDesign, request, options);
+  }
+
+  private async postTyped<T>(capability: VolcengineTtsCapability, url: string, body: unknown, options?: VolcengineSpeechRequestOptions): Promise<VolcengineSpeechResult<T>> {
+    try { return await this.transport.post<T>(url, body, options); }
+    catch (error) { throw normalizeVolcengineTtsError(error, capability); }
   }
 }
 

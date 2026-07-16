@@ -9,6 +9,15 @@ import {
   VolcengineStreamingAsrRequest,
 } from '../types';
 import { VolcengineSpeechValidationError } from '../errors';
+import {
+  VolcengineTtsHttpRequest,
+  VolcengineTtsLongTextSubmitRequest,
+} from '../tts/tts.types';
+import {
+  VolcengineVoiceLookupRequest,
+  VolcengineVoiceTrainingRequest,
+  VolcengineVoiceDesignRequest,
+} from '../voice/voice.types';
 
 const AUDIO_REFERENCE_KEYS = ['speaker', 'audio_data', 'audio_url'] as const;
 const IMAGE_REFERENCE_KEYS = ['image_data', 'image_url'] as const;
@@ -16,13 +25,20 @@ const SUPPORTED_AUDIO_FORMATS = ['wav', 'mp3', 'pcm', 'ogg_opus'] as const;
 const SUPPORTED_SAMPLE_RATES = [8000, 16000, 24000, 32000, 44100, 48000] as const;
 const SUPPORTED_ASR_MODES = ['standard', 'fast', 'offPeak'] as const;
 const RESERVED_ASR_OPTION_KEYS = ['audio', 'callback'] as const;
+const TTS_SAMPLE_RATES = [8000, 16000, 22050, 24000, 32000, 44100, 48000] as const;
 
 export function validateCreateAudioRequest(request: CreateAudioRequest): void {
   if (!request.model?.trim()) {
     throwValidation('model is required', 'model');
   }
+  if (request.model !== 'seed-audio-1.0') {
+    throwValidation('model must be seed-audio-1.0', 'model');
+  }
   if (!request.text_prompt?.trim()) {
     throwValidation('text_prompt is required', 'text_prompt');
+  }
+  if (request.text_prompt.length > 3000) {
+    throwValidation('text_prompt cannot exceed 3000 characters', 'text_prompt');
   }
 
   const references = request.references ?? [];
@@ -127,8 +143,114 @@ export function validateStreamingAsrRequest(
   }
 }
 
-export function validateRequiredString(value: string, field: string): void {
-  if (!value.trim()) {
+export function validateTtsHttpRequest(
+  request: VolcengineTtsHttpRequest,
+): void {
+  if (!request || typeof request !== 'object' || Array.isArray(request)) {
+    throwValidation('TTS request must be an object', 'request');
+  }
+  const params = request.req_params;
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    throwValidation('req_params is required', 'req_params');
+  }
+  if (!hasText(params.text) && !hasText(params.ssml)) {
+    throwValidation('text or ssml is required', 'req_params');
+  }
+  validateRequiredString(params.speaker, 'req_params.speaker');
+  if (
+    !params.audio_params ||
+    typeof params.audio_params !== 'object' ||
+    Array.isArray(params.audio_params)
+  ) {
+    throwValidation('audio_params is required', 'req_params.audio_params');
+  }
+  const audioParams = params.audio_params;
+  if (
+    audioParams.format !== undefined &&
+    !SUPPORTED_AUDIO_FORMATS.includes(audioParams.format)
+  ) {
+    throwValidation('unsupported audio format', 'req_params.audio_params.format');
+  }
+  if (
+    audioParams.sample_rate !== undefined &&
+    !TTS_SAMPLE_RATES.includes(audioParams.sample_rate)
+  ) {
+    throwValidation('unsupported sample rate', 'req_params.audio_params.sample_rate');
+  }
+  assertRange(audioParams.speech_rate, -50, 100, 'req_params.audio_params.speech_rate');
+  assertRange(audioParams.loudness_rate, -50, 100, 'req_params.audio_params.loudness_rate');
+  if (
+    audioParams.emotion_scale !== undefined &&
+    (!Number.isInteger(audioParams.emotion_scale) ||
+      audioParams.emotion_scale < 1 ||
+      audioParams.emotion_scale > 5)
+  ) {
+    throwValidation('emotion_scale must be between 1 and 5', 'req_params.audio_params.emotion_scale');
+  }
+}
+
+export function validateTtsLongTextSubmitRequest(
+  request: VolcengineTtsLongTextSubmitRequest,
+): void {
+  validateTtsHttpRequest(request);
+  const textLength = Math.max(request.req_params.text?.length ?? 0, request.req_params.ssml?.length ?? 0);
+  if (textLength > 100000) {
+    throwValidation('text or ssml cannot exceed 100000 characters', 'req_params');
+  }
+  if (request.unique_id !== undefined && (request.unique_id.length < 20 || request.unique_id.length > 64)) {
+    throwValidation('unique_id length must be between 20 and 64 characters', 'unique_id');
+  }
+}
+
+export function validateVoiceTrainingRequest(
+  request: VolcengineVoiceTrainingRequest,
+): void {
+  if (!request || typeof request !== 'object' || Array.isArray(request)) {
+    throwValidation('voice training request must be an object', 'request');
+  }
+  validateRequiredString(request.speaker_id, 'speaker_id');
+  if (
+    !request.audio ||
+    typeof request.audio !== 'object' ||
+    Array.isArray(request.audio)
+  ) {
+    throwValidation('audio is required', 'audio');
+  }
+  validateRequiredString(request.audio.data, 'audio.data');
+  validateRequiredString(request.audio.format, 'audio.format');
+  validateOptionalString(request.text, 'text');
+  validateOptionalString(request.language, 'language');
+  if (
+    request.extra_params !== undefined &&
+    (typeof request.extra_params !== 'object' ||
+      request.extra_params === null ||
+      Array.isArray(request.extra_params))
+  ) {
+    throwValidation('extra_params must be an object', 'extra_params');
+  }
+}
+
+export function validateVoiceLookupRequest(
+  request: VolcengineVoiceLookupRequest,
+): void {
+  if (!request || typeof request !== 'object' || Array.isArray(request)) {
+    throwValidation('voice lookup request must be an object', 'request');
+  }
+  validateRequiredString(request.speaker_id, 'speaker_id');
+  validateOptionalString(request.custom_speaker_id, 'custom_speaker_id');
+}
+
+export function validateVoiceDesignRequest(request: VolcengineVoiceDesignRequest): void {
+  if (!request || typeof request !== 'object' || Array.isArray(request)) throwValidation('voice design request must be an object', 'request');
+  validateRequiredString(request.speaker_id, 'speaker_id');
+  validateRequiredString(request.prompt, 'prompt');
+  if (!hasText(request.text_prompt) && !hasText(request.image_url) && !hasText(request.image_bytes)) throwValidation('text_prompt or image is required', 'text_prompt');
+  if (hasText(request.image_url) && hasText(request.image_bytes)) throwValidation('image_url and image_bytes are mutually exclusive', 'image_url');
+  if (request.text_prompt && request.text_prompt.length > 200) throwValidation('text_prompt cannot exceed 200 characters', 'text_prompt');
+}
+
+export function validateRequiredString(value: unknown, field: string): void {
+  if (typeof value !== 'string' || !value.trim()) {
     throwValidation(`${field} is required`, field);
   }
 }
@@ -229,7 +351,7 @@ function assertRange(
   if (value === undefined) {
     return;
   }
-  if (value < min || value > max) {
+  if (!Number.isFinite(value) || value < min || value > max) {
     throwValidation(`${field} must be between ${min} and ${max}`, `audio_config.${field}`);
   }
 }
