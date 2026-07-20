@@ -16,3 +16,4 @@ export * from './docker-image-puller';
 export * from './docker-sandbox.types';
 export * from './docker-sandbox-command';
 export * from './docker-sandbox-runner';
+export * from './runtime-credentials';

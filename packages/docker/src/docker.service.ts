@@ -35,6 +35,10 @@ import {
   getApiKeyEnvName,
   getBaseUrlEnvName,
 } from './docker.utils';
+import {
+  appendRuntimeCredentialEnv,
+  type RuntimeCredentialEnv,
+} from './runtime-credentials';
 
 export interface ContainerInfo {
   id: string;
@@ -74,6 +78,11 @@ export interface CreateContainerOptions {
   poolMode?: boolean;
   /** Use external sandbox mode - Manager creates sandbox container instead of OpenClaw */
   useExternalSandbox?: boolean;
+  /**
+   * Allowlisted dynamic AK/SK pairs for the Bot runtime. Other manager-owned
+   * environment variables cannot be overridden through this field.
+   */
+  runtimeEnv?: RuntimeCredentialEnv;
 }
 
 /** Options for creating a sandbox container */
@@ -594,6 +603,8 @@ export class DockerService implements OnModuleInit {
         `Container ${options.hostname} configured in direct mode`,
       );
     }
+
+    appendRuntimeCredentialEnv(envVars, options.runtimeEnv);
 
     // Determine network mode:
     // - In zero-trust mode, connect to common_network to reach keyring-proxy

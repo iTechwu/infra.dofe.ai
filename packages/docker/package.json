@@ -61,6 +61,10 @@
       "types": "./dist/docker.utils.d.ts",
       "default": "./dist/docker.utils.js"
     },
+    "./runtime-credentials": {
+      "types": "./dist/runtime-credentials.d.ts",
+      "default": "./dist/runtime-credentials.js"
+    },
     "./types": {
       "types": "./dist/types.d.ts",
       "default": "./dist/types.js"
