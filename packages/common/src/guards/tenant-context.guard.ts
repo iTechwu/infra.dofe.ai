@@ -71,6 +71,20 @@ export class TenantContextGuard implements CanActivate {
 
     const userId = request.userId;
     if (!userId) {
+      // 没有用户身份。对租户范围路由而言这必定是配置错误：认证守卫必须先于本守卫执行
+      // 并写入 request.userId。此处必须显式失败，而不是静默 return —— 静默 return 会让
+      // request.tenantId 保持未设置，最终在控制器层抛出误导性的 400（"No tenant
+      // context available"）。典型案例：`@Auth() + @UseGuards(TenantContextGuard)` 因
+      // 装饰器求值顺序导致本守卫抢在 AuthGuard 之前运行（agents 账单接口曾因此故障）。
+      if (requiresTenantScope) {
+        this.logger.warn(
+          'Tenant-scoped route reached without a resolved user identity; auth guard likely executed after tenant-context guard',
+          { requiresTenantScope },
+        );
+        throw new ForbiddenException(
+          '无法确定当前租户：缺少用户身份，请检查认证守卫是否先于租户上下文守卫执行',
+        );
+      }
       this.logger.warn('No userId found in request, skipping tenant context');
       return true;
     }
