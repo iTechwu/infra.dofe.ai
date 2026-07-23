@@ -1,3 +1,5 @@
+## [0.1.93] - 2026-07-23
+
 ## [0.1.92] - 2026-07-23
 - fix(common): fail loudly on tenant-scoped routes missing user identity
 

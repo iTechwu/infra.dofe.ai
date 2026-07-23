@@ -1,6 +1,6 @@
 {
   "name": "@dofe/sso-browser",
-  "version": "0.1.92",
+  "version": "0.1.93",
   "description": "Browser-side SSO — OAuth/OIDC flows, token management, logout sync",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
