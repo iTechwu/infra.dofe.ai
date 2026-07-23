@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-i18n",
-  "version": "0.1.91",
+  "version": "0.1.92",
   "description": "Internationalization locale JSON resources (en/zh-CN)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

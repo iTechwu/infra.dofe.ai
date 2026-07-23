@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-jwt",
-  "version": "0.1.91",
+  "version": "0.1.92",
   "description": "JWT signing/verification and JWKS client for dofe.ai services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +25,7 @@
     "postbuild": "node ../../scripts/generate-exports.mjs"
   },
   "peerDependencies": {
-    "@dofe/infra-common": "^0.1.91",
+    "@dofe/infra-common": "^0.1.92",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/jwt": "^11.0.0",

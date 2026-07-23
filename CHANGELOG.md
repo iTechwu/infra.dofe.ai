@@ -1,3 +1,6 @@
+## [0.1.92] - 2026-07-23
+- fix(common): fail loudly on tenant-scoped routes missing user identity
+
 ## [0.1.91] - 2026-07-13
 - feat(sso): 添加 SsoPaginatedResponse 接口并实现分页拉取功能
 
