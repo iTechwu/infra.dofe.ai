@@ -55,13 +55,27 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
     }
 
     // 创建 pg 连接池
-    this.pool = new Pool({
+    // options（pg startup 参数）在当前 pg 类型版本未声明，运行时原生支持：
+    // adapter-pg 的 formatDateTime 以无时区偏移的 UTC 墙钟发送 Date 参数，
+    // 会话必须固定 UTC，否则非 UTC 服务器时区下所有 Date 落库偏移。
+    const poolConfig: {
+      connectionString?: string;
+      options?: string;
+      connectionTimeoutMillis?: number;
+      idleTimeoutMillis?: number;
+      max?: number;
+    } = {
       connectionString,
+      // adapter-pg 把 Date 参数序列化为无时区偏移的 UTC 墙钟字符串（formatDateTime），
+      // Postgres 会按会话 TimeZone 解析；服务器时区非 UTC 时所有 Date 参数落库偏移
+      // （如 Asia/Shanghai 偏 -8h），库内 now()/触发器比较全部失真。会话必须固定 UTC。
+      options: '-c timezone=UTC',
       // 连接池配置，与 Prisma 6 保持一致
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 300000, // 5分钟
       max: 10, // 最大连接数
-    });
+    };
+    this.pool = new Pool(poolConfig);
 
     // 创建 Prisma 适配器 - 直接传入 Pool 实例
     const adapter = new PrismaPg(this.pool);

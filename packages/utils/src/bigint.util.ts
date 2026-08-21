@@ -37,6 +37,16 @@ export default {
         if (obj instanceof Uint8Array) {
           return obj;
         }
+        // Preserve Prisma Decimal (decimal.js) instances: Object.fromEntries strips
+        // the prototype, degrading Number() to NaN and JSON to raw {s,e,d} internals
+        // (budget limit checks were broken by this).
+        if (
+          typeof (obj as { s?: unknown }).s === 'number' &&
+          typeof (obj as { e?: unknown }).e === 'number' &&
+          Array.isArray((obj as { d?: unknown }).d)
+        ) {
+          return obj;
+        }
         if (Array.isArray(obj)) {
           seen.add(obj);
           const result = obj.map((value) => this.serialize(value, seen));
