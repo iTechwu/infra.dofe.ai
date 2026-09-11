@@ -205,6 +205,10 @@ export default class RequestMiddleware implements NestMiddleware<
       () => {
         const store = asyncLocalStorage.getStore();
 
+        // 请求日志统一在响应终结点记录：finish 携带最终 statusCode
+        // （此前在 next() 后立即记录，拿到的是处理器运行前的默认 200，
+        //  导致大量真实 404/5xx 被记成 200，成功率失真）；
+        // close 且未正常结束单独记为 client_cancelled。
         res.once('finish', () => {
           const dbSummary = getRequestDbSummaryLogData(store?.dbSummary);
           if (dbSummary) {
@@ -216,18 +220,29 @@ export default class RequestMiddleware implements NestMiddleware<
               ...dbSummary,
             });
           }
+          if (environment.isProduction()) {
+            // getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
+            // 使用类型断言以兼容现有函数（输出已经过脱敏白名单处理）
+            this.logger.info('RequestMiddleware', {
+              traceId,
+              ...getReqMainInfo(req as any, res as any),
+            });
+          }
+        });
+
+        res.once('close', () => {
+          if (res.writableEnded) return; // finish 已覆盖正常结束
+          if (environment.isProduction()) {
+            this.logger.info('RequestMiddleware', {
+              traceId,
+              ...(getReqMainInfo(req as any, res as any) as Record<string, unknown>),
+              responseEnded: false,
+              endReason: 'client_cancelled',
+            });
+          }
         });
 
         next();
-        // 记录日志 (包含 traceId)
-        // 注意：getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
-        // 使用类型断言以兼容现有函数
-        if (environment.isProduction()) {
-          this.logger.info('RequestMiddleware', {
-            traceId,
-            ...getReqMainInfo(req as any, res as any),
-          });
-        }
       },
     );
   }
