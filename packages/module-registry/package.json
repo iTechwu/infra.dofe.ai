@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-module-registry",
-  "version": "0.1.93",
+  "version": "0.1.94",
   "description": "Dynamic NestJS module registration — @RegisterModule decorator, auto-scanning, dependency resolution",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
