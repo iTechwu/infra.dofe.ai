@@ -83,10 +83,6 @@ const SAFE_REQUEST_HEADER_KEYS = [
   'x-trace-id',
 ] as const;
 
-/** query key 命中这些词根时整段键值对视为敏感并打码。 */
-const SENSITIVE_QUERY_KEY_PATTERN =
-  /(key|token|secret|password|passwd|signature|credential|authorization|apikey|api_key|access_token|refresh_token|session|cookie)/i;
-
 function pickSafeHeaders(headers: unknown): Record<string, unknown> {
   if (!headers || typeof headers !== 'object') return {};
   const source = headers as Record<string, unknown>;
@@ -97,27 +93,10 @@ function pickSafeHeaders(headers: unknown): Record<string, unknown> {
   return result;
 }
 
-/**
- * 规范化 URL：保留 path，query 值中的敏感键整对打码，其余 query 值仅保留长度标记，
- * 避免完整 URI 中的密钥/租户参数进入日志。
- */
+/** Only log the path: query keys as well as values may contain credentials. */
 function sanitizeUrl(url: unknown): string {
-  if (typeof url !== 'string') return String(url ?? '');
-  const queryIndex = url.indexOf('?');
-  if (queryIndex === -1) return url;
-  const path = url.slice(0, queryIndex);
-  const query = url.slice(queryIndex + 1);
-  const sanitized = query
-    .split('&')
-    .filter(Boolean)
-    .map((pair) => {
-      const eq = pair.indexOf('=');
-      const key = eq === -1 ? pair : pair.slice(0, eq);
-      if (SENSITIVE_QUERY_KEY_PATTERN.test(key)) return `${key}=***`;
-      return `${key}=~${eq === -1 ? 0 : pair.length - eq - 1}`;
-    })
-    .join('&');
-  return `${path}?${sanitized}`;
+  if (typeof url !== 'string') return '';
+  return url.split(/[?#]/, 1)[0] ?? '';
 }
 
 /** 主体只保留身份标识字段，绝不变量输出整个 user 对象。 */
