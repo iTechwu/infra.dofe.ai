@@ -40,6 +40,48 @@ function getDomainFromCode(errorCode: string): string {
   return 'common';
 }
 
+/**
+ * 把 errorData 压成单行摘要写入 exception.message。
+ *
+ * 背景：message 此前恒为空串（i18n 展示走 getErrorMessage/toJSON），
+ * 但异常传播到日志、测试与堆栈时只剩 "ApiException: "——Prisma 的
+ * 原始错误码/消息/字段全部丢失，排障时只能看到空壳。摘要上限 500
+ * 字符，展示路径不受影响。
+ */
+function summarizeErrorData(data: unknown): string {
+  if (data === null || data === undefined) return '';
+  let text: string;
+  if (typeof data === 'string') {
+    text = data;
+  } else if (typeof data === 'object') {
+    const record = data as Record<string, unknown>;
+    const parts: string[] = [];
+    if (typeof record.description === 'string') parts.push(record.description);
+    if (typeof record.prismaCode === 'string') parts.push(`prismaCode=${record.prismaCode}`);
+    if (record.model) parts.push(`model=${String(record.model)}`);
+    if (Array.isArray(record.fields) && record.fields.length > 0) {
+      parts.push(`fields=${record.fields.join(',')}`);
+    }
+    if (typeof record.originalMessage === 'string') {
+      parts.push(record.originalMessage.replace(/\s+/g, ' ').trim());
+    }
+    if (parts.length === 0) {
+      try {
+        text = JSON.stringify(data);
+      } catch {
+        text = '';
+      }
+    } else {
+      text = parts.join(' | ');
+    }
+  } else {
+    text = String(data);
+  }
+  text = text.replace(/\s+/g, ' ').trim();
+  return text.length > 500 ? `${text.slice(0, 497)}...` : text;
+}
+
+
 export class ApiException extends HttpException {
   public readonly errorCode: ApiErrorCode;
   public readonly errorType: string;
@@ -70,6 +112,12 @@ export class ApiException extends HttpException {
     this.errorData = data;
     this.domain = getDomainFromCode(errorCode);
     this.name = 'ApiException';
+
+    // 可诊断性：把 errorData 摘要写进 message（此前恒为空串）。i18n
+    // 展示走 getErrorMessage/toJSON，不受影响；日志、测试与堆栈则能
+    // 直接看到原始错误上下文。
+    const summary = summarizeErrorData(data);
+    if (summary) this.message = `${errorType}: ${summary}`;
   }
 
   /**
