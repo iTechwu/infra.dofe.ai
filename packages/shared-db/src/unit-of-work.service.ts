@@ -30,7 +30,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { PrismaService } from '@dofe/infra-prisma';
+import { getTenantId, PrismaService } from '@dofe/infra-prisma';
 import { runInTransactionContext } from './transaction-context';
 
 /**
@@ -71,6 +71,15 @@ export class UnitOfWorkService {
     options?: TransactionOptions,
   ): Promise<T> {
     return await this.prisma.write.$transaction(async (tx: any) => {
+      // 租户安全上下文传播（RLS Phase 2 地基）：调用方通过 infra-prisma
+      // 的 tenantContext ALS 声明租户时，事务内第一条语句把它写入
+      // PostgreSQL 会话变量（set_config ... true = 事务结束自动失效），
+      // 使行级安全策略（app.knowledge.tenant）在本事务内强制生效。
+      // 未声明租户（系统级任务/跨租户 cron）时零开销、行为不变。
+      const tenantId = getTenantId();
+      if (tenantId) {
+        await tx.$executeRaw`SELECT set_config('app.knowledge.tenant', ${tenantId}, true)`;
+      }
       // 在事务上下文中运行回调
       // db 服务层会自动通过 getTransactionClient() 获取事务客户端
       return await runInTransactionContext(
