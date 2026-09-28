@@ -8,15 +8,27 @@
  * - Detect deprecation warnings from response headers
  */
 
+import {
+  API_CONTRACT_HEADER,
+  API_VERSION_HEADER,
+  APP_BUILD_HEADER,
+  DEPRECATION_HEADER,
+  DEPRECATION_MESSAGE_HEADER,
+  MIN_APP_BUILD_HEADER,
+  SERVER_BUILD_HEADER,
+  SUNSET_HEADER,
+} from '@dofe/infra-contracts';
+
+/** 与 @dofe/infra-contracts 头常量保持单一事实源 */
 export const VERSION_HEADERS = {
-  API_VERSION: 'x-api-version',
-  API_CONTRACT: 'x-api-contract',
-  APP_BUILD: 'x-app-build',
-  SERVER_BUILD: 'x-server-build',
-  MIN_APP_BUILD: 'x-min-app-build',
-  DEPRECATION: 'x-deprecation',
-  DEPRECATION_MESSAGE: 'x-deprecation-message',
-  SUNSET: 'x-sunset',
+  API_VERSION: API_VERSION_HEADER,
+  API_CONTRACT: API_CONTRACT_HEADER,
+  APP_BUILD: APP_BUILD_HEADER,
+  SERVER_BUILD: SERVER_BUILD_HEADER,
+  MIN_APP_BUILD: MIN_APP_BUILD_HEADER,
+  DEPRECATION: DEPRECATION_HEADER,
+  DEPRECATION_MESSAGE: DEPRECATION_MESSAGE_HEADER,
+  SUNSET: SUNSET_HEADER,
 } as const;
 
 /**

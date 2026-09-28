@@ -1,5 +1,17 @@
 import type { AppRouter, InitClientReturn } from '@ts-rest/core';
 import { initClient } from '@ts-rest/core';
+import {
+  APP_BUILD_HEADER,
+  API_VERSION_HEADER,
+  DEVICE_ID_HEADER,
+  MIN_APP_BUILD_HEADER,
+  OS_HEADER,
+  PLATFORM_HEADER,
+  SERVER_BUILD_HEADER,
+  DEPRECATION_HEADER,
+  DEPRECATION_MESSAGE_HEADER,
+  SUNSET_HEADER,
+} from '@dofe/infra-contracts';
 
 /**
  * Options for creating a dofe.ai ts-rest API fetcher.
@@ -53,18 +65,19 @@ export interface DofeTsRestFetcherOptions {
 
 /**
  * Version-related HTTP headers used by dofe.ai APIs.
+ * 与 @dofe/infra-contracts 头常量保持单一事实源
  */
 export const VersionHeaders = {
-  API_VERSION: 'x-api-version',
-  APP_BUILD: 'x-app-build',
-  SERVER_BUILD: 'x-server-build',
-  MIN_APP_BUILD: 'x-min-app-build',
-  DEPRECATION: 'x-deprecation',
-  DEPRECATION_MESSAGE: 'x-deprecation-message',
-  SUNSET: 'x-sunset',
-  PLATFORM: 'x-platform',
-  OS: 'x-os',
-  DEVICE_ID: 'x-device-id',
+  API_VERSION: API_VERSION_HEADER,
+  APP_BUILD: APP_BUILD_HEADER,
+  SERVER_BUILD: SERVER_BUILD_HEADER,
+  MIN_APP_BUILD: MIN_APP_BUILD_HEADER,
+  DEPRECATION: DEPRECATION_HEADER,
+  DEPRECATION_MESSAGE: DEPRECATION_MESSAGE_HEADER,
+  SUNSET: SUNSET_HEADER,
+  PLATFORM: PLATFORM_HEADER,
+  OS: OS_HEADER,
+  DEVICE_ID: DEVICE_ID_HEADER,
 } as const;
 
 /**

@@ -64,6 +64,7 @@
     }
   },
   "dependencies": {
+    "@dofe/infra-contracts": "workspace:*",
     "@dofe/infra-contracts-base": "^0.1.95"
   }
 }
