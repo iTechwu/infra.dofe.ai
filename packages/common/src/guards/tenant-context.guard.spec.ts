@@ -16,19 +16,19 @@ describe('TenantContextGuard', () => {
     };
     const context = {
       switchToHttp: () => ({ getRequest: () => request }),
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
     } as unknown as ExecutionContext;
     const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride: vi.fn().mockReturnValue(false),
     } as unknown as Reflector;
     const tenantContextService = {
-      resolveCurrentTenant: jest.fn(),
-      getTenantMember: jest.fn(),
+      resolveCurrentTenant: vi.fn(),
+      getTenantMember: vi.fn(),
     };
     const logger = {
-      debug: jest.fn(),
-      warn: jest.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
     };
     const guard = new TenantContextGuard(
       reflector,
@@ -54,19 +54,19 @@ describe('TenantContextGuard', () => {
     };
     const context = {
       switchToHttp: () => ({ getRequest: () => request }),
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
     } as unknown as ExecutionContext;
     const reflector = {
-      getAllAndOverride: jest.fn((key: string) => key === TENANT_SCOPE_KEY),
+      getAllAndOverride: vi.fn((key: string) => key === TENANT_SCOPE_KEY),
     } as unknown as Reflector;
     const tenantContextService = {
-      resolveCurrentTenant: jest.fn(),
-      getTenantMember: jest.fn(),
+      resolveCurrentTenant: vi.fn(),
+      getTenantMember: vi.fn(),
     };
     const logger = {
-      debug: jest.fn(),
-      warn: jest.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
     };
     const guard = new TenantContextGuard(
       reflector,

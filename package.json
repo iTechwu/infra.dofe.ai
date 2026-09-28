@@ -44,13 +44,15 @@
     "publish:workspace": "bash scripts/publish-single.sh workspace"
   },
   "devDependencies": {
+    "@dofe/infra-config": "workspace:*",
     "@dofe/infra-contracts": "workspace:*",
     "@dofe/infra-docker": "workspace:*",
-    "@dofe/infra-workspace": "workspace:*",
     "@dofe/infra-runtime": "workspace:*",
+    "@dofe/infra-workspace": "workspace:*",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.27",
     "@nestjs/platform-fastify": "^11.1.27",
+    "@nestjs/testing": "^11.2.6",
     "@types/node": "^25.9.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
