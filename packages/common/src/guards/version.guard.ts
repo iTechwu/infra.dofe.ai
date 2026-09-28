@@ -17,6 +17,8 @@ import {
   CONTRACTS,
   MIN_SUPPORTED_CONTRACT,
   CURRENT_CONTRACT,
+  extractGeneration,
+  isSkippedAppBuild,
   type ApiContract,
   type Platform,
 } from '@dofe/infra-contracts';
@@ -139,7 +141,7 @@ export class VersionGuard implements CanActivate {
     response: FastifyReply,
   ): boolean {
     // 开发环境或未提供版本时跳过检查
-    if (!appBuild || appBuild === 'dev' || appBuild === 'server') {
+    if (isSkippedAppBuild(appBuild)) {
       // 设置默认版本上下文
       request.versionContext = {
         platform: PLATFORMS.WEB,
@@ -150,7 +152,7 @@ export class VersionGuard implements CanActivate {
     }
 
     // 提取代际号
-    const clientGeneration = this.extractGeneration(appBuild);
+    const clientGeneration = extractGeneration(appBuild);
 
     // 检查兼容性
     if (clientGeneration < MIN_CLIENT_GENERATION) {
@@ -276,16 +278,6 @@ export class VersionGuard implements CanActivate {
     }
 
     return true;
-  }
-
-  /**
-   * 从构建版本中提取代际号
-   * @param buildVersion 构建版本字符串 (格式: YYYY.MM.DD-hash-gNN)
-   * @returns 代际号，无法解析时返回 0
-   */
-  private extractGeneration(buildVersion: string): number {
-    const match = buildVersion.match(/-g(\d+)$/);
-    return match ? parseInt(match[1], 10) : 0;
   }
 
   /**
