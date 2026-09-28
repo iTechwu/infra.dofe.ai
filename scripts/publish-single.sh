@@ -14,6 +14,9 @@
 #   --otp=<code>      NPM 2FA one-time password
 #   --dry-run         Preview without publishing
 #   --no-commit       Don't create git commit (useful for CI)
+#   --keep-deps       部分发布模式: 不重写内部 @dofe/* 依赖区间, 仅 bump 自身版本。
+#                     用于只发布部分包的场景; 必须先发布被依赖的包, 例如:
+#                     contracts -> contracts-base -> web-runtime -> common
 #
 # Examples:
 #   bash scripts/publish-single.sh sso-browser           # bump patch
@@ -57,6 +60,7 @@ EXACT_VERSION=""
 OTP_FLAG=""
 DRY_RUN=false
 NO_COMMIT=false
+KEEP_DEPS=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -67,6 +71,7 @@ while [[ $# -gt 0 ]]; do
     --otp=*)    OTP_FLAG="--otp=${1#*=}"; shift ;;
     --dry-run)  DRY_RUN=true; shift ;;
     --no-commit) NO_COMMIT=true; shift ;;
+    --keep-deps) KEEP_DEPS=true; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -163,17 +168,24 @@ INTERNAL_PACKAGE_NAMES=$(node -e "
 node -e "
   const pkg = require('./$PKG_JSON');
   const internal = new Set('$INTERNAL_PACKAGE_NAMES'.split(',').filter(Boolean));
-  for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
-    const deps = pkg[section];
-    if (!deps) continue;
-    for (const name of Object.keys(deps)) {
-      if (internal.has(name)) deps[name] = '^$NEW_VERSION';
+  const keepDeps = $KEEP_DEPS;
+  if (!keepDeps) {
+    for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+      const deps = pkg[section];
+      if (!deps) continue;
+      for (const name of Object.keys(deps)) {
+        if (internal.has(name)) deps[name] = '^$NEW_VERSION';
+      }
     }
   }
   pkg.version = '$NEW_VERSION';
   require('fs').writeFileSync('$PKG_JSON', JSON.stringify(pkg, null, 2) + '\n');
 "
-echo "  Version bumped to $NEW_VERSION; internal package ranges set to ^$NEW_VERSION."
+if $KEEP_DEPS; then
+  echo "  Version bumped to $NEW_VERSION; internal package ranges kept as-is (--keep-deps)."
+else
+  echo "  Version bumped to $NEW_VERSION; internal package ranges set to ^$NEW_VERSION."
+fi
 echo ""
 
 # ──────────────────────────────────────────────────────────────────────
