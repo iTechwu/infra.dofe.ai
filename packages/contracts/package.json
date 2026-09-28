@@ -9,6 +9,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./build-id": {
+      "types": "./dist/build-id.d.ts",
+      "default": "./dist/build-id.js"
+    },
     "./constants": {
       "types": "./dist/constants.d.ts",
       "default": "./dist/constants.js"

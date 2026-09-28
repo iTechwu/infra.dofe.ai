@@ -12,6 +12,9 @@ export * from './error-codes';
 // Shared constants
 export * from './constants';
 
+// App build id parsing & validation
+export * from './build-id';
+
 // Core types
 export * from './types';
 
