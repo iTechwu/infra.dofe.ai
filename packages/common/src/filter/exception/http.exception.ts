@@ -134,13 +134,28 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Get error code
     const code = isApiException ? exception.getErrorCode() : status;
 
+    // 普通 HttpException: 优先取 response 对象中的 msg/message 与 data，
+    // 避免 Guard 等抛出的富 payload（如 VersionGuard 426 版本拦截）被类名默认文案吞掉
+    const rawResponse = isApiException ? null : exception.getResponse();
+    const payload =
+      rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)
+        ? (rawResponse as Record<string, unknown>)
+        : null;
+
     // Get error message
     const message = isApiException
       ? exception.getErrorMessage(i18n!)
-      : exception.message || exception.getResponse();
+      : (typeof payload?.msg === 'string' && payload.msg) ||
+        (typeof payload?.message === 'string' && payload.message) ||
+        exception.message ||
+        (payload ? JSON.stringify(payload) : String(rawResponse ?? ''));
 
     // Get error data
-    const data = isApiException ? exception.getErrorData() : undefined;
+    const data = isApiException
+      ? exception.getErrorData()
+      : payload && payload.data !== undefined
+        ? payload.data
+        : undefined;
 
     const responseBody: any = {
       code,
@@ -149,6 +164,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp,
       path,
     };
+
+    // 非 ApiException 的 HttpException 若携带 data（如 VersionGuard 426），透传给客户端
+    if (!isApiException && data !== undefined) {
+      responseBody.data = data;
+    }
 
     // Add enhanced error details for ApiException
     if (isApiException) {
