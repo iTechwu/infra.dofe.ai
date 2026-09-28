@@ -285,7 +285,6 @@ export class TokenManager {
       expire,
       user: user ?? {
         id: '',
-        nickname: null,
         code: null,
         headerImg: null,
         sex: null,
