@@ -7,6 +7,7 @@ import { AppRouter } from '@ts-rest/core';
  */
 
 // HTTP status codes used in the API
+// 注意: SUCCESS: 0 为历史遗留, 实际成功响应包络为 { code: 200, msg: 'ok', data }
 export const HTTP_CODE = {
   SUCCESS: 0,
   ERROR: -1,
@@ -276,10 +277,11 @@ export const SuccessResponseSchema = z.object({
 export type SuccessResponse = z.infer<typeof SuccessResponseSchema>;
 
 // Error response schema (basic)
+// data 可为结构化对象: 如 VersionGuard 426 携带 {clientBuild, minGeneration, ...}
 export const ErrorResponseSchema = z.object({
   code: z.number(),
   msg: z.string(),
-  data: z.null().optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
