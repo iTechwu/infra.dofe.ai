@@ -14,6 +14,7 @@
     "clean": "pnpm -r --stream run clean",
     "lint": "eslint 'packages/*/src/**/*.ts' --fix",
     "typecheck": "pnpm -r --stream run typecheck",
+    "test": "vitest run",
     "verify:storage-feature-boundary": "node scripts/check-storage-feature-boundary.mjs",
     "verify:shared-primitives-boundary": "node scripts/check-shared-primitives-boundary.mjs",
     "verify:package-exports": "node scripts/verify-package-exports.mjs",
@@ -54,6 +55,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "7.8.2",
     "typescript": "^6.0.3",
+    "vitest": "^4.1.9",
     "zod": "^4.4.3"
   }
 }
