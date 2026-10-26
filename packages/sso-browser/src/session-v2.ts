@@ -67,10 +67,16 @@ export class BrowserSessionV2 {
       headers: { 'content-type': 'application/json', 'x-dofe-csrf': await this.requireCsrf() }, body: JSON.stringify(body),
     });
   }
-  private async prepare(body: unknown, signal?: AbortSignal): Promise<Record<string, unknown>> {
+  private async prepare(body: { operation_id: string; request: RequestEnvelope }, signal?: AbortSignal): Promise<Record<string, unknown>> {
     for (let attempt = 0; ; attempt++) {
       try { return await json(await this.post('prepare', body, signal)); }
       catch (error) {
+        // This response is emitted only before dispatch. Preserve business bytes
+        // and their idempotency header while starting a fresh authority operation.
+        if (error instanceof BrowserSessionV2Error && error.code === 'operation_expired_retry' && attempt < 3) {
+          body.operation_id = crypto.randomUUID();
+          continue;
+        }
         if (!(error instanceof BrowserSessionV2Error) || error.code !== 'session_busy' || attempt >= 20) throw error;
         await new Promise<void>((resolve, reject) => {
           if (signal?.aborted) { reject(signal.reason); return; }
@@ -118,7 +124,7 @@ export class BrowserSessionV2 {
       method: 'POST', credentials: 'include', cache: 'no-store', signal,
       headers: { 'content-type': 'application/json' }, body: JSON.stringify({ challenge: renewed.challenge }),
     }));
-    if (confirmation.confirmed !== true || confirmation.operation_id !== operation_id)
+    if (confirmation.confirmed !== true || confirmation.operation_id !== body.operation_id)
       throw new BrowserSessionV2Error(409, 'cookie_confirmation_required');
     // Server rechecks the confirmation. Never trust this browser boolean as authorization.
     return this.post('dispatch', body, signal);
