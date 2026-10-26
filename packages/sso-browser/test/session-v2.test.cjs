@@ -114,3 +114,14 @@ test('real business headers are bound while credentials and forged authority hea
  assert.equal(envelope.headers['idempotency-key'],'original-business-key');assert.equal(envelope.headers['anthropic-version'],'2023-06-01');assert.equal(envelope.headers['x-current-tenant'],'selected-member-tenant');assert.equal(envelope.headers['x-knowledge-tenant'],'knowledge-scope');
  for(const name of ['cookie','authorization','x-sso-service-token','x-workspace-admin','x-tenant-id','if-match'])assert.equal(envelope.headers[name],undefined);
 });
+test('deployment envelopes that keep only msg still surface retryable session codes',async()=>{
+ let prepares=0,dispatches=0;
+ const fetch=async(url,init={})=>{const path=new URL(url).pathname;
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'csrf',idle_expires_at:Date.now()+100000});
+  if(path.endsWith('/prepare')){prepares++;if(prepares===1)return Response.json({code:409,msg:'session_busy',traceId:'t'},{status:409});return Response.json({session_context:'native',idle_expires_at:Date.now()+100000});}
+  if(path.endsWith('/dispatch')){dispatches++;return Response.json({ok:true});}throw new Error('unexpected path');
+ };
+ const client=new BrowserSessionV2({apiBaseUrl:'https://rp.example/api',ssoBaseUrl:'https://sso.example/api',fetch});
+ const response=await client.fetch('https://rp.example/api/items');
+ assert.equal(response.status,200);assert.equal(prepares,2);assert.equal(dispatches,1);
+});

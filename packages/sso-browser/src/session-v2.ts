@@ -27,7 +27,7 @@ async function json(response: Response): Promise<Record<string, unknown>> {
   let raw: unknown; try { raw = await response.json(); } catch { throw new BrowserSessionV2Error(response.status || 502, 'invalid_session_response'); }
   if (!raw || typeof raw !== 'object') throw new BrowserSessionV2Error(502, 'invalid_session_response');
   const record = raw as Record<string, unknown>;
-  if (!response.ok) throw new BrowserSessionV2Error(response.status, typeof record.error === 'string' ? record.error : 'session_request_failed');
+  if (!response.ok) throw new BrowserSessionV2Error(response.status, typeof record.error === 'string' ? record.error : typeof record.msg === 'string' && record.msg && record.msg !== 'Http Exception' ? record.msg : 'session_request_failed');
   // Existing apps may wrap plain Nest controllers in the common success envelope.
   return record.data && typeof record.data === 'object' ? record.data as Record<string, unknown> : record;
 }
