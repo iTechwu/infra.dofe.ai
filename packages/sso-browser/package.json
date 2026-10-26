@@ -1,7 +1,7 @@
 {
   "name": "@dofe/sso-browser",
-  "version": "0.1.95",
-  "description": "Browser-side SSO — OAuth/OIDC flows, token management, logout sync",
+  "version": "0.1.96",
+  "description": "Browser-side SSO \u2014 OAuth/OIDC flows, token management, logout sync",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -20,6 +20,10 @@
     "./use-sso-logout-sync": {
       "types": "./dist/use-sso-logout-sync.d.ts",
       "default": "./dist/use-sso-logout-sync.js"
+    },
+    "./session-v2": {
+      "types": "./dist/session-v2.d.ts",
+      "default": "./dist/session-v2.js"
     }
   },
   "scripts": {
