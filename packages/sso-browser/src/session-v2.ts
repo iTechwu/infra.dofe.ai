@@ -8,6 +8,8 @@ export interface BrowserSessionV2Status {
 export interface BrowserSessionV2Options {
   bffPath?: string;
   apiBaseUrl: string; ssoBaseUrl: string; fetch?: typeof fetch;
+  /** Fixed resource prefix used by the RP contract when transport uses a mounted alias. */
+  canonicalApiPath?: string;
   /** Maps existing SSO-upload proxy URLs onto explicitly supported uploader resource paths. */
   uploadProxyPath?: string;
   /** API-key data plane keeps its own credential; it still passes session coordination. */
@@ -40,6 +42,8 @@ export class BrowserSessionV2 {
     this.transport = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.api = options.apiBaseUrl.replace(/\/+$/, '');
     this.sso = options.ssoBaseUrl.replace(/\/+$/, '');
+    if (options.canonicalApiPath !== undefined && !/^\/(?:[A-Za-z0-9_-]+\/?)+$/.test(options.canonicalApiPath))
+      throw new BrowserSessionV2Error(500, 'invalid_canonical_api_path');
   }
   async status(): Promise<BrowserSessionV2Status> {
     if (this.loggedOut) return { authenticated: false };
@@ -91,11 +95,15 @@ export class BrowserSessionV2 {
     const absolute = input instanceof Request ? input : new URL(String(input), globalThis.location?.origin ?? this.api);
     const request = new Request(absolute, init);
     const url = new URL(request.url); const apiUrl = new URL(this.api, globalThis.location?.origin);
+    // Validate origin before the upload exception: matching a path never grants an external origin.
+    if (url.origin !== apiUrl.origin) throw new BrowserSessionV2Error(403, 'request_origin_rejected');
     let path = url.pathname + url.search;
     if (this.options.uploadProxyPath && url.pathname.startsWith(this.options.uploadProxyPath + '/')) {
       path = url.pathname.slice(this.options.uploadProxyPath.length).replace(/^\/api\//, '/') + url.search;
-    } else if (url.origin !== apiUrl.origin || !(url.pathname === apiUrl.pathname || url.pathname.startsWith(apiUrl.pathname.replace(/\/$/, '') + '/'))) {
+    } else if (!(url.pathname === apiUrl.pathname || url.pathname.startsWith(apiUrl.pathname.replace(/\/$/, '') + '/'))) {
       throw new BrowserSessionV2Error(403, 'request_origin_rejected');
+    } else if (this.options.canonicalApiPath) {
+      path = this.options.canonicalApiPath.replace(/\/$/, '') + url.pathname.slice(apiUrl.pathname.replace(/\/$/, '').length) + url.search;
     }
     const credential = this.options.credentialPaths?.some(pattern => pattern.test(path)) === true;
     const headers: Record<string, string> = {};
