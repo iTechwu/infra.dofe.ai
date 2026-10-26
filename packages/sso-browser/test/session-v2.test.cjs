@@ -76,3 +76,16 @@ test('an already dispatched or unknown outcome is never automatically prepared w
   assert.equal(prepares,1);assert.equal(dispatches,phase==='prepare'?0:1);
  }
 });
+
+test('real business headers are bound while credentials and forged authority headers are removed',async()=>{
+ let envelope;
+ const fetch=async(url,init={})=>{const p=new URL(url).pathname;
+  if(p.endsWith('/status'))return Response.json({authenticated:true,csrf:'csrf',idle_expires_at:Date.now()+100000});
+  if(p.endsWith('/prepare')){envelope=JSON.parse(init.body).request;return Response.json({session_context:'native'});}
+  return Response.json({ok:true});
+ };
+ const client=new BrowserSessionV2({apiBaseUrl:'https://rp.example/api',ssoBaseUrl:'https://sso.example/api',fetch});
+ await client.fetch('https://rp.example/api/items',{method:'POST',headers:{'idempotency-key':'original-business-key','anthropic-version':'2023-06-01','x-current-tenant':'selected-member-tenant','x-knowledge-tenant':'knowledge-scope',accept:'application/json','content-type':'application/json',cookie:'must-drop',authorization:'Bearer must-drop','x-sso-service-token':'must-drop','x-workspace-admin':'true','x-tenant-id':'forged-tenant','if-match':'not-used'},body:'{}'});
+ assert.equal(envelope.headers['idempotency-key'],'original-business-key');assert.equal(envelope.headers['anthropic-version'],'2023-06-01');assert.equal(envelope.headers['x-current-tenant'],'selected-member-tenant');assert.equal(envelope.headers['x-knowledge-tenant'],'knowledge-scope');
+ for(const name of ['cookie','authorization','x-sso-service-token','x-workspace-admin','x-tenant-id','if-match'])assert.equal(envelope.headers[name],undefined);
+});

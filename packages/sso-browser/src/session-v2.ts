@@ -15,7 +15,7 @@ export interface BrowserSessionV2Options {
   onSessionActivity?: (idleExpiresAt: number) => void;
 }
 interface RequestEnvelope { method: string; path: string; headers: Record<string, string>; body: string; }
-const ALLOWED_HEADERS = /^(content-type|accept|x-(api-version|app-build|platform|os|device-id|mptrail|current-tenant|knowledge-tenant|workspace-id|request-id|idempotency-key))$/i;
+const ALLOWED_HEADERS = /^(content-type|accept|idempotency-key|anthropic-version|x-(api-version|app-build|platform|os|device-id|mptrail|current-tenant|knowledge-tenant|workspace-id|request-id|idempotency-key))$/i;
 function base64(bytes: Uint8Array): string {
   let value = ''; const chunkSize = 32768;
   for (let i = 0; i < bytes.length; i += chunkSize) value += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
