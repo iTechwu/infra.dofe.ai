@@ -20,6 +20,31 @@ function setup(options={}){
  };
  return {calls,client:new BrowserSessionV2({apiBaseUrl:'https://rp.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport})};
 }
+test('mounted transport preserves business bytes while signing canonical resource paths',async()=>{
+ for(const [mount,canonical] of [['/hz/ai/api','/api'],['/hz/plugins/api','/plugins/api']]){
+  const calls=[];let operation;let envelope;
+  const client=new BrowserSessionV2({apiBaseUrl:`https://ixicai.example${mount}`,ssoBaseUrl:'https://ixicai.example/hz/user/api',canonicalApiPath:canonical,fetch:async(url,init={})=>{
+   calls.push(String(url));const path=new URL(url).pathname;const body=init.body?JSON.parse(init.body):{};
+   if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'csrf',idle_expires_at:Date.now()+100000});
+   if(path.endsWith('/prepare')){operation=body.operation_id;envelope=body.request;return Response.json({session_context:'browser',ticket:'ticket'});}
+   if(path.endsWith('/renew-cookie'))return Response.json({challenge:'challenge'});
+   if(path.endsWith('/confirm-cookie'))return Response.json({confirmed:true,operation_id:operation});
+   if(path.endsWith('/dispatch')){assert.deepEqual(body.request,envelope);return Response.json({ok:true});}
+   throw new Error('unexpected transport');
+  }});
+  await client.fetch(`https://ixicai.example${mount}/items?filter=a%2Fb&x=1&x=2`,{method:'POST',body:'exact bytes',headers:{'idempotency-key':'fixed-business'}});
+  assert.equal(envelope.path,`${canonical}/items?filter=a%2Fb&x=1&x=2`);assert.equal(atob(envelope.body),'exact bytes');assert.equal(envelope.headers['idempotency-key'],'fixed-business');
+  assert(calls.every(url=>url.startsWith(`https://ixicai.example${mount}/auth/`)||url.startsWith('https://ixicai.example/hz/user/api/auth/')));
+ }
+});
+test('alias mount and upload exceptions never admit another origin or a neighbouring mount',async()=>{
+ let calls=0;const client=new BrowserSessionV2({apiBaseUrl:'https://ixicai.example/hz/ai/api',ssoBaseUrl:'https://ixicai.example/hz/user/api',canonicalApiPath:'/api',uploadProxyPath:'/hz/ai/sso-upload',fetch:async()=>{calls++;throw new Error('must not authenticate');}});
+ for(const target of ['https://evil.example/hz/ai/sso-upload/api/uploader/token/private','https://ixicai.example/hz/ai/api-extra/items','https://ixicai.example/hz/ds/api/items','https://ixicai.example/api/items','https://ixicai.example/hz/ai/api/../../ds/api/items'])
+  await assert.rejects(client.fetch(target),e=>e.code==='request_origin_rejected');
+ assert.equal(calls,0);
+ for(const prefix of ['https://evil.example/api','/api?query','/api/../internal','//api','/api//x','/api%2fx'])
+  assert.throws(()=>new BrowserSessionV2({apiBaseUrl:'https://rp.example/api',ssoBaseUrl:'https://sso.example/api',canonicalApiPath:prefix}),e=>e.code==='invalid_canonical_api_path');
+});
 test('browser dispatch runs only after central-cookie confirmation',async()=>{
  const s=setup();await s.client.fetch('https://rp.example/api/items',{method:'POST',body:'hi'});
  assert.deepEqual(s.calls,['/api/auth/session/v2/status','/api/auth/session/v2/prepare','/api/auth/session/renew-cookie','/api/auth/session/v2/confirm-cookie','/api/auth/session/v2/dispatch']);
