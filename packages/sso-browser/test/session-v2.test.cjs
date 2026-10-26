@@ -4,6 +4,7 @@ function setup(options={}){
  const calls=[];const fetch=async(input,init={})=>{
   const path=new URL(input).pathname;calls.push(path);const body=init.body?JSON.parse(init.body):{};
   if(path.endsWith('/logout-complete')){if(options.logoutFailure){options.logoutFailure=false;return Response.json({error:'temporarily_unavailable'},{status:503});}return Response.json({logged_out:true});}
+  if(path.endsWith('/logout-cookie-confirm'))return Response.json({confirmed:!options.logoutCookieRejected});
   if(path.endsWith('/logout-confirm'))return Response.json({logged_out:true});
   if(path.endsWith('/logout'))return Response.json({logout_ticket:'logout-ticket',session_context:options.context??'browser'});
   if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'csrf',idle_expires_at:Date.now()+10000});
@@ -42,4 +43,8 @@ test('native logout never touches an unrelated central browser identity',async()
 test('browser logout confirmation failure retains RP recovery and retries completion',async()=>{
  const s=setup({logoutFailure:true});await s.client.status();await assert.rejects(s.client.logout(),e=>e.status===503);assert(!s.calls.some(p=>p.endsWith('/logout-confirm')));
  await s.client.logout();assert.equal(s.calls.filter(p=>p.endsWith('/logout-complete')).length,2);assert(s.calls.some(p=>p.endsWith('/logout-confirm')));
+});
+
+test('RP logout remains recoverable until SSO verifies the new suppression cookie',async()=>{
+ const s=setup({logoutCookieRejected:true});await s.client.status();await assert.rejects(s.client.logout(),e=>e.status===409);assert(!s.calls.some(p=>p.endsWith('/logout-confirm')));
 });
