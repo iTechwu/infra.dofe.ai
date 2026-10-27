@@ -188,3 +188,46 @@ test('Web Locks coordinate tabs using the RP address without credentials',async(
   assert.equal(locks.length,1);assert.equal(locks[0].name,'dofe:session-v2:https://rp.example/api/auth/session/v2');assert(locks[0].signal instanceof AbortSignal);
  }finally{if(descriptor)Object.defineProperty(globalThis,'navigator',descriptor);else delete globalThis.navigator;}
 });
+
+test('a page burst shares one preparation and cookie confirmation while dispatching each request independently',async()=>{
+ const calls=[],dispatches=[];let windowId;
+ const transport=async(url,init={})=>{
+  const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};calls.push(path);
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'window-fixture',idle_expires_at:Date.now()+100000});
+  if(path.endsWith('/prepare')){assert.equal(body.coordination,'session-window-v1');windowId=body.operation_id;await new Promise(r=>setTimeout(r,10));return Response.json({session_context:'browser',ticket:'fixture',session_window:{id:windowId,expires_at:Date.now()+60000}});}
+  if(path.endsWith('/renew-cookie'))return Response.json({challenge:'fixture'});
+  if(path.endsWith('/confirm-cookie'))return Response.json({confirmed:true,operation_id:windowId});
+  if(path.endsWith('/dispatch')){assert.equal(body.session_window,windowId);dispatches.push(body);return Response.json({ok:true});}
+  throw new Error('unexpected route');
+ };
+ const a=new BrowserSessionV2({apiBaseUrl:'https://window.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const b=new BrowserSessionV2({apiBaseUrl:'https://window.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const responses=await Promise.all(Array.from({length:20},(_,i)=>(i%2?a:b).fetch('https://window.example/api/items/'+i)));
+ assert(responses.every(r=>r.ok));for(const step of ['prepare','renew-cookie','confirm-cookie'])assert.equal(calls.filter(p=>p.endsWith('/'+step)).length,1,step+' must be shared across the page');
+ assert.equal(new Set(dispatches.map(d=>d.operation_id)).size,20);assert.equal(new Set(dispatches.map(d=>d.request.path)).size,20);
+});
+
+test('only an explicit pre-dispatch window expiry renews once; unknown outcomes never replay',async()=>{
+ for(const outcome of ['session_window_expired','dispatch_outcome_unknown']){
+  let prepares=0,dispatches=0;const operations=[];
+  const transport=async(url,init={})=>{const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
+   if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'expiry-fixture',idle_expires_at:Date.now()+100000});
+   if(path.endsWith('/prepare')){prepares++;return Response.json({session_context:'native',session_window:{id:body.operation_id,expires_at:Date.now()+60000}});}
+   if(path.endsWith('/dispatch')){operations.push(body.operation_id);dispatches++;return dispatches===1?Response.json({msg:outcome},{status:409}):Response.json({ok:true});}
+   throw new Error('unexpected route');};
+  const client=new BrowserSessionV2({apiBaseUrl:`https://${outcome}.example/api`,ssoBaseUrl:'https://sso.example/api',fetch:transport});
+  const response=await client.fetch(`https://${outcome}.example/api/write`,{method:'POST',body:'exact bytes',headers:{'idempotency-key':'business'}});
+  assert.equal(prepares,outcome==='session_window_expired'?2:1);assert.equal(dispatches,prepares);assert.equal(response.status,outcome==='session_window_expired'?200:409);
+  if(operations.length===2)assert.equal(operations[0],operations[1]);
+ }
+});
+test('a slow dispatch cannot hold shared preparation or block another business request',async()=>{
+ let release,entered;const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);let prepares=0;
+ const transport=async(url,init={})=>{const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'slow-fixture',idle_expires_at:Date.now()+100000});
+  if(path.endsWith('/prepare')){prepares++;return Response.json({session_context:'native',session_window:{id:body.operation_id,expires_at:Date.now()+60000}});}
+  if(body.request.path.endsWith('/slow')){entered();await gate;}return Response.json({ok:true});};
+ const client=new BrowserSessionV2({apiBaseUrl:'https://slow-window.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const slow=client.fetch('https://slow-window.example/api/slow');await started;
+ try{const fast=await Promise.race([client.fetch('https://slow-window.example/api/fast'),new Promise((_,reject)=>setTimeout(()=>reject(Error('blocked by slow dispatch')),500))]);assert.equal(fast.status,200);assert.equal(prepares,1);}finally{release();await slow;}
+});

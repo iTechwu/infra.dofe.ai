@@ -20,6 +20,9 @@ interface RequestEnvelope { method: string; path: string; headers: Record<string
 // A page may create more than one client. Share admission order for the same RP,
 // and use Web Locks when available to include other tabs of this origin.
 const sessionTurns = new Map<string, Promise<void>>();
+interface SessionWindow { id: string; validUntil: number; csrf: string; }
+// Memory only: a page reload prepares again. RP cookies and CSRF remain required.
+const sessionWindows = new Map<string, SessionWindow>();
 async function waitForSessionTurn(turn: Promise<void>, signal: AbortSignal): Promise<void> {
   signal.throwIfAborted();
   await new Promise<void>((resolve, reject) => {
@@ -82,7 +85,7 @@ export class BrowserSessionV2 {
       headers: { 'content-type': 'application/json', 'x-dofe-csrf': await this.requireCsrf() }, body: JSON.stringify(body),
     });
   }
-  private async prepare(body: { operation_id: string; request: RequestEnvelope }, signal?: AbortSignal): Promise<Record<string, unknown>> {
+  private async prepare(body: { operation_id: string; request: RequestEnvelope; coordination?: string }, signal?: AbortSignal): Promise<Record<string, unknown>> {
     for (let attempt = 0; ; attempt++) {
       try { return await json(await this.post('prepare', body, signal)); }
       catch (error) {
@@ -103,7 +106,7 @@ export class BrowserSessionV2 {
     }
   }
   private async sessionTurn<T>(signal: AbortSignal, run: () => Promise<T>): Promise<T> {
-    const key = `${this.api}${this.options.bffPath ?? '/auth/session/v2'}`;
+    const key = this.sessionKey();
     const previous = sessionTurns.get(key) ?? Promise.resolve();
     let release!: () => void;
     const ready = new Promise<void>(resolve => { release = resolve; });
@@ -144,16 +147,42 @@ export class BrowserSessionV2 {
     if (bytes.length > 50 * 1024 * 1024) throw new BrowserSessionV2Error(413, 'body_too_large');
     return { value: { method: request.method, path, headers, body: base64(bytes) }, signal: request.signal };
   }
+  private sessionKey(): string { return `${this.api}${this.options.bffPath ?? '/auth/session/v2'}`; }
+  private async preparedTurn(value: RequestEnvelope, signal: AbortSignal): Promise<SessionWindow | Response> {
+    return this.sessionTurn(signal, async () => {
+      const csrf = await this.requireCsrf(), cached = sessionWindows.get(this.sessionKey());
+      if (cached && cached.csrf === csrf && cached.validUntil > performance.now()) return cached;
+      return this.prepareTurn(value, signal);
+    });
+  }
   readonly fetch: typeof fetch = async (input, init) => {
     const { value, signal } = await this.envelope(input, init);
-    return this.sessionTurn(signal, () => this.dispatch(value, signal));
+    let turn = await this.preparedTurn(value, signal);
+    if (turn instanceof Response) return turn; // Compatibility with older BFFs.
+    const operation_id = crypto.randomUUID();
+    for (let attempt = 0; ; attempt++) {
+      const response = await this.post('dispatch', { operation_id, request: value, session_window: turn.id }, signal);
+      let expired = false;
+      if (response.status === 409) {
+        try { await json(response.clone()); }
+        catch (error) { expired = error instanceof BrowserSessionV2Error && error.code === 'session_window_expired'; }
+      }
+      if (!expired || attempt >= 1) return response;
+      // Only this explicit pre-dispatch rejection is safe to renew and retry.
+      if (sessionWindows.get(this.sessionKey()) === turn) sessionWindows.delete(this.sessionKey());
+      const refreshed = await this.preparedTurn(value, signal);
+      if (refreshed instanceof Response) return refreshed;
+      turn = refreshed;
+    }
   };
-  private async dispatch(value: RequestEnvelope, signal: AbortSignal): Promise<Response> {
-    const operation_id = crypto.randomUUID(); const body = { operation_id, request: value };
+  private async prepareTurn(value: RequestEnvelope, signal: AbortSignal): Promise<SessionWindow | Response> {
+    const operation_id = crypto.randomUUID(); const body = { operation_id, request: value, coordination: 'session-window-v1' };
     const prepared = await this.prepare(body, signal);
     if (typeof prepared.idle_expires_at === 'number') this.options.onSessionActivity?.(prepared.idle_expires_at);
-    if (prepared.session_context === 'native') return this.post('dispatch', body, signal);
+    if (prepared.session_context === 'native') return this.rememberWindow(prepared) ?? this.post('dispatch', body, signal);
     if (prepared.session_context !== 'browser') throw new BrowserSessionV2Error(502, 'invalid_session_context');
+    const window = prepared.session_window as { id?: unknown } | undefined;
+    if (prepared.window_confirmed === true && window) return this.rememberWindow(prepared)!;
     if (typeof prepared.ticket !== 'string') throw new BrowserSessionV2Error(502, 'invalid_renew_ticket');
     const renewed = await json(await this.transport(`${this.sso}/auth/session/renew-cookie`, {
       method: 'POST', credentials: 'include', cache: 'no-store', signal,
@@ -164,10 +193,19 @@ export class BrowserSessionV2 {
       method: 'POST', credentials: 'include', cache: 'no-store', signal,
       headers: { 'content-type': 'application/json' }, body: JSON.stringify({ challenge: renewed.challenge }),
     }));
-    if (confirmation.confirmed !== true || confirmation.operation_id !== body.operation_id)
+    if (confirmation.confirmed !== true || confirmation.operation_id !== (window?.id ?? body.operation_id))
       throw new BrowserSessionV2Error(409, 'cookie_confirmation_required');
     // Server rechecks the confirmation. Never trust this browser boolean as authorization.
-    return this.post('dispatch', body, signal);
+    return this.rememberWindow(prepared) ?? this.post('dispatch', body, signal);
+  }
+  private rememberWindow(prepared: Record<string, unknown>): SessionWindow | undefined {
+    const window = prepared.session_window;
+    if (window === undefined) return undefined;
+    const value = window as { id?: unknown; expires_at?: unknown };
+    if (!value || typeof value.id !== 'string' || !/^[0-9a-f-]{36}$/.test(value.id) || typeof value.expires_at !== 'number' || !Number.isSafeInteger(value.expires_at))
+      throw new BrowserSessionV2Error(502, 'invalid_session_window');
+    const result = { id: value.id, csrf: this.csrf!, validUntil: performance.now() + Math.min(60_000, Math.max(0, value.expires_at - Date.now() - 1_000)) };
+    sessionWindows.set(this.sessionKey(), result); return result;
   }
   async bootstrap(ticket: string): Promise<BrowserSessionV2Status> {
     const response = await this.transport(`${this.api}${this.options.bffPath ?? '/auth/session/v2'}/bootstrap`, {
@@ -193,10 +231,10 @@ export class BrowserSessionV2 {
       if (confirmed.confirmed !== true) throw new BrowserSessionV2Error(409, 'logout_cookie_confirmation_required');
     }
     await json(await this.post('logout-confirm', {}));
-    this.loggedOut = true; this.csrf = undefined;
+    this.loggedOut = true; this.csrf = undefined; sessionWindows.delete(this.sessionKey());
   }
   /** Explicit login completion clears the local suppression latch; status probes do not. */
-  loginCompleted() { this.loggedOut = false; this.csrf = undefined; }
+  loginCompleted() { this.loggedOut = false; this.csrf = undefined; sessionWindows.delete(this.sessionKey()); }
 }
 
 /** Fetch-based SSE supports opaque BFF sessions without putting credentials in URLs. */
