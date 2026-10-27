@@ -41,14 +41,14 @@ function logRedis(level: 'error' | 'warn' | 'info' | 'debug', message: string, m
         }
         try {
           const client = new Redis(redisUrl, {
+            // A dependency restart must not permanently disable every session and
+            // cache consumer. Keep reconnecting, but bound each caller's wait and
+            // do not queue commands while disconnected.
+            enableOfflineQueue: false,
+            maxRetriesPerRequest: 1,
+            connectTimeout: 5000,
+            commandTimeout: 5000,
             retryStrategy(times) {
-              if (times > 10) {
-                logRedis(
-                  'error',
-                  'Redis reconnect exhausted after 10 retries.',
-                );
-                return null;
-              }
               return Math.min(times * 150, 3000);
             },
           });
