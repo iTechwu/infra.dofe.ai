@@ -20,7 +20,7 @@ interface RequestEnvelope { method: string; path: string; headers: Record<string
 // A page may create more than one client. Share admission order for the same RP,
 // and use Web Locks when available to include other tabs of this origin.
 const sessionTurns = new Map<string, Promise<void>>();
-interface SessionWindow { id: string; validUntil: number; csrf: string; }
+interface SessionWindow { id: string; validUntil: number; csrf: string; direct: boolean; }
 // Memory only: a page reload prepares again. RP cookies and CSRF remain required.
 const sessionWindows = new Map<string, SessionWindow>();
 async function waitForSessionTurn(turn: Promise<void>, signal: AbortSignal): Promise<void> {
@@ -123,7 +123,7 @@ export class BrowserSessionV2 {
       void tail.then(() => { if (sessionTurns.get(key) === tail) sessionTurns.delete(key); });
     }
   }
-  private async envelope(input: RequestInfo | URL, init?: RequestInit): Promise<{ value: RequestEnvelope; signal: AbortSignal }> {
+  private async envelope(input: RequestInfo | URL, init?: RequestInit): Promise<{ value: RequestEnvelope; signal: AbortSignal; url: string; bytes: Uint8Array }> {
     const absolute = input instanceof Request ? input : new URL(String(input), globalThis.location?.origin ?? this.api);
     const request = new Request(absolute, init);
     const url = new URL(request.url); const apiUrl = new URL(this.api, globalThis.location?.origin);
@@ -145,10 +145,13 @@ export class BrowserSessionV2 {
     // Serialize FormData once: its generated boundary and exact bytes are preserved at dispatch.
     const bytes = new Uint8Array(await request.arrayBuffer());
     if (bytes.length > 50 * 1024 * 1024) throw new BrowserSessionV2Error(413, 'body_too_large');
-    return { value: { method: request.method, path, headers, body: base64(bytes) }, signal: request.signal };
+    return { value: { method: request.method, path, headers, body: base64(bytes) }, signal: request.signal, url: request.url, bytes };
   }
   private sessionKey(): string { return `${this.api}${this.options.bffPath ?? '/auth/session/v2'}`; }
   private async preparedTurn(value: RequestEnvelope, signal: AbortSignal): Promise<SessionWindow | Response> {
+    signal.throwIfAborted();
+    const csrf = await this.requireCsrf(), cached = sessionWindows.get(this.sessionKey());
+    if (cached && cached.csrf === csrf && cached.validUntil > performance.now()) return cached;
     return this.sessionTurn(signal, async () => {
       const csrf = await this.requireCsrf(), cached = sessionWindows.get(this.sessionKey());
       if (cached && cached.csrf === csrf && cached.validUntil > performance.now()) return cached;
@@ -156,12 +159,18 @@ export class BrowserSessionV2 {
     });
   }
   readonly fetch: typeof fetch = async (input, init) => {
-    const { value, signal } = await this.envelope(input, init);
+    const { value, signal, url, bytes } = await this.envelope(input, init);
     let turn = await this.preparedTurn(value, signal);
     if (turn instanceof Response) return turn; // Compatibility with older BFFs.
     const operation_id = crypto.randomUUID();
     for (let attempt = 0; ; attempt++) {
-      const response = await this.post('dispatch', { operation_id, request: value, session_window: turn.id }, signal);
+      const direct = turn.direct && !value.headers.authorization && !/\/(sso-resource|uploader)\//.test(value.path)
+        && !(this.options.uploadProxyPath && new URL(url).pathname.startsWith(this.options.uploadProxyPath + '/'));
+      const response = direct
+        ? await this.transport(url, { method: value.method, credentials: 'include', cache: 'no-store', redirect: 'error', signal,
+            headers: { ...value.headers, 'x-dofe-csrf': await this.requireCsrf(), 'x-dofe-session-window': turn.id, 'x-dofe-operation-id': operation_id },
+            body: bytes.length ? bytes as BodyInit : undefined })
+        : await this.post('dispatch', { operation_id, request: value, session_window: turn.id }, signal);
       let expired = false;
       if (response.status === 409) {
         try { await json(response.clone()); }
@@ -204,7 +213,7 @@ export class BrowserSessionV2 {
     const value = window as { id?: unknown; expires_at?: unknown };
     if (!value || typeof value.id !== 'string' || !/^[0-9a-f-]{36}$/.test(value.id) || typeof value.expires_at !== 'number' || !Number.isSafeInteger(value.expires_at))
       throw new BrowserSessionV2Error(502, 'invalid_session_window');
-    const result = { id: value.id, csrf: this.csrf!, validUntil: performance.now() + Math.min(60_000, Math.max(0, value.expires_at - Date.now() - 1_000)) };
+    const result = { id: value.id, csrf: this.csrf!, direct: prepared.request_transport === 'direct-window-v1', validUntil: performance.now() + Math.min(240_000, Math.max(0, value.expires_at - Date.now() - 1_000)) };
     sessionWindows.set(this.sessionKey(), result); return result;
   }
   async bootstrap(ticket: string): Promise<BrowserSessionV2Status> {
@@ -212,7 +221,7 @@ export class BrowserSessionV2 {
       method: 'POST', credentials: 'include', cache: 'no-store',
       headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ticket }),
     });
-    const value = await json(response); this.loggedOut = false;
+    const value = await json(response); this.loggedOut = false; sessionWindows.delete(this.sessionKey());
     if (typeof value.csrf !== 'string') throw new BrowserSessionV2Error(502, 'invalid_session_response');
     this.csrf = value.csrf; return value as unknown as BrowserSessionV2Status;
   }

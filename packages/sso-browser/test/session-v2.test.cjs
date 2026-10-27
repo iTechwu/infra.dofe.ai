@@ -231,3 +231,56 @@ test('a slow dispatch cannot hold shared preparation or block another business r
  const slow=client.fetch('https://slow-window.example/api/slow');await started;
  try{const fast=await Promise.race([client.fetch('https://slow-window.example/api/fast'),new Promise((_,reject)=>setTimeout(()=>reject(Error('blocked by slow dispatch')),500))]);assert.equal(fast.status,200);assert.equal(prepares,1);}finally{release();await slow;}
 });
+
+test('negotiated direct transport sends each business request once at its original URL with a four minute preparation',async()=>{
+ const calls=[];let prepares=0;
+ const transport=async(url,init={})=>{
+  const path=new URL(url).pathname;calls.push({path,init});
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'direct-fixture',idle_expires_at:Date.now()+600000});
+  if(path.endsWith('/prepare')){prepares++;const body=JSON.parse(init.body);return Response.json({session_context:'native',request_transport:'direct-window-v1',session_window:{id:body.operation_id,expires_at:Date.now()+240000}});}
+  assert(!path.endsWith('/dispatch'),'business HTTP must not go through a dispatch envelope');
+  assert.equal(init.credentials,'include');assert.equal(new Headers(init.headers).get('x-dofe-csrf'),'direct-fixture');
+  assert(new Headers(init.headers).get('x-dofe-session-window'));assert(new Headers(init.headers).get('x-dofe-operation-id'));
+  assert(!new Headers(init.headers).has('authorization'));return Response.json({ok:true});
+ };
+ const client=new BrowserSessionV2({apiBaseUrl:'https://direct.example/hz/ds/api',canonicalApiPath:'/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const responses=await Promise.all(Array.from({length:20},(_,i)=>client.fetch('https://direct.example/hz/ds/api/items/'+i)));
+ assert(responses.every(r=>r.ok));assert.equal(prepares,1);
+ const writes=await client.fetch('https://direct.example/hz/ds/api/items',{method:'POST',headers:{'content-type':'application/json','idempotency-key':'unchanged'},body:'{"exact":"bytes"}'});assert(writes.ok);
+ const final=calls.at(-1);assert.equal(final.path,'/hz/ds/api/items');assert.equal(final.init.method,'POST');assert.equal(Buffer.from(final.init.body).toString(),'{"exact":"bytes"}');assert.equal(new Headers(final.init.headers).get('idempotency-key'),'unchanged');
+ const resources=calls.filter(c=>!c.path.includes('/auth/session/'));assert.equal(resources.length,21);assert.equal(new Set(resources.map(c=>new Headers(c.init.headers).get('x-dofe-operation-id'))).size,21);
+});
+
+test('direct writes retry only explicit admission expiry and preserve operation and bytes',async()=>{
+ for(const outcome of ['session_window_expired','dispatch_outcome_unknown','network_lost']){
+  let prepares=0;const writes=[];
+  const transport=async(url,init={})=>{
+   const path=new URL(url).pathname;
+   if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'direct-expiry',idle_expires_at:Date.now()+600000});
+   if(path.endsWith('/prepare')){prepares++;const body=JSON.parse(init.body);return Response.json({session_context:'native',request_transport:'direct-window-v1',session_window:{id:body.operation_id,expires_at:Date.now()+240000}});}
+   writes.push({operation:new Headers(init.headers).get('x-dofe-operation-id'),bytes:Buffer.from(init.body).toString()});
+   if(outcome==='network_lost')throw Error('network_lost');
+   return writes.length===1?Response.json({msg:outcome},{status:409}):Response.json({ok:true});
+  };
+  const base=`https://direct-${outcome}.example/api`,client=new BrowserSessionV2({apiBaseUrl:base,ssoBaseUrl:'https://sso.example/api',fetch:transport});
+  const pending=client.fetch(base+'/write',{method:'POST',body:'exact write bytes'});
+  if(outcome==='network_lost')await assert.rejects(pending,/network_lost/);else assert.equal((await pending).status,outcome==='session_window_expired'?200:409);
+  assert.equal(prepares,outcome==='session_window_expired'?2:1);assert.equal(writes.length,prepares);assert(writes.every(w=>w.bytes==='exact write bytes'));
+  if(writes.length===2)assert.equal(writes[0].operation,writes[1].operation);
+ }
+});
+test('direct preparation survives a minute and renews at the bounded four minute deadline',async()=>{
+ const original=performance.now;let elapsed=0,prepares=0;
+ Object.defineProperty(performance,'now',{configurable:true,value:()=>elapsed});
+ try{
+  const transport=async(url,init={})=>{
+   const path=new URL(url).pathname;
+   if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'clock-fixture',idle_expires_at:Date.now()+600000});
+   if(path.endsWith('/prepare')){prepares++;return Response.json({session_context:'native',request_transport:'direct-window-v1',session_window:{id:JSON.parse(init.body).operation_id,expires_at:Date.now()+240000}});}
+   return Response.json({ok:true});
+  };
+  const client=new BrowserSessionV2({apiBaseUrl:'https://direct-clock.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+  await client.fetch('https://direct-clock.example/api/items');elapsed=61000;await client.fetch('https://direct-clock.example/api/items');elapsed=230000;await client.fetch('https://direct-clock.example/api/items');assert.equal(prepares,1);
+  elapsed=241000;await client.fetch('https://direct-clock.example/api/items');assert.equal(prepares,2);
+ }finally{Object.defineProperty(performance,'now',{configurable:true,value:original});}
+});
