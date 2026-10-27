@@ -17,6 +17,17 @@ export interface BrowserSessionV2Options {
   onSessionActivity?: (idleExpiresAt: number) => void;
 }
 interface RequestEnvelope { method: string; path: string; headers: Record<string, string>; body: string; }
+// A page may create more than one client. Share admission order for the same RP,
+// and use Web Locks when available to include other tabs of this origin.
+const sessionTurns = new Map<string, Promise<void>>();
+async function waitForSessionTurn(turn: Promise<void>, signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted();
+  await new Promise<void>((resolve, reject) => {
+    const abort = () => { signal.removeEventListener('abort', abort); reject(signal.reason); };
+    signal.addEventListener('abort', abort, { once: true });
+    turn.then(() => { signal.removeEventListener('abort', abort); resolve(); });
+  });
+}
 const ALLOWED_HEADERS = /^(content-type|accept|idempotency-key|anthropic-version|x-(api-version|app-build|platform|os|device-id|mptrail|current-tenant|knowledge-tenant|workspace-id|request-id|idempotency-key))$/i;
 function base64(bytes: Uint8Array): string {
   let value = ''; const chunkSize = 32768;
@@ -91,6 +102,24 @@ export class BrowserSessionV2 {
       }
     }
   }
+  private async sessionTurn<T>(signal: AbortSignal, run: () => Promise<T>): Promise<T> {
+    const key = `${this.api}${this.options.bffPath ?? '/auth/session/v2'}`;
+    const previous = sessionTurns.get(key) ?? Promise.resolve();
+    let release!: () => void;
+    const ready = new Promise<void>(resolve => { release = resolve; });
+    const tail = previous.then(() => ready);
+    sessionTurns.set(key, tail);
+    try {
+      await waitForSessionTurn(previous, signal);
+      signal.throwIfAborted();
+      if (globalThis.navigator?.locks)
+        return await globalThis.navigator.locks.request(`dofe:session-v2:${key}`, { signal }, run);
+      return await run();
+    } finally {
+      release();
+      void tail.then(() => { if (sessionTurns.get(key) === tail) sessionTurns.delete(key); });
+    }
+  }
   private async envelope(input: RequestInfo | URL, init?: RequestInit): Promise<{ value: RequestEnvelope; signal: AbortSignal }> {
     const absolute = input instanceof Request ? input : new URL(String(input), globalThis.location?.origin ?? this.api);
     const request = new Request(absolute, init);
@@ -117,6 +146,9 @@ export class BrowserSessionV2 {
   }
   readonly fetch: typeof fetch = async (input, init) => {
     const { value, signal } = await this.envelope(input, init);
+    return this.sessionTurn(signal, () => this.dispatch(value, signal));
+  };
+  private async dispatch(value: RequestEnvelope, signal: AbortSignal): Promise<Response> {
     const operation_id = crypto.randomUUID(); const body = { operation_id, request: value };
     const prepared = await this.prepare(body, signal);
     if (typeof prepared.idle_expires_at === 'number') this.options.onSessionActivity?.(prepared.idle_expires_at);
@@ -136,7 +168,7 @@ export class BrowserSessionV2 {
       throw new BrowserSessionV2Error(409, 'cookie_confirmation_required');
     // Server rechecks the confirmation. Never trust this browser boolean as authorization.
     return this.post('dispatch', body, signal);
-  };
+  }
   async bootstrap(ticket: string): Promise<BrowserSessionV2Status> {
     const response = await this.transport(`${this.api}${this.options.bffPath ?? '/auth/session/v2'}/bootstrap`, {
       method: 'POST', credentials: 'include', cache: 'no-store',

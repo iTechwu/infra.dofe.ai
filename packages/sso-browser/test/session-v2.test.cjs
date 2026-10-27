@@ -125,3 +125,66 @@ test('deployment envelopes that keep only msg still surface retryable session co
  const response=await client.fetch('https://rp.example/api/items');
  assert.equal(response.status,200);assert.equal(prepares,2);assert.equal(dispatches,1);
 });
+
+test('a page request burst queues cookie renewal instead of generating session_busy retries',async()=>{
+ let owner,conflicts=0,dispatches=0;
+ const transport=async(url,init={})=>{
+  const route=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
+  if(route.endsWith('/status'))return Response.json({authenticated:true,csrf:'fixture-csrf',idle_expires_at:Date.now()+100000});
+  if(route.endsWith('/prepare')){
+   if(owner){conflicts++;return Response.json({msg:'session_busy'},{status:409});}
+   owner=body.operation_id;await new Promise(resolve=>setTimeout(resolve,10));
+   return Response.json({session_context:'browser',ticket:owner});
+  }
+  if(route.endsWith('/renew-cookie'))return Response.json({challenge:body.ticket});
+  if(route.endsWith('/confirm-cookie')){assert.equal(body.challenge,owner);owner=undefined;return Response.json({confirmed:true,operation_id:body.challenge});}
+  if(route.endsWith('/dispatch')){dispatches++;return Response.json({ok:true});}
+  throw new Error('unexpected route');
+ };
+ const client=new BrowserSessionV2({apiBaseUrl:'https://rp.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const responses=await Promise.all(Array.from({length:8},(_,i)=>client.fetch(`https://rp.example/api/items/${i}`)));
+ assert(responses.every(response=>response.status===200));assert.equal(dispatches,8);
+ assert.equal(conflicts,0,'ordinary concurrent requests must not turn into a prepare retry storm');
+});
+
+test('queued cancellation makes no auth request and a failed owner releases the next turn',async()=>{
+ let release,entered;const started=new Promise(resolve=>{entered=resolve;});const gate=new Promise(resolve=>{release=resolve;});const paths=[];
+ const transport=async(url,init={})=>{
+  const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'fixture-csrf',idle_expires_at:Date.now()+100000});
+  if(path.endsWith('/prepare')){paths.push(body.request.path);if(body.request.path.endsWith('/first')){entered();await gate;throw new Error('fixture failure');}return Response.json({session_context:'native'});}
+  return Response.json({ok:true});
+ };
+ const a=new BrowserSessionV2({apiBaseUrl:'https://cancel.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const b=new BrowserSessionV2({apiBaseUrl:'https://cancel.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const first=a.fetch('https://cancel.example/api/first');const failure=assert.rejects(first,/fixture failure/);await started;
+ const controller=new AbortController(),cancelled=b.fetch('https://cancel.example/api/cancelled',{signal:controller.signal});controller.abort();
+ await assert.rejects(cancelled,error=>error.name==='AbortError');
+ const next=b.fetch('https://cancel.example/api/next');release();await failure;
+ assert.equal((await next).status,200);assert.deepEqual(paths,['/api/first','/api/next']);
+});
+
+test('a streaming response releases admission at headers and another RP is independent',async()=>{
+ let release,entered;const started=new Promise(resolve=>{entered=resolve;});const gate=new Promise(resolve=>{release=resolve;});
+ const transport=async(url,init={})=>{
+  const path=new URL(url).pathname,body=init.body?JSON.parse(init.body):{};
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'fixture-csrf',idle_expires_at:Date.now()+100000});
+  if(path.endsWith('/prepare')){if(body.request.path.endsWith('/slow')){entered();await gate;}return Response.json({session_context:'native'});}
+  return new Response(new ReadableStream({start(controller){controller.enqueue(new TextEncoder().encode(': heartbeat\n\n'));}}),{headers:{'content-type':'text/event-stream'}});
+ };
+ const a=new BrowserSessionV2({apiBaseUrl:'https://stream.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const b=new BrowserSessionV2({apiBaseUrl:'https://other.example/api',ssoBaseUrl:'https://sso.example/api',fetch:transport});
+ const first=a.fetch('https://stream.example/api/slow');await started;
+ const other=await b.fetch('https://other.example/api/independent');release();const stream=await first;
+ const next=await a.fetch('https://stream.example/api/next');assert.equal(next.status,200);
+ await Promise.all([other.body.cancel(),stream.body.cancel(),next.body.cancel()]);
+});
+
+test('Web Locks coordinate tabs using the RP address without credentials',async()=>{
+ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'navigator'),locks=[];
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{locks:{request:async(name,options,run)=>{locks.push({name,signal:options.signal});return run();}}}});
+ try{
+  const s=setup({context:'native'});await s.client.fetch('https://rp.example/api/items');
+  assert.equal(locks.length,1);assert.equal(locks[0].name,'dofe:session-v2:https://rp.example/api/auth/session/v2');assert(locks[0].signal instanceof AbortSignal);
+ }finally{if(descriptor)Object.defineProperty(globalThis,'navigator',descriptor);else delete globalThis.navigator;}
+});
