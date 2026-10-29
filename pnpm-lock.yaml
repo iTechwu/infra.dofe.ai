@@ -72,19 +72,19 @@ importers:
         specifier: ^3.978.0
         version: 3.1075.0
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@dofe/infra-contracts':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../contracts
       '@dofe/infra-docker':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../docker
       '@dofe/infra-redis':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../redis
       '@dofe/infra-utils':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../utils
       '@google-cloud/storage':
         specifier: ^7.12.0
@@ -172,19 +172,19 @@ importers:
   packages/common:
     dependencies:
       '@dofe/infra-contracts':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../contracts
       '@dofe/infra-i18n':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../i18n
       '@dofe/infra-jwt':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../jwt
       '@dofe/infra-redis':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../redis
       '@dofe/infra-utils':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../utils
       '@nestjs/common':
         specifier: ^11.0.0
@@ -307,10 +307,10 @@ importers:
   packages/docker:
     dependencies:
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@dofe/infra-utils':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../utils
       '@nestjs/common':
         specifier: ^11.0.0
@@ -356,7 +356,7 @@ importers:
   packages/jwt:
     dependencies:
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@nestjs/common':
         specifier: ^11.0.0
@@ -406,13 +406,13 @@ importers:
   packages/prisma:
     dependencies:
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@dofe/infra-redis':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../redis
       '@dofe/infra-utils':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../utils
       '@nestjs/common':
         specifier: ^11.0.0
@@ -473,7 +473,7 @@ importers:
   packages/rabbitmq:
     dependencies:
       '@dofe/infra-utils':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../utils
       '@nestjs/common':
         specifier: ^11.0.0
@@ -519,7 +519,7 @@ importers:
   packages/redis:
     dependencies:
       '@dofe/infra-contracts':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../contracts
       '@nestjs/common':
         specifier: ^11.0.0
@@ -571,13 +571,13 @@ importers:
   packages/shared-db:
     dependencies:
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@dofe/infra-prisma':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../prisma
       '@dofe/infra-redis':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../redis
       '@nestjs/common':
         specifier: ^11.0.0
@@ -614,31 +614,31 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4
       '@dofe/infra-clients':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../clients
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@dofe/infra-contracts':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../contracts
       '@dofe/infra-jwt':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../jwt
       '@dofe/infra-prisma':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../prisma
       '@dofe/infra-rabbitmq':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../rabbitmq
       '@dofe/infra-redis':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../redis
       '@dofe/infra-shared-db':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../shared-db
       '@dofe/infra-utils':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../utils
       '@nestjs/axios':
         specifier: ^4.0.0
@@ -735,7 +735,7 @@ importers:
   packages/utils:
     dependencies:
       '@dofe/infra-contracts':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../contracts
       '@nestjs/swagger':
         specifier: ^11.0.0
@@ -793,7 +793,7 @@ importers:
   packages/vector:
     dependencies:
       '@dofe/infra-common':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../common
       '@nestjs/axios':
         specifier: ^4.0.0
@@ -839,7 +839,7 @@ importers:
         specifier: workspace:*
         version: link:../contracts
       '@dofe/infra-contracts-base':
-        specifier: ^0.1.95
+        specifier: ^0.1.96
         version: link:../contracts-base
       '@ts-rest/core':
         specifier: '>=3'

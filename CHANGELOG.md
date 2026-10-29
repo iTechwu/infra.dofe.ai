@@ -1,3 +1,6 @@
+## [0.1.96] - 2026-10-13
+- Release the current infra workspace, including transaction context propagation, response handling, and version validation fixes.
+
 ## [0.1.95] - 2026-09-11
 
 ## [0.1.94] - 2026-09-11

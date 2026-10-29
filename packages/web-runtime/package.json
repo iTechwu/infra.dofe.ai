@@ -1,6 +1,6 @@
 {
   "name": "@dofe/infra-web-runtime",
-  "version": "0.1.95",
+  "version": "0.1.96",
   "description": "Shared browser runtime utilities for dofe.ai frontend applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -65,6 +65,6 @@
   },
   "dependencies": {
     "@dofe/infra-contracts": "workspace:*",
-    "@dofe/infra-contracts-base": "^0.1.95"
+    "@dofe/infra-contracts-base": "^0.1.96"
   }
 }
