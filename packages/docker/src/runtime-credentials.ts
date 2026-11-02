@@ -1,5 +1,5 @@
 /**
- * Runtime credential values that may be injected into a managed Bot container.
+ * Runtime credential values that may be injected into a managed workload container.
  * Keys are deliberately restricted so callers cannot replace manager-owned
  * gateway, proxy, provider, or model configuration.
  */
