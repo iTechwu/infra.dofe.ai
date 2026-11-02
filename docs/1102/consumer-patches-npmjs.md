@@ -32,4 +32,18 @@
 3. 发布已经验证的 tarball，显式指定 `--registry=https://registry.npmjs.org/ --access=public`。
 4. 回读 npmjs 精确版本、dist-tags 与完整性摘要，下载公开 tarball 确认仍含修复。
 
-本记录创建时包已准备，真实发布结果以 npmjs 回读为准，不提前标记已发布。
+## npmjs 发布回执（2026-11-02）
+
+用户手动完成 npmjs 登录及发布网页验证后，以下两个版本已发布，`latest`
+均指向 0.1.97。匿名读取精确版本、下载 npmjs tarball 后，SHA-512 integrity
+和完整 tarball SHA-256 均与发布前验证的制品一致，包内修复代码验证通过。
+
+源码提交：`ae92ad9`，已推送至 `codex/upstream-consumer-patches`。
+
+| 包 | npmjs 制品 | SHA-256 |
+| --- | --- | --- |
+| `@dofe/infra-redis@0.1.97` | [tarball](https://registry.npmjs.org/@dofe/infra-redis/-/infra-redis-0.1.97.tgz) | `e348b751e509feca7876cf572d16e3bc5a5d3927c3f466913c398da9d227b90f` |
+| `@dofe/infra-rabbitmq@0.1.97` | [tarball](https://registry.npmjs.org/@dofe/infra-rabbitmq/-/infra-rabbitmq-0.1.97.tgz) | `fee9aae6824ca61c659d0f975b6218342f74a98403a72f415c5df4a639f92783` |
+
+SSO UI 的发布回执由 SSO 仓库单独记录。消费者仍保持原依赖与 patch；
+尚未进行消费者升级或服务部署。
