@@ -284,3 +284,51 @@ test('direct preparation survives a minute and renews at the bounded four minute
   elapsed=241000;await client.fetch('https://direct-clock.example/api/items');assert.equal(prepares,2);
  }finally{Object.defineProperty(performance,'now',{configurable:true,value:original});}
 });
+
+test('a temporary prepare outage is retried with the exact operation and shared by a page burst',async()=>{
+ let prepares=0,dispatches=0;const operations=[];
+ const client=new BrowserSessionV2({apiBaseUrl:'https://prepare-outage.example/api',ssoBaseUrl:'https://sso.example/api',fetch:async(url,init={})=>{
+  const path=new URL(url).pathname;
+  if(path.endsWith('/status'))return Response.json({authenticated:true,csrf:'outage',idle_expires_at:Date.now()+600000});
+  if(path.endsWith('/prepare')){const body=JSON.parse(init.body);prepares++;operations.push(body.operation_id);if(prepares===1)return Response.json({code:503,msg:'temporarily_unavailable'},{status:503});return Response.json({session_context:'native',request_transport:'direct-window-v1',session_window:{id:body.operation_id,expires_at:Date.now()+240000}});}
+  dispatches++;return Response.json({ok:true});
+ }});
+ const responses=await Promise.all(Array.from({length:12},(_,i)=>client.fetch('https://prepare-outage.example/api/items/'+i)));
+ assert(responses.every(r=>r.ok));assert.equal(prepares,2);assert.equal(new Set(operations).size,1);assert.equal(dispatches,12);
+});
+
+test('persistent prepare failure has one bounded retry budget for all queued callers',async()=>{
+ let prepares=0;
+ const client=new BrowserSessionV2({apiBaseUrl:'https://persistent-outage.example/api',ssoBaseUrl:'https://sso.example/api',fetch:async(url)=>{
+  if(String(url).endsWith('/status'))return Response.json({authenticated:true,csrf:'persistent',idle_expires_at:Date.now()+600000});
+  prepares++;return Response.json({msg:'temporarily_unavailable'},{status:503});
+ }});
+ const results=await Promise.allSettled(Array.from({length:12},()=>client.fetch('https://persistent-outage.example/api/items')));
+ assert(results.every(r=>r.status==='rejected'&&r.reason.status===503));assert.equal(prepares,4);
+});
+
+test('only explicit pre-dispatch admission busy retries a write with unchanged operation and bytes',async()=>{
+ for(const code of ['session_admission_busy','session_busy','dispatch_outcome_unknown']){
+  let prepares=0;const writes=[];
+  const client=new BrowserSessionV2({apiBaseUrl:`https://${code}-admission.example/api`,ssoBaseUrl:'https://sso.example/api',fetch:async(url,init={})=>{
+   if(String(url).endsWith('/status'))return Response.json({authenticated:true,csrf:'admission',idle_expires_at:Date.now()+600000});
+   if(String(url).endsWith('/prepare')){prepares++;return Response.json({session_context:'native',request_transport:'direct-window-v1',session_window:{id:JSON.parse(init.body).operation_id,expires_at:Date.now()+240000}});}
+   writes.push(init);return writes.length===1?Response.json({msg:code},{status:409}):Response.json({ok:true});
+  }});
+  const response=await client.fetch(`https://${code}-admission.example/api/write`,{method:'POST',body:'exact bytes',headers:{'idempotency-key':'fixed'}});
+  assert.equal(prepares,1);assert.equal(writes.length,code==='session_admission_busy'?2:1);
+  if(writes.length===2){assert.equal(response.status,200);assert.deepEqual(writes[0].body,writes[1].body);assert.deepEqual(writes[0].headers,writes[1].headers);}
+ }
+});
+
+test('cancelling prepare backoff stops retries without poisoning the next caller',async()=>{
+ let prepares=0,entered;const started=new Promise(r=>entered=r);
+ const client=new BrowserSessionV2({apiBaseUrl:'https://cancel-retry.example/api',ssoBaseUrl:'https://sso.example/api',fetch:async(url,init={})=>{
+  if(String(url).endsWith('/status'))return Response.json({authenticated:true,csrf:'cancel-retry',idle_expires_at:Date.now()+600000});
+  if(String(url).endsWith('/prepare')){prepares++;if(prepares===1){entered();return Response.json({msg:'temporarily_unavailable'},{status:503});}return Response.json({session_context:'native',request_transport:'direct-window-v1',session_window:{id:JSON.parse(init.body).operation_id,expires_at:Date.now()+240000}});}
+  return Response.json({ok:true});
+ }});
+ const controller=new AbortController(),request=client.fetch('https://cancel-retry.example/api/items',{signal:controller.signal});
+ await started;controller.abort();await assert.rejects(request,e=>e.name==='AbortError');
+ assert.equal(prepares,1);assert.equal((await client.fetch('https://cancel-retry.example/api/items')).status,200);assert.equal(prepares,2);
+});

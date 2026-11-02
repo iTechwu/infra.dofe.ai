@@ -23,6 +23,22 @@ const sessionTurns = new Map<string, Promise<void>>();
 interface SessionWindow { id: string; validUntil: number; csrf: string; direct: boolean; }
 // Memory only: a page reload prepares again. RP cookies and CSRF remain required.
 const sessionWindows = new Map<string, SessionWindow>();
+const preparationFailures = new Map<string, { csrf: string; until: number; error: unknown }>();
+function temporaryPreparationFailure(error: unknown): boolean {
+  return error instanceof BrowserSessionV2Error
+    ? error.status === 503 || error.status === 504 || error.code === 'session_busy' ||
+      (error.status === 502 && ['sso_temporarily_unavailable', 'session_temporarily_unavailable', 'session_request_failed', 'invalid_session_response'].includes(error.code))
+    : error instanceof TypeError; // fetch network failure; prepare is idempotent by operation ID.
+}
+async function retryDelay(attempt: number, signal?: AbortSignal): Promise<void> {
+  signal?.throwIfAborted();
+  await new Promise<void>((resolve, reject) => {
+    const abort = () => { clearTimeout(timer); reject(signal?.reason); };
+    const timer = setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); },
+      Math.min(250 * 2 ** attempt, 2000) + Math.random() * 150);
+    signal?.addEventListener('abort', abort, { once: true });
+  });
+}
 async function waitForSessionTurn(turn: Promise<void>, signal: AbortSignal): Promise<void> {
   signal.throwIfAborted();
   await new Promise<void>((resolve, reject) => {
@@ -95,13 +111,10 @@ export class BrowserSessionV2 {
           body.operation_id = crypto.randomUUID();
           continue;
         }
-        if (!(error instanceof BrowserSessionV2Error) || error.code !== 'session_busy' || attempt >= 20) throw error;
-        await new Promise<void>((resolve, reject) => {
-          if (signal?.aborted) { reject(signal.reason); return; }
-          const abort = () => { clearTimeout(timer); reject(signal?.reason); };
-          const timer = setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, Math.min(100 * (attempt + 1), 1000));
-          signal?.addEventListener('abort', abort, { once: true });
-        });
+        signal?.throwIfAborted();
+        if (!temporaryPreparationFailure(error) || attempt >= 3) throw error;
+        // Retry only preparation, preserving the operation for lost rotation results.
+        await retryDelay(attempt, signal);
       }
     }
   }
@@ -155,7 +168,18 @@ export class BrowserSessionV2 {
     return this.sessionTurn(signal, async () => {
       const csrf = await this.requireCsrf(), cached = sessionWindows.get(this.sessionKey());
       if (cached && cached.csrf === csrf && cached.validUntil > performance.now()) return cached;
-      return this.prepareTurn(value, signal);
+      const key = this.sessionKey(), failure = preparationFailures.get(key);
+      if (failure && failure.csrf === csrf && failure.until > performance.now()) throw failure.error;
+      preparationFailures.delete(key);
+      try { return await this.prepareTurn(value, signal); }
+      catch (error) {
+        if (!signal.aborted && temporaryPreparationFailure(error)) {
+          const failure = { csrf, until: performance.now() + 5_000, error };
+          preparationFailures.set(key, failure);
+          setTimeout(() => { if (preparationFailures.get(key) === failure) preparationFailures.delete(key); }, 5_000);
+        }
+        throw error;
+      }
     });
   }
   readonly fetch: typeof fetch = async (input, init) => {
@@ -163,6 +187,7 @@ export class BrowserSessionV2 {
     let turn = await this.preparedTurn(value, signal);
     if (turn instanceof Response) return turn; // Compatibility with older BFFs.
     const operation_id = crypto.randomUUID();
+    let renewals = 0;
     for (let attempt = 0; ; attempt++) {
       const direct = turn.direct && !value.headers.authorization && !/\/(sso-resource|uploader)\//.test(value.path)
         && !(this.options.uploadProxyPath && new URL(url).pathname.startsWith(this.options.uploadProxyPath + '/'));
@@ -171,12 +196,17 @@ export class BrowserSessionV2 {
             headers: { ...value.headers, 'x-dofe-csrf': await this.requireCsrf(), 'x-dofe-session-window': turn.id, 'x-dofe-operation-id': operation_id },
             body: bytes.length ? bytes as BodyInit : undefined })
         : await this.post('dispatch', { operation_id, request: value, session_window: turn.id }, signal);
-      let expired = false;
+      let expired = false, busy = false;
       if (response.status === 409) {
         try { await json(response.clone()); }
-        catch (error) { expired = error instanceof BrowserSessionV2Error && error.code === 'session_window_expired'; }
+        catch (error) {
+          expired = error instanceof BrowserSessionV2Error && error.code === 'session_window_expired';
+          busy = error instanceof BrowserSessionV2Error && error.code === 'session_admission_busy';
+        }
       }
-      if (!expired || attempt >= 1) return response;
+      if (busy && attempt < 2) { await retryDelay(attempt, signal); continue; }
+      if (!expired || renewals >= 1 || attempt >= 3) return response;
+      renewals++;
       // Only this explicit pre-dispatch rejection is safe to renew and retry.
       if (sessionWindows.get(this.sessionKey()) === turn) sessionWindows.delete(this.sessionKey());
       const refreshed = await this.preparedTurn(value, signal);
