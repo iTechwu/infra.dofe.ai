@@ -63,6 +63,8 @@ async function json(response: Response): Promise<Record<string, unknown>> {
 }
 export class BrowserSessionV2 {
   private csrf?: string;
+  private userId?: string;
+  private sessionChanged = false;
   private restorePromise?: Promise<BrowserSessionV2Status>;
   private readonly transport: typeof fetch;
   private readonly api: string;
@@ -76,6 +78,7 @@ export class BrowserSessionV2 {
       throw new BrowserSessionV2Error(500, 'invalid_canonical_api_path');
   }
   async status(): Promise<BrowserSessionV2Status> {
+    if (this.sessionChanged) throw new BrowserSessionV2Error(401, 'session_changed');
     if (this.loggedOut) return { authenticated: false };
     if (this.restorePromise) return this.restorePromise;
     this.restorePromise = (async () => {
@@ -84,6 +87,7 @@ export class BrowserSessionV2 {
       if (value.authenticated && (typeof value.csrf !== 'string' || typeof value.idle_expires_at !== 'number'))
         throw new BrowserSessionV2Error(502, 'invalid_session_response');
       this.csrf = value.authenticated || value.logout_pending === true ? value.csrf as string : undefined;
+      this.rememberIdentity(value.user);
       if (value.logout_pending === true && typeof this.csrf === 'string') await this.logout();
       if (value.authenticated && typeof value.idle_expires_at === 'number') this.options.onSessionActivity?.(value.idle_expires_at);
       return value as unknown as BrowserSessionV2Status;
@@ -91,20 +95,47 @@ export class BrowserSessionV2 {
     return this.restorePromise;
   }
   private async requireCsrf(): Promise<string> {
+    if (this.sessionChanged) throw new BrowserSessionV2Error(401, 'session_changed');
     if (!this.csrf) await this.status();
+    if (this.sessionChanged) throw new BrowserSessionV2Error(401, 'session_changed');
     if (!this.csrf || this.loggedOut) throw new BrowserSessionV2Error(401, 'session_required');
     return this.csrf;
   }
-  private async post(path: string, body: unknown, signal?: AbortSignal): Promise<Response> {
+  private rememberIdentity(user: unknown): void {
+    this.userId = user && typeof user === 'object' && 'id' in user && typeof user.id === 'string' && user.id.trim()
+      ? user.id : undefined;
+  }
+  private async post(path: string, body: unknown, signal?: AbortSignal, csrf?: string): Promise<Response> {
     return this.transport(`${this.api}${this.options.bffPath ?? '/auth/session/v2'}/${path}`, {
       method: 'POST', credentials: 'include', cache: 'no-store', signal,
-      headers: { 'content-type': 'application/json', 'x-dofe-csrf': await this.requireCsrf() }, body: JSON.stringify(body),
+      headers: { 'content-type': 'application/json', 'x-dofe-csrf': csrf ?? await this.requireCsrf() }, body: JSON.stringify(body),
     });
   }
   private async prepare(body: { operation_id: string; request: RequestEnvelope; coordination?: string }, signal?: AbortSignal): Promise<Record<string, unknown>> {
+    let restoredCsrf = false;
     for (let attempt = 0; ; attempt++) {
-      try { return await json(await this.post('prepare', body, signal)); }
+      signal?.throwIfAborted();
+      const csrf = await this.requireCsrf();
+      const userId = this.csrf === csrf ? this.userId : undefined;
+      try { return await json(await this.post('prepare', body, signal, csrf)); }
       catch (error) {
+        // Another tab can replace the HttpOnly RP Cookie while this tab retains
+        // its old CSRF. Recover only this explicit rejection before dispatch.
+        if (error instanceof BrowserSessionV2Error && error.status === 403 && error.code === 'csrf_rejected' && !restoredCsrf && attempt < 3) {
+          signal?.throwIfAborted();
+          restoredCsrf = true;
+          sessionWindows.delete(this.sessionKey());
+          preparationFailures.delete(this.sessionKey());
+          const status = await this.status();
+          if (!status.authenticated || !userId || this.userId !== userId) {
+            // A changed/missing identity cannot authorize writes queued by the
+            // old page. Only explicit login completion may release this latch.
+            this.sessionChanged = true;
+            throw new BrowserSessionV2Error(401, status.authenticated ? 'session_changed' : 'session_required');
+          }
+          signal?.throwIfAborted();
+          if (status.csrf && status.csrf !== csrf) continue;
+        }
         // This response is emitted only before dispatch. Preserve business bytes
         // and their idempotency header while starting a fresh authority operation.
         if (error instanceof BrowserSessionV2Error && error.code === 'operation_expired_retry' && attempt < 3) {
@@ -253,6 +284,7 @@ export class BrowserSessionV2 {
     });
     const value = await json(response); this.loggedOut = false; sessionWindows.delete(this.sessionKey());
     if (typeof value.csrf !== 'string') throw new BrowserSessionV2Error(502, 'invalid_session_response');
+    this.sessionChanged = false; this.rememberIdentity(value.user);
     this.csrf = value.csrf; return value as unknown as BrowserSessionV2Status;
   }
   async logout(): Promise<void> {
@@ -270,10 +302,10 @@ export class BrowserSessionV2 {
       if (confirmed.confirmed !== true) throw new BrowserSessionV2Error(409, 'logout_cookie_confirmation_required');
     }
     await json(await this.post('logout-confirm', {}));
-    this.loggedOut = true; this.csrf = undefined; sessionWindows.delete(this.sessionKey());
+    this.loggedOut = true; this.csrf = undefined; this.userId = undefined; sessionWindows.delete(this.sessionKey());
   }
   /** Explicit login completion clears the local suppression latch; status probes do not. */
-  loginCompleted() { this.loggedOut = false; this.csrf = undefined; sessionWindows.delete(this.sessionKey()); }
+  loginCompleted() { this.loggedOut = false; this.sessionChanged = false; this.csrf = undefined; this.userId = undefined; sessionWindows.delete(this.sessionKey()); }
 }
 
 /** Fetch-based SSE supports opaque BFF sessions without putting credentials in URLs. */
