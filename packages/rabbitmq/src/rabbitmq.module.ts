@@ -3,6 +3,7 @@ import * as Rabbitmq from 'amqplib';
 import { RABBITMQ_CONNECTION, RabbitmqConnection } from './dto/rabbitmq.dto';
 import { RabbitmqService } from './rabbitmq.service';
 import { createContextLogger } from '@dofe/infra-utils';
+import { redactErrorMessage } from './log-redaction.util';
 
 const logger = createContextLogger('RabbitmqModule');
 const CONNECT_TIMEOUT_MS = 5000;
@@ -15,10 +16,10 @@ const CONNECT_TIMEOUT_MS = 5000;
         const rabbitmqUrl = process.env.RABBITMQ_URL;
         let connection: Rabbitmq.ChannelModel | null = null;
         let connectPromise: Promise<Rabbitmq.ChannelModel> | null = null;
-        logger.info(`init RabbitmqModule rabbitmqUrl=${rabbitmqUrl}`);
+        logger.info('Initializing RabbitMQ module');
 
         const connect = async (): Promise<Rabbitmq.ChannelModel> => {
-          logger.info(`connect RabbitmqModule rabbitmqUrl=${rabbitmqUrl}`);
+          logger.info('Connecting RabbitMQ module');
           if (!rabbitmqUrl) {
             throw new Error('RABBITMQ_URL environment variable is not set');
           }
@@ -31,9 +32,7 @@ const CONNECT_TIMEOUT_MS = 5000;
             return connectPromise;
           }
 
-          logger.info(
-            `Attempting to connect to RabbitMQ host---${rabbitmqUrl}`,
-          );
+          logger.info('Attempting to connect to RabbitMQ');
 
           const urlWithHeartbeat = rabbitmqUrl.includes('?')
             ? `${rabbitmqUrl}&heartbeat=60`
@@ -59,7 +58,7 @@ const CONNECT_TIMEOUT_MS = 5000;
             .catch((error) => {
               connection = null;
               logger.error('Failed to connect to RabbitMQ', {
-                error: error instanceof Error ? error.message : String(error),
+                error: redactErrorMessage(error),
               });
               throw error;
             })
@@ -91,7 +90,7 @@ const CONNECT_TIMEOUT_MS = 5000;
                   !error.message.includes('IllegalOperationError'))
               ) {
                 logger.error('Error closing RabbitMQ connection', {
-                  error: error instanceof Error ? error.message : String(error),
+                  error: redactErrorMessage(error),
                 });
               }
             } finally {
