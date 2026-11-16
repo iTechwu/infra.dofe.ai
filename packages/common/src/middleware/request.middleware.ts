@@ -122,6 +122,14 @@ export function recordRequestDbOperation(
   summary.operations.set(key, operation);
 }
 
+/** 页面或接口整段耗时达到该值时单独记一条，避免每个正常请求都写数据库汇总。 */
+const SLOW_REQUEST_MS = 1000;
+
+function requestPath(url: string | undefined): string {
+  if (!url) return '';
+  return url.split(/[?#]/, 1)[0] ?? '';
+}
+
 function getRequestDbSummaryLogData(
   summary: RequestDbSummary | undefined,
 ): Record<string, unknown> | null {
@@ -200,6 +208,8 @@ export default class RequestMiddleware implements NestMiddleware<
     const realIp = ipUtil.extractIp(req as any);
     (req as any).realIp = realIp;
 
+    const startedAt = Date.now();
+
     asyncLocalStorage.run(
       { traceID: traceId, dbSummary: createRequestDbSummary() },
       () => {
@@ -209,22 +219,48 @@ export default class RequestMiddleware implements NestMiddleware<
         // （此前在 next() 后立即记录，拿到的是处理器运行前的默认 200，
         //  导致大量真实 404/5xx 被记成 200，成功率失真）；
         // close 且未正常结束单独记为 client_cancelled。
+        // 正常请求不再写数据库汇总。只有整段过慢、出现慢查询、数据库错误
+        // 或 5xx 时才记一条，避免每个页面请求都在结束时序列化查询清单。
         res.once('finish', () => {
-          const dbSummary = getRequestDbSummaryLogData(store?.dbSummary);
-          if (dbSummary) {
-            this.logger.info('Request DB Summary', {
+          const durationMs = Date.now() - startedAt;
+          const summary = store?.dbSummary;
+          const slow =
+            durationMs >= SLOW_REQUEST_MS ||
+            (summary?.slowQueryCount ?? 0) > 0 ||
+            (summary?.errorCount ?? 0) > 0 ||
+            res.statusCode >= 500;
+          if (slow) {
+            const dbSummary = getRequestDbSummaryLogData(summary);
+            const requestInfo = environment.isProduction()
+              ? getReqMainInfo(req as any, res as any)
+              : {
+                  method: req.method,
+                  url: requestPath(req.url),
+                  statusCode: res.statusCode,
+                };
+            this.logger.warn('Slow request', {
               traceId,
-              method: req.method,
-              url: req.url,
-              statusCode: res.statusCode,
-              ...dbSummary,
+              durationMs,
+              ...requestInfo,
+              ...(dbSummary
+                ? {
+                    totalQueries: dbSummary.totalQueries,
+                    totalDurationMs: dbSummary.totalDurationMs,
+                    maxDurationMs: dbSummary.maxDurationMs,
+                    slowQueryCount: dbSummary.slowQueryCount,
+                    errorCount: dbSummary.errorCount,
+                    operations: dbSummary.operations,
+                  }
+                : {}),
             });
+            return;
           }
           if (environment.isProduction()) {
             // getReqMainInfo 期望 FastifyRequest/FastifyReply，但中间件中是原生对象
             // 使用类型断言以兼容现有函数（输出已经过脱敏白名单处理）
             this.logger.info('RequestMiddleware', {
               traceId,
+              durationMs,
               ...getReqMainInfo(req as any, res as any),
             });
           }
@@ -235,6 +271,7 @@ export default class RequestMiddleware implements NestMiddleware<
           if (environment.isProduction()) {
             this.logger.info('RequestMiddleware', {
               traceId,
+              durationMs: Date.now() - startedAt,
               ...(getReqMainInfo(req as any, res as any) as Record<string, unknown>),
               responseEnded: false,
               endReason: 'client_cancelled',

@@ -79,5 +79,38 @@ describe('TenantContextGuard', () => {
     );
     expect(tenantContextService.resolveCurrentTenant).not.toHaveBeenCalled();
     expect(request).not.toHaveProperty('tenantId');
+    expect(logger.warn).toHaveBeenCalled();
+  });
+
+  it('skips tenant context without a warning when the route does not require a tenant', async () => {
+    const request = { headers: {} };
+    const context = {
+      switchToHttp: () => ({ getRequest: () => request }),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
+    } as unknown as ExecutionContext;
+    const reflector = {
+      getAllAndOverride: vi.fn().mockReturnValue(false),
+    } as unknown as Reflector;
+    const tenantContextService = {
+      resolveCurrentTenant: vi.fn(),
+      getTenantMember: vi.fn(),
+    };
+    const logger = {
+      debug: vi.fn(),
+      warn: vi.fn(),
+    };
+    const guard = new TenantContextGuard(
+      reflector,
+      tenantContextService,
+      logger as never,
+    );
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+    expect(logger.warn).not.toHaveBeenCalled();
+    expect(logger.debug).toHaveBeenCalledWith(
+      'No userId found in request, skipping tenant context',
+    );
+    expect(tenantContextService.resolveCurrentTenant).not.toHaveBeenCalled();
   });
 });

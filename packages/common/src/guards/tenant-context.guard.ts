@@ -85,7 +85,9 @@ export class TenantContextGuard implements CanActivate {
           '无法确定当前租户：缺少用户身份，请检查认证守卫是否先于租户上下文守卫执行',
         );
       }
-      this.logger.warn('No userId found in request, skipping tenant context');
+      // 登录页、静默检查和其它未登录请求会走到这里。这是预期路径，
+      // 不能记 warn：历史日志里这一条同时进入 info 与 warn，占满请求周期。
+      this.logger.debug('No userId found in request, skipping tenant context');
       return true;
     }
 
