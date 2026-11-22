@@ -73,6 +73,24 @@ test('browser logout confirmation failure retains RP recovery and retries comple
 test('RP logout remains recoverable until SSO verifies the new suppression cookie',async()=>{
  const s=setup({logoutCookieRejected:true});await s.client.status();await assert.rejects(s.client.logout(),e=>e.status===409);assert(!s.calls.some(p=>p.endsWith('/logout-confirm')));
 });
+test('pending logout against a successor central session finishes without clearing that session',async()=>{
+ const calls=[];
+ const fetch=async(input)=>{
+  const path=new URL(input).pathname;calls.push(path);
+  if(path.endsWith('/status'))return Response.json({authenticated:false,logout_pending:true,csrf:'csrf'});
+  if(path.endsWith('/logout'))return Response.json({logout_ticket:'logout-ticket',session_context:'browser'});
+  if(path.endsWith('/logout-complete'))return Response.json({logged_out:true,browser_session:'retained'});
+  if(path.endsWith('/logout-cookie-confirm'))return Response.json({error:'invalid_grant'},{status:400});
+  if(path.endsWith('/logout-confirm'))return Response.json({logged_out:true});
+  throw new Error(path);
+ };
+ const client=new BrowserSessionV2({apiBaseUrl:'https://rp.example/api',ssoBaseUrl:'https://sso.example/api',fetch});
+ const status=await client.status();
+ assert.equal(status.authenticated,false);
+ assert.equal(calls.filter(path=>path.endsWith('/logout-cookie-confirm')).length,0);
+ assert.ok(calls.some(path=>path.endsWith('/logout-confirm')));
+ assert.equal((await client.status()).authenticated,false);
+});
 
 test('safe prepared recovery uses a fresh rotation op with unchanged business bytes and idempotency key',async()=>{
  const prepares=[];let dispatch;let latest;

@@ -296,10 +296,14 @@ export class BrowserSessionV2 {
         headers: { 'content-type': 'application/json' }, body: JSON.stringify({ logout_ticket: result.logout_ticket }),
       }));
       if (completed.logged_out !== true) throw new BrowserSessionV2Error(502, 'logout_completion_failed');
-      const confirmed = await json(await this.transport(`${this.sso}/auth/session/v2/logout-cookie-confirm`, {
-        method: 'POST', credentials: 'include', cache: 'no-store', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ logout_ticket: result.logout_ticket }),
-      }));
-      if (confirmed.confirmed !== true) throw new BrowserSessionV2Error(409, 'logout_cookie_confirmation_required');
+      // The central jar already belongs to a later session. SSO confirmed the
+      // revoked logout and deliberately left that newer cookie in place.
+      if (completed.browser_session !== 'retained') {
+        const confirmed = await json(await this.transport(`${this.sso}/auth/session/v2/logout-cookie-confirm`, {
+          method: 'POST', credentials: 'include', cache: 'no-store', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ logout_ticket: result.logout_ticket }),
+        }));
+        if (confirmed.confirmed !== true) throw new BrowserSessionV2Error(409, 'logout_cookie_confirmation_required');
+      }
     }
     await json(await this.post('logout-confirm', {}));
     this.loggedOut = true; this.csrf = undefined; this.userId = undefined; sessionWindows.delete(this.sessionKey());
